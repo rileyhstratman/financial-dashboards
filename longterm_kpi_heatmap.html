@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Long-Term Sector KPI Heat Map — Illustrative</title>
+<title>Long-Term Sector KPI Heat Map — Sector Averages (Jul 2026)</title>
 <style>
   :root{--bg:#12151c;--panel:#1b2029;--border:#2c3442;--text:#e8ebf0;--dim:#9aa4b2;--accent:#5aa7ff;}
   *{box-sizing:border-box}
@@ -251,7 +251,7 @@ const KPI={ // desc = plain-English meaning · abs(v) = absolute health check (g
  pe:{name:"P/E",f:"Price/EPS",dir:-1,fmt:v=>v+"×",
   desc:"How many years of current profit you pay for the stock at today's price",
   abs:v=>v<15?"cheap-ish (<15×)":v<=25?"typical (15–25×)":"priced for growth (>25×)"},
- de:{name:"Debt-to-equity",f:"Total liabilities/Equity",dir:-1,fmt:v=>v.toFixed(2)+"×",
+ de:{name:"Debt-to-equity",f:"Here: Total debt/Market equity — NOT the scope-doc book definition (see Data sources)",dir:-1,fmt:v=>v.toFixed(2)+"×",
   desc:"Debt load vs the owners' stake (here: debt ÷ market value of equity)",
   abs:v=>v<0.5?"conservative (<0.5×)":v<=1?"moderate (0.5–1×)":"leveraged (>1×)"},
  roe:{name:"ROE",f:"Net income/Avg equity",dir:1,fmt:v=>v+"%",
