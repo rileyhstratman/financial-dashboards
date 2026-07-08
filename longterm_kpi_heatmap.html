@@ -131,22 +131,22 @@
   </div>
   <div class="block">
     <h3>Scoring — how every 0–10 rating is built</h3>
-    <b>Step 1 — Absolute score (60% weight).</b> Each ratio's value is scored 0–10 against published rule-of-thumb anchors by straight-line interpolation. This captures <i>what the number means on its own</i> — a 55% gross margin is strong regardless of what other sectors do. The anchors:
+    <b>Step 1 — Absolute score (60% weight).</b> Each ratio's value is scored 0–10 against published rule-of-thumb anchors by straight-line interpolation. This captures <i>what the number means on its own</i>. Crucially, <b>not every ratio is "lower = better" or "higher = better"</b> — three have a sweet spot where both extremes are penalized:
     <table style="margin-top:6px">
-      <tr><th>KPI</th><th>0 points at</th><th>5 points at</th><th>10 points at</th></tr>
-      <tr><td>Gross margin</td><td>≤10%</td><td>30%</td><td>≥50%</td></tr>
-      <tr><td>Net margin</td><td>≤0%</td><td>10%</td><td>≥20%</td></tr>
-      <tr><td>Current ratio</td><td>≤0.8×</td><td>~1.4× (4 pts at 1.2, 8 pts at 2.0)</td><td>≥3.0×</td></tr>
-      <tr><td>Inventory turnover</td><td>≤2×/yr</td><td>6×/yr</td><td>≥12×/yr</td></tr>
-      <tr><td>AR turnover</td><td>≤4×/yr</td><td>8×/yr</td><td>≥12×/yr</td></tr>
-      <tr><td>ROA</td><td>≤0%</td><td>5%</td><td>≥12%</td></tr>
-      <tr><td>P/E (lower better)</td><td>≥40×</td><td>25×</td><td>≤12×</td></tr>
-      <tr><td>Debt/equity (lower better)</td><td>≥1.5×</td><td>0.75×</td><td>≤0.1×</td></tr>
-      <tr><td>ROE</td><td>≤4%</td><td>12%</td><td>≥20%</td></tr>
+      <tr><th>KPI</th><th>Shape</th><th>Scoring anchors (value → points)</th><th>Why</th></tr>
+      <tr><td>Gross margin</td><td>higher better</td><td>10%→0 · 30%→5 · 50%→10</td><td>More of each sales dollar kept.</td></tr>
+      <tr><td>Net margin</td><td>higher better</td><td>0%→0 · 10%→5 · 20%→10</td><td>Bottom-line keep rate.</td></tr>
+      <tr><td>Current ratio</td><td><b>sweet spot 1.5–2.5×</b></td><td>0.5→0 · 1.0→4 · 1.5→9 · 2.0→10 · 3.0→8 · 5.0→5</td><td>Too low = can't pay bills; too high = idle capital earning nothing.</td></tr>
+      <tr><td>Inventory turnover</td><td>higher better, capped</td><td>1→0 · 4→4 · 8→8 · 15→10 · 30→8</td><td>Fast turns are good until they signal understocking.</td></tr>
+      <tr><td>AR turnover</td><td>higher better, capped</td><td>3→0 · 6→4 · 9→7 · 12→10 · 25→9</td><td>Fast collection is good; extreme = credit terms so tight they may cost sales.</td></tr>
+      <tr><td>ROA</td><td>higher better</td><td>0%→0 · 5%→5 · 12%→10</td><td>Profit per dollar of assets.</td></tr>
+      <tr><td>P/E</td><td><b>sweet spot ~12–15×</b></td><td>5→3 · 8→6 · 12→10 · 18→8 · 25→5 · 40→1 · 60→0</td><td>High = expensive, but VERY low usually means the market smells distress (value trap), not a bargain.</td></tr>
+      <tr><td>Debt/equity (market)</td><td><b>sweet spot 0.3–0.6×</b></td><td>0→7 · 0.2→9 · 0.5→10 · 0.8→7 · 1.2→4 · 2.0→0</td><td>High debt = risk, but ZERO debt wastes the interest tax shield (see the Leland–Toft framework in the scope doc). Optimal is moderate.</td></tr>
+      <tr><td>ROE</td><td>higher better + DuPont check</td><td>4%→0 · 12%→5 · 20%→10, then penalized if leverage-inflated</td><td>ROE = ROA × leverage multiplier: a high ROE built on debt isn't quality. Multiplier &gt;3× costs 1.5 pts, &gt;5× costs 3 pts.</td></tr>
     </table>
-    <b>Step 2 — Relative score (40% weight).</b> The ratio's position among the 4 sectors, min–max scaled to 0–10 (direction-aware). This is the cross-sector reference: strong-for-the-group earns extra credit, weak-for-the-group loses it.<br>
-    <b>Step 3 — Blend.</b> KPI rating = 0.6 × absolute + 0.4 × relative. Category rating = plain average of its KPI ratings (N/A excluded). Overall = plain average of category ratings.<br>
-    <b>Step 4 — Cross-check.</b> Ratios inside one category describe the same trait, so they're compared to each other: if their ratings disagree by more than 2 points the cell is flagged <b>⚠ mixed signals</b> — read the individual rows before trusting the average.<br>
+    <b>Step 2 — Relative score (40% weight).</b> Computed in <b>goodness space</b>: each sector's ABSOLUTE score (not its raw ratio) is min–max ranked 0–10 across the 4 sectors. This is what makes cross-sector comparison correct for sweet-spot metrics — a sector near the P/E sweet spot beats both the distress-cheap one and the expensive one, which raw-value ranking would get wrong.<br>
+    <b>Step 3 — Blend.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE). Category rating = plain average of its KPI ratings (N/A excluded). Overall = plain average of category ratings.<br>
+    <b>Step 4 — Cross-checks between ratios.</b> Ratios are tied together by accounting identities, and the panel reads them against each other: <b>net÷gross margin</b> (how much gross profit survives operating costs), <b>ROE÷ROA</b> (DuPont leverage multiplier), <b>P/E÷measured growth</b> (PEG-style: is the price backed by history?). Ratings within a category that disagree by &gt;2 points flag <b>⚠ mixed signals</b>.<br>
     <b>Verdict bands:</b> 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.
   </div>
   <div class="block">
@@ -291,17 +291,18 @@ const D={
    Category rating = average of its KPI ratings; if KPI ratings within a category disagree by
      >2 points, the panel flags "mixed signals" (cross-check between ratios describing the same thing).
    Verdict bands: 0-2 Very Bearish · 2-4 Bearish · 4-6 Neutral · 6-8 Bullish · 8-10 Very Bullish. */
-const ANCH={ // [value, score] anchors; decreasing value order = lower-is-better metric
- gm:[[10,0],[30,5],[50,10]],
- nm:[[0,0],[10,5],[20,10]],
- cur:[[0.8,0],[1.2,4],[2.0,8],[3.0,10]],
- qk:[[0.5,0],[1.0,5],[1.5,10]],
- inv:[[2,0],[6,5],[12,10]],
- ar:[[4,0],[8,5],[12,10]],
- roa:[[0,0],[5,5],[12,10]],
- pe:[[40,0],[25,5],[12,10]],
- de:[[1.5,0],[0.75,5],[0.1,10]],
- roe:[[4,0],[12,5],[20,10]]
+const ANCH={ // [value, score] anchors. NOT all monotonic: some ratios have a SWEET SPOT —
+ // too low AND too high are both bad. Direction/shape lives entirely in these anchors.
+ gm:[[10,0],[30,5],[50,10]],                                  // higher better
+ nm:[[0,0],[10,5],[20,10]],                                   // higher better
+ cur:[[0.5,0],[1.0,4],[1.5,9],[2.0,10],[3.0,8],[5.0,5]],      // sweet spot 1.5-2.5x; beyond = idle capital
+ qk:[[0.3,0],[0.8,5],[1.2,10],[2.5,8]],                       // sweet spot ~1-2x
+ inv:[[1,0],[4,4],[8,8],[15,10],[30,8]],                      // higher better, extreme = understock risk
+ ar:[[3,0],[6,4],[9,7],[12,10],[25,9]],                       // higher better, extreme = overly tight credit
+ roa:[[0,0],[5,5],[12,10]],                                   // higher better
+ pe:[[5,3],[8,6],[12,10],[18,8],[25,5],[40,1],[60,0]],        // sweet spot ~12-15x; <8 = distress-priced value trap, high = expensive
+ de:[[0,7],[0.2,9],[0.5,10],[0.8,7],[1.2,4],[2.0,0]],         // sweet spot 0.3-0.6x market D/E; ZERO debt wastes the tax shield (Leland-Toft), high = risk
+ roe:[[4,0],[12,5],[20,10]]                                   // higher better, but cross-checked vs ROA (DuPont) below
 };
 function absScore(key,x){
  const a=ANCH[key]; if(!a||x==null) return null;
@@ -360,21 +361,34 @@ const CATS=[
  {name:"Leverage",kpis:["de","roe"]}
 ];
 
-/* ---------- scoring: 0.6×absolute + 0.4×relative, 0-10 ---------- */
+/* ---------- scoring: 0.6×absolute + 0.4×relative, 0-10 ----------
+   RELATIVE is computed in GOODNESS SPACE: each sector's ABSOLUTE score is min-max ranked,
+   not the raw ratio. This makes direction handling exact for every metric — including the
+   sweet-spot ones (current ratio, P/E, D/E) where neither "higher" nor "lower" is simply better. */
 function relScore(key,sector){
  const k=KPI[key]; if(k.dir===0) return null;
- const x=D[sector][key]; if(x==null) return null;
- const vals=SECTORS.map(s=>D[s][key]).filter(v=>v!=null);
- const mn=Math.min(...vals),mx=Math.max(...vals);
+ if(D[sector][key]==null) return null;
+ const A=SECTORS.map(s=>D[s][key]==null?null:absScore(key,D[s][key])).filter(v=>v!=null);
+ const mn=Math.min(...A),mx=Math.max(...A);
  if(mx===mn) return 5;
- return k.dir===1 ? 10*(x-mn)/(mx-mn) : 10*(mx-x)/(mx-mn);
+ return 10*(absScore(key,D[sector][key])-mn)/(mx-mn);
+}
+function dupontMult(sector){ // ROE = ROA × leverage multiplier (DuPont). High multiplier = debt-fueled ROE.
+ const roe=D[sector].roe, roa=D[sector].roa;
+ return (roe!=null&&roa!=null&&roa>0)? roe/roa : null;
+}
+function dupontPenalty(sector){ // cross-reference ROE against ROA: penalize leverage-amplified returns
+ const m=dupontMult(sector);
+ return m==null?0 : m<=3?0 : m<=5?1.5 : 3;
 }
 function kpiScore(key,sector){
  const k=KPI[key]; if(k.dir===0) return null;
  const x=D[sector][key]; if(x==null) return null;
  const a=absScore(key,x), r=relScore(key,sector);
  if(a==null||r==null) return null;
- return 0.6*a+0.4*r;
+ let s=0.6*a+0.4*r;
+ if(key==="roe") s=Math.max(0,s-dupontPenalty(sector));
+ return s;
 }
 function catScore(cat,sector){
  const ss=cat.kpis.map(k=>kpiScore(k,sector)).filter(v=>v!=null);
@@ -431,11 +445,25 @@ window.showDetail=function(sector,ci){
   if(key==="pe"&&sector==="Global Defense") health+="; 50.6% of aerospace/defense firms are currently loss-making, inflating this aggregate further";
   if(key==="ar") health+=" — computed on total sales, so slightly overstated";
   const anch=ANCH[key].map(p=>p[0]+"→"+p[1]).join(", ");
+  const pen=key==="roe"?dupontPenalty(sector):0;
   h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td><b>${k.fmt(x)}</b></td><td>${health}</td>
    <td title="Anchors: ${anch}"><b>${a.toFixed(1)}</b></td><td><b>${r.toFixed(1)}</b></td>
-   <td><b>${sc.toFixed(1)}</b><br><span class="muted" style="font-size:10px">0.6×${a.toFixed(1)} + 0.4×${r.toFixed(1)}</span></td></tr>`;
+   <td><b>${sc.toFixed(1)}</b><br><span class="muted" style="font-size:10px">0.6×${a.toFixed(1)} + 0.4×${r.toFixed(1)}${pen>0?" − "+pen.toFixed(1)+" DuPont":""}</span></td></tr>`;
  });
  h+='</table>';
+ // Cross-reference lines: identities that tie the ratios to each other
+ if(cat.name==="Profitability"&&D[sector].gm!=null&&D[sector].nm!=null){
+  const conv=100*D[sector].nm/D[sector].gm;
+  h+=`<div style="margin-top:6px" class="muted">Cross-check: <b>${conv.toFixed(0)}%</b> of each gross-profit dollar survives to the bottom line (net ÷ gross margin). ${conv<20?"Very heavy operating costs eat the gross margin.":conv<35?"Typical operating-cost load.":"Lean operating structure — gross profit converts efficiently."}</div>`;
+ }
+ if(cat.name==="Leverage"&&dupontMult(sector)!=null){
+  const m=dupontMult(sector);
+  h+=`<div style="margin-top:6px" class="muted">Cross-check (DuPont): ROE ${D[sector].roe}% ÷ ROA ${D[sector].roa}% = <b>${m.toFixed(1)}× leverage multiplier</b>. ${m<=2.5?"Returns are operationally earned — debt amplifies them only modestly.":m<=5?"A meaningful share of ROE comes from leverage rather than operations (penalty applied to the ROE rating).":"ROE is heavily debt-inflated — treat the headline return with suspicion (penalty applied)."}</div>`;
+ }
+ if(cat.name==="Valuation"&&D[sector].pe!=null&&typeof SIM_ASSUME!=="undefined"&&SIM_ASSUME[sector]){
+  const g10=100*SIM_ASSUME[sector].mu, ratio=D[sector].pe/g10;
+  h+=`<div style="margin-top:6px" class="muted">Cross-check (price vs growth): P/E ${D[sector].pe}× against a measured 10-yr return of ${g10.toFixed(1)}%/yr → ratio <b>${ratio.toFixed(1)}</b> (PEG-style; lower = price better backed by history). ${ratio<=1.5?"The price has historical growth behind it.":ratio<=2.5?"Price modestly ahead of demonstrated growth.":"Price well ahead of what history has delivered — the market is paying for a future that hasn't happened yet."}</div>`;
+ }
  if(scores.length){
   const avg=scores.reduce((a,b)=>a+b,0)/scores.length, sp=catSpread(cat,sector);
   h+=`<div style="margin-top:8px">Category rating = average of KPI ratings = (${scores.map(s=>s.toFixed(1)).join(" + ")}) / ${scores.length} = <b>${avg.toFixed(1)} / 10 → ${verdict(avg)}</b></div>`;
