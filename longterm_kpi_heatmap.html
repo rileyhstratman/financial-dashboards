@@ -41,7 +41,7 @@
 <h1>Long-Term Sector KPI Heat Map <span class="muted" style="font-size:14px">(2–5 yr lens)</span></h1>
 <div class="muted" style="font-size:13px">Companion to <code>05_roadmap/LONGTERM_SECTOR_ANALYSIS_SCOPE.md</code> · Built 2026-07-06</div>
 
-<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> KPI inputs are now real sector aggregates: Damodaran/NYU Stern (Jan 2026, all US-listed firms, firm-count-weighted across mapped industries) and FullRatio (Jun–Jul 2026). Full methodology + caveats in "How to Read" → Data sources. Quick ratio and EPS have no reliable sector-level source and show N/A. Monte Carlo μ/σ are measured from 10-yr sector-ETF history (backward-looking); g is still assumed. Company-level analysis will use real filings, not these averages.</div>
+<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> Four sectors: Energy, Materials, Global Defense (US-listed aerospace & defense firms), Information Technology. Data: Damodaran/NYU Stern (Jan 2026, all US-listed firms, firm-count-weighted) and FullRatio (Jun–Jul 2026); all inputs verified against source pages. Scores are 0–10 bullish/bearish ratings blending an absolute health check (60%) with a cross-sector comparison (40%) — methodology in "How to Read". Quick ratio and EPS show N/A (no reliable sector-level source). Monte Carlo μ/σ measured from 10-yr ETF history (Defense uses XLI Industrials as a labeled proxy); g assumed.</div>
 
 <div class="tabs">
   <div class="tab active" data-page="p1">1 · Heat Map</div>
@@ -56,19 +56,19 @@
 <!-- ============ PAGE 1: HEATMAP ============ -->
 <div class="page active" id="p1">
   <div class="block" style="border-left:3px solid var(--accent)">
-    <b>How to read this in 10 seconds.</b> Every number is a <b>rank from 0 to 100 against the other four sectors only</b>. 100 = best of the five, 0 = lowest of the five — <b>a 0 does NOT mean "bad."</b>
-    Example: Energy's Liquidity is 0 because its current ratio (1.4×) is the lowest of the five — but 1.4× is still a healthy level in absolute terms. Click any cell and the panel below shows the real number, what it means in plain English, and whether it's actually healthy.
-    Grey <b>N/A</b> cells mean the metric doesn't apply to that sector (hover them for why) — they're skipped, not counted as zero.
+    <b>How to read this in 10 seconds.</b> Every cell is a <b>0–10 rating, read like a stock call</b>: 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.
+    Each rating blends two things: <b>(1) what the ratio's value actually means</b>, scored against published rules of thumb (60% weight), and <b>(2) how it compares to the other three sectors</b> (40% weight). Ratios describing the same category are cross-checked — when they disagree, the cell is flagged <b>"mixed signals."</b>
+    Click any cell for the raw numbers, both score components, and the exact arithmetic. Grey <b>N/A</b> = no reliable data — skipped, never counted as zero.
   </div>
   <div class="legend">
-    <span>Score 0 (worst of the 5)</span>
+    <span>0 Very Bearish</span>
     <span class="swatch" style="background:#c0392b"></span>
     <span class="swatch" style="background:#e67e22"></span>
     <span class="swatch" style="background:#f1c40f"></span>
     <span class="swatch" style="background:#7dcb4b"></span>
     <span class="swatch" style="background:#27ae60"></span>
-    <span>100 (best of the 5)</span>
-    <span style="margin-left:14px">· Click any cell to see exactly how its number was computed.</span>
+    <span>10 Very Bullish</span>
+    <span style="margin-left:14px">· Click any cell to see exactly how its rating was computed.</span>
   </div>
   <div id="heatmap"></div>
   <div class="detail" id="detail"><span class="muted">Click a cell above — this panel will show the raw KPI values, formulas, and the arithmetic that produced the score.</span></div>
@@ -97,7 +97,7 @@
 <div class="page" id="p3">
   <div class="block">
     <h3>The one-sentence version</h3>
-    Each cell answers: <i>"on this KPI category, how does this sector's (fake, illustrative) number rank against the other four sectors, scaled 0–100?"</i>
+    Each cell answers: <i>"weighing what this sector's ratios actually mean AND how they compare to the other three sectors, how bullish or bearish is the picture, on a 0–10 scale?"</i>
   </div>
   <div class="block">
     <h3>Variable glossary — every symbol used in this dashboard</h3>
@@ -130,20 +130,32 @@
     <div class="muted" style="margin-top:6px;font-size:12px">The 11 KPI ratios themselves (gross margin, P/E, ROE…) are defined with formulas in the table below, and in plain English inside every clickable cell on tab 1.</div>
   </div>
   <div class="block">
-    <h3>Scoring — every number is built the same way</h3>
-    <b>Step 1.</b> Each KPI has an illustrative sector value (see cell click-through) and a direction: <i>higher-is-better</i> (margins, ratios of return, turnover, liquidity) or <i>lower-is-better</i> (P/E, debt-to-equity).<br>
-    <b>Step 2.</b> Min–max normalize across the 5 sectors:
-    <span class="eq">higher-better:  score = 100 × (x − min) / (max − min)
-lower-better:   score = 100 × (max − x) / (max − min)</span>
-    <b>Step 3.</b> Category score = plain average of its KPI scores (N/A excluded). Composite = plain average of available category scores. No weights anywhere — deliberately, so nothing is hidden.
+    <h3>Scoring — how every 0–10 rating is built</h3>
+    <b>Step 1 — Absolute score (60% weight).</b> Each ratio's value is scored 0–10 against published rule-of-thumb anchors by straight-line interpolation. This captures <i>what the number means on its own</i> — a 55% gross margin is strong regardless of what other sectors do. The anchors:
+    <table style="margin-top:6px">
+      <tr><th>KPI</th><th>0 points at</th><th>5 points at</th><th>10 points at</th></tr>
+      <tr><td>Gross margin</td><td>≤10%</td><td>30%</td><td>≥50%</td></tr>
+      <tr><td>Net margin</td><td>≤0%</td><td>10%</td><td>≥20%</td></tr>
+      <tr><td>Current ratio</td><td>≤0.8×</td><td>~1.4× (4 pts at 1.2, 8 pts at 2.0)</td><td>≥3.0×</td></tr>
+      <tr><td>Inventory turnover</td><td>≤2×/yr</td><td>6×/yr</td><td>≥12×/yr</td></tr>
+      <tr><td>AR turnover</td><td>≤4×/yr</td><td>8×/yr</td><td>≥12×/yr</td></tr>
+      <tr><td>ROA</td><td>≤0%</td><td>5%</td><td>≥12%</td></tr>
+      <tr><td>P/E (lower better)</td><td>≥40×</td><td>25×</td><td>≤12×</td></tr>
+      <tr><td>Debt/equity (lower better)</td><td>≥1.5×</td><td>0.75×</td><td>≤0.1×</td></tr>
+      <tr><td>ROE</td><td>≤4%</td><td>12%</td><td>≥20%</td></tr>
+    </table>
+    <b>Step 2 — Relative score (40% weight).</b> The ratio's position among the 4 sectors, min–max scaled to 0–10 (direction-aware). This is the cross-sector reference: strong-for-the-group earns extra credit, weak-for-the-group loses it.<br>
+    <b>Step 3 — Blend.</b> KPI rating = 0.6 × absolute + 0.4 × relative. Category rating = plain average of its KPI ratings (N/A excluded). Overall = plain average of category ratings.<br>
+    <b>Step 4 — Cross-check.</b> Ratios inside one category describe the same trait, so they're compared to each other: if their ratings disagree by more than 2 points the cell is flagged <b>⚠ mixed signals</b> — read the individual rows before trusting the average.<br>
+    <b>Verdict bands:</b> 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.
   </div>
   <div class="block">
     <h3>Interpretation warnings (read once)</h3>
-    · <b>Relative, not absolute:</b> a 100 means "best of these five sectors," not "good." A sector can score 100 and still be objectively weak.<br>
-    · <b>P/E scored lower-is-better</b> = a value lens. Under a growth lens, high P/E can be justified; the 2–5 yr thesis step decides that per company, not this map.<br>
-    · <b>EPS is displayed but NOT scored</b> — raw EPS isn't comparable across sectors (share counts differ arbitrarily).<br>
-    · <b>Financials:</b> gross margin, current/quick ratio, and both turnover KPIs are N/A (banks have no COGS/inventory; deposit funding breaks current-ratio logic). Their composite averages only what applies — flagged in scope doc as needing a bank-specific ratio set.<br>
-    · <b>Cross-sector min–max is crude by design:</b> it compresses everything into the spread of 5 data points. Real version should normalize within-sector versus history or versus a full universe.
+    · <b>The anchors are judgment calls</b> — standard finance rules of thumb, but not laws. They're published in the table above precisely so you can challenge them.<br>
+    · <b>P/E scored lower-is-better</b> = a value lens. Under a growth lens a high P/E can be justified; the 2–5 yr thesis step decides that per company. Defense's extreme aggregate P/E (45.9×) is partly a data artifact — half its firms are currently loss-making.<br>
+    · <b>EPS is displayed but NOT rated</b> — raw EPS isn't comparable across sectors (share counts differ arbitrarily).<br>
+    · <b>Global Defense ≈ US-listed aerospace & defense.</b> "Global" reflects the revenue base, not the listing venue — international primes (BAE, Rheinmetall...) are not in the US dataset.<br>
+    · <b>These are sector averages</b> — a Bullish sector can contain terrible companies and vice versa. Company selection is the next pipeline stage.
   </div>
   <div class="block">
     <h3>KPI formulas used (from scope doc, your definitions)</h3>
@@ -171,13 +183,13 @@ lower-better:   score = 100 × (max − x) / (max − min)</span>
       <tr><td>P/E</td><td>Damodaran, Jan 2026</td><td><b>Forward</b> P/E, all listed firms. Runs higher than S&P 500 sector P/Es (e.g., Energy 21× here vs ~12× S&P-500-only) because unprofitable small caps inflate aggregates.</td></tr>
       <tr><td>Debt-to-equity</td><td>Damodaran, Jan 2026</td><td>⚠ <b>Market</b> debt/equity (debt ÷ market cap), NOT the scope-doc definition (total liabilities ÷ book equity). Book-based D/E would be much higher. Kept because it's the consistent cross-sector series available.</td></tr>
       <tr><td>ROE</td><td>Damodaran, Jan 2026</td><td>Unadjusted ROE, firm-count-weighted.</td></tr>
-      <tr><td>ROA</td><td>Derived / FullRatio</td><td>Non-financials: ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities. Financials: 1.1% from FullRatio bank averages (the approximation breaks for banks).</td></tr>
-      <tr><td>Current ratio</td><td>FullRatio, Jul 2026</td><td>Unweighted industry averages, firm-count-weighted into sectors. Financials N/A (deposit funding breaks the metric).</td></tr>
+      <tr><td>ROA</td><td>Derived</td><td>ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities.</td></tr>
+      <tr><td>Current ratio</td><td>FullRatio, Jul 2026</td><td>Unweighted industry averages, firm-count-weighted into sectors.</td></tr>
       <tr><td>Quick ratio, EPS</td><td>—</td><td>N/A: no reliable sector-level source found; will be computed per company from filings in the company-analysis step. Not fabricated.</td></tr>
-      <tr><td>μ, σ (Monte Carlo)</td><td>LazyPortfolioETF, Jun 30 2026</td><td>10-yr annualized return (μ) and 10-yr standard deviation (σ) of the SPDR sector ETFs: XLE (Energy), XLB (Materials), XLY (Cons. Disc.), XLF (Financials), XLK (Info Tech). ⚠ Backward-looking: assumes the next decade resembles the last — most aggressive for Info Tech.</td></tr>
+      <tr><td>μ, σ (Monte Carlo)</td><td>LazyPortfolioETF, Jun 30 2026</td><td>10-yr annualized return (μ) and standard deviation (σ) of sector ETFs: XLE (Energy), XLB (Materials), XLK (Info Tech). ⚠ Global Defense uses <b>XLI (Industrials) as a proxy</b> — no defense-specific ETF in the source; defense primes are a subset of XLI. Backward-looking throughout — most aggressive for Info Tech.</td></tr>
       <tr><td>g (perpetual growth)</td><td>Assumption</td><td>Still assumed per sector, bounded by the scope doc's 2–4% macro-growth cap.</td></tr>
     </table>
-    <div class="muted" style="margin-top:8px;font-size:12px">Sector mapping: Energy = oil/gas integrated + E&P + distribution + oilfield services + coal (282 firms). Materials = chemicals + metals & mining + precious metals + steel + paper + packaging + construction supplies (305). Consumer Discretionary = retail (ex-grocery) + autos + apparel + hotels/gaming + restaurants + homebuilding + recreation + education (606). Financials = banks + brokerage + insurance + asset management + non-bank financial services (1,173). Info Tech = software + semiconductors + hardware + electronics + IT services + telecom equipment (791).</div>
+    <div class="muted" style="margin-top:8px;font-size:12px">Sector mapping: Energy = oil/gas integrated + E&P + distribution + oilfield services + coal (282 firms). Materials = chemicals + metals & mining + precious metals + steel + paper + packaging + construction supplies (305). Global Defense = Damodaran "Aerospace/Defense" industry (79 US-listed firms — includes commercial aerospace; international primes not covered). Info Tech = software + semiconductors + hardware + electronics + IT services + telecom equipment (791). All Damodaran inputs re-verified against the source pages on Jul 8, 2026.</div>
   </div>
   <div class="block">
     <h3>Complex-layer columns (page 2)</h3>
@@ -194,7 +206,7 @@ lower-better:   score = 100 × (max − x) / (max − min)</span>
   <div class="block" style="display:flex;align-items:center;gap:12px">
     <b>Sector:</b>
     <select id="profSel" style="background:#10141b;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:14px"></select>
-    <span class="muted">Radar = category scores (0–100, vs the other 4 sectors). Strips = where each raw KPI sits inside the 5-sector range.</span>
+    <span class="muted">Radar = category ratings (0–10 bullish/bearish scale). Strips = where each raw KPI sits inside the 4-sector range, with its rating and verdict.</span>
   </div>
   <div id="profile"></div>
 </div>
@@ -258,18 +270,50 @@ const rand=mulberry32(20260706);
 function randn(){let u=0,v=0;while(u===0)u=rand();while(v===0)v=rand();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 
 /* ---------- Sector-average inputs from public sources (see How to Read → Data sources) ----------
-   Damodaran/NYU Stern Jan 2026 (firm-count-weighted industry aggregates): gm, nm, inv, ar, pe(forward), de(market), roe, roa(derived, non-fin)
-   FullRatio Jun-Jul 2026: cur; Financials roa (banks ~1.0-1.1)
-   null = N/A: no reliable sector-level source, or metric not meaningful for the sector */
-const SECTORS=["Energy","Materials","Consumer Discretionary","Financials","Information Technology"];
+   Damodaran/NYU Stern Jan 2026 (firm-count-weighted industry aggregates, verified against source pages):
+   gm, nm, inv, ar, pe(forward), de(market), roe, roa(derived). FullRatio Jun-Jul 2026: cur.
+   Global Defense = Damodaran "Aerospace/Defense" industry (79 US-listed firms).
+   null = N/A: no reliable sector-level source. */
+const SECTORS=["Energy","Materials","Global Defense","Information Technology"];
 const D={
  "Energy":                 {gm:37.5,nm:9.3, cur:1.36,qk:null,inv:12.2,ar:9.5, eps:null,pe:21.2,de:0.36,roe:10.6,roa:6.6},
  "Materials":              {gm:32.2,nm:9.8, cur:2.36,qk:null,inv:3.9, ar:8.8, eps:null,pe:20.9,de:0.29,roe:12.4,roa:7.8},
- "Consumer Discretionary": {gm:35.3,nm:5.1, cur:1.56,qk:null,inv:4.5, ar:12.6,eps:null,pe:27.8,de:0.32,roe:16.5,roa:6.1},
- "Financials":             {gm:null,nm:22.7,cur:null,qk:null,inv:null,ar:null,eps:null,pe:14.4,de:0.81,roe:15.0,roa:1.1},
+ "Global Defense":         {gm:17.5,nm:5.0, cur:2.44,qk:null,inv:2.9, ar:4.2, eps:null,pe:45.9,de:0.15,roe:15.3,roa:6.9},
  "Information Technology": {gm:55.7,nm:19.4,cur:2.16,qk:null,inv:6.7, ar:5.9, eps:null,pe:35.8,de:0.08,roe:23.9,roa:15.3}
 };
-const KPI={ // desc = plain-English meaning · abs(v) = absolute health check (general rules of thumb, independent of the 0-100 rank)
+/* ---------- 10-point scoring engine ----------
+   Rating = 0.6 × ABSOLUTE score + 0.4 × RELATIVE score, both on 0-10.
+   ABSOLUTE: piecewise-linear interpolation between published rule-of-thumb anchors below —
+     this is where "the meaning of the ratio's outcome" enters (a 55% gross margin is strong
+     no matter what the other sectors do).
+   RELATIVE: min-max position among the 4 sectors × 10, direction-aware —
+     this is the cross-sector reference.
+   Category rating = average of its KPI ratings; if KPI ratings within a category disagree by
+     >2 points, the panel flags "mixed signals" (cross-check between ratios describing the same thing).
+   Verdict bands: 0-2 Very Bearish · 2-4 Bearish · 4-6 Neutral · 6-8 Bullish · 8-10 Very Bullish. */
+const ANCH={ // [value, score] anchors; decreasing value order = lower-is-better metric
+ gm:[[10,0],[30,5],[50,10]],
+ nm:[[0,0],[10,5],[20,10]],
+ cur:[[0.8,0],[1.2,4],[2.0,8],[3.0,10]],
+ qk:[[0.5,0],[1.0,5],[1.5,10]],
+ inv:[[2,0],[6,5],[12,10]],
+ ar:[[4,0],[8,5],[12,10]],
+ roa:[[0,0],[5,5],[12,10]],
+ pe:[[40,0],[25,5],[12,10]],
+ de:[[1.5,0],[0.75,5],[0.1,10]],
+ roe:[[4,0],[12,5],[20,10]]
+};
+function absScore(key,x){
+ const a=ANCH[key]; if(!a||x==null) return null;
+ const pts=[...a].sort((p,q)=>p[0]-q[0]);
+ if(x<=pts[0][0]) return pts[0][1];
+ if(x>=pts[pts.length-1][0]) return pts[pts.length-1][1];
+ for(let i=1;i<pts.length;i++){ if(x<=pts[i][0]){
+  const [x0,s0]=pts[i-1],[x1,s1]=pts[i];
+  return s0+(s1-s0)*(x-x0)/(x1-x0);}}
+}
+function verdict(s){return s>=8?"Very Bullish":s>=6?"Bullish":s>=4?"Neutral":s>=2?"Bearish":"Very Bearish";}
+const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the numeric version is the anchor table ANCH above)
  gm:{name:"Gross profit margin",f:"(Net sales − COGS)/Net sales ×100%",dir:1,fmt:v=>v+"%",
   desc:"Of each $1 of sales, what's left after the direct cost of making the product",
   abs:v=>v>=40?"strong (>40%)":v>=20?"typical (20–40%)":"thin (<20%)"},
@@ -305,35 +349,44 @@ const KPI={ // desc = plain-English meaning · abs(v) = absolute health check (g
 };
 const CATDESC={"Profitability":"How much of each sales dollar becomes profit",
  "Liquidity":"Can it cover bills due within a year?",
- "Efficiency":"How fast it turns inventory & collects payment",
+ "Efficiency":"How productively it turns inventory, collections & total assets into profit",
  "Valuation":"How expensive the stock is vs its earnings",
- "Leverage":"Debt load + the return earned on owners' money",
- "Generating earnings":"Profit produced by the whole asset base"};
+ "Leverage":"Debt load + the return earned on owners' money"};
 const CATS=[
  {name:"Profitability",kpis:["gm","nm"]},
  {name:"Liquidity",kpis:["cur","qk"]},
- {name:"Efficiency",kpis:["inv","ar"]},
- {name:"Valuation",kpis:["pe","eps"]},   // eps display-only (dir 0, excluded from score)
- {name:"Leverage",kpis:["de","roe"]},
- {name:"Generating earnings",kpis:["roa"]}
+ {name:"Efficiency",kpis:["inv","ar","roa"]},   // roa folded in: asset productivity
+ {name:"Valuation",kpis:["pe","eps"]},          // eps display-only
+ {name:"Leverage",kpis:["de","roe"]}
 ];
 
-/* ---------- scoring: min-max across sectors, direction-aware ---------- */
-function kpiScore(key,sector){
+/* ---------- scoring: 0.6×absolute + 0.4×relative, 0-10 ---------- */
+function relScore(key,sector){
  const k=KPI[key]; if(k.dir===0) return null;
  const x=D[sector][key]; if(x==null) return null;
  const vals=SECTORS.map(s=>D[s][key]).filter(v=>v!=null);
  const mn=Math.min(...vals),mx=Math.max(...vals);
- if(mx===mn) return 50;
- return k.dir===1 ? 100*(x-mn)/(mx-mn) : 100*(mx-x)/(mx-mn);
+ if(mx===mn) return 5;
+ return k.dir===1 ? 10*(x-mn)/(mx-mn) : 10*(mx-x)/(mx-mn);
+}
+function kpiScore(key,sector){
+ const k=KPI[key]; if(k.dir===0) return null;
+ const x=D[sector][key]; if(x==null) return null;
+ const a=absScore(key,x), r=relScore(key,sector);
+ if(a==null||r==null) return null;
+ return 0.6*a+0.4*r;
 }
 function catScore(cat,sector){
  const ss=cat.kpis.map(k=>kpiScore(k,sector)).filter(v=>v!=null);
  return ss.length? ss.reduce((a,b)=>a+b,0)/ss.length : null;
 }
-function color(s){ // 0 red -> 100 green
+function catSpread(cat,sector){ // disagreement between ratios describing the same category
+ const ss=cat.kpis.map(k=>kpiScore(k,sector)).filter(v=>v!=null);
+ return ss.length>1 ? Math.max(...ss)-Math.min(...ss) : 0;
+}
+function color(s){ // 0 red -> 10 green
  const stops=[[192,57,43],[230,126,34],[241,196,15],[125,203,75],[39,174,96]];
- const p=Math.max(0,Math.min(100,s))/100*(stops.length-1), i=Math.floor(p), t=p-i;
+ const p=Math.max(0,Math.min(10,s))/10*(stops.length-1), i=Math.floor(p), t=p-i;
  const a=stops[i], b=stops[Math.min(i+1,stops.length-1)];
  const c=a.map((v,j)=>Math.round(v+(b[j]-v)*t));
  return `rgb(${c[0]},${c[1]},${c[2]})`;
@@ -343,17 +396,20 @@ function color(s){ // 0 red -> 100 green
 (function(){
  let h='<table><tr><th style="text-align:left">Sector</th>';
  CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}<br><span style="font-weight:400;font-size:10.5px">${CATDESC[c.name]}</span></th>`);
- h+='<th>COMPOSITE<br><span style="font-weight:400;font-size:10.5px">Average of the six categories</span></th></tr>';
+ h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Average of the five categories</span></th></tr>';
  SECTORS.forEach(s=>{
   h+=`<tr><td class="rowhead">${s}</td>`;
   const cs=[];
   CATS.forEach((c,ci)=>{
    const sc=catScore(c,s);
-   if(sc==null){h+=`<td class="na" title="Not applicable for ${s}: banks don't report inventory or a meaningful current ratio — deposit-funded balance sheets break these metrics. Skipped in scoring, NOT counted as zero.">N/A</td>`;}
-   else{cs.push(sc);h+=`<td class="cell" style="background:${color(sc)}" onclick="showDetail('${s}',${ci})">${Math.round(sc)}</td>`;}
+   if(sc==null){h+=`<td class="na" title="No reliable sector-level data for this category. Skipped in scoring, NOT counted as zero.">N/A</td>`;}
+   else{
+    cs.push(sc);
+    const mixed=catSpread(c,s)>2?`<br><span style="font-size:9px;font-weight:400">⚠ mixed signals</span>`:"";
+    h+=`<td class="cell" style="background:${color(sc)}" title="${verdict(sc)}" onclick="showDetail('${s}',${ci})">${sc.toFixed(1)}${mixed}</td>`;}
   });
   const comp=cs.reduce((a,b)=>a+b,0)/cs.length;
-  h+=`<td class="cell" style="background:${color(comp)}" onclick="showComposite('${s}')">${Math.round(comp)}</td></tr>`;
+  h+=`<td class="cell" style="background:${color(comp)}" onclick="showComposite('${s}')">${comp.toFixed(1)}<br><span style="font-size:9.5px;font-weight:600">${verdict(comp)}</span></td></tr>`;
  });
  h+='</table>';
  document.getElementById('heatmap').innerHTML=h;
@@ -363,37 +419,42 @@ function color(s){ // 0 red -> 100 green
 window.showDetail=function(sector,ci){
  const cat=CATS[ci];
  let h=`<b>${sector} — ${cat.name}</b> <span class="muted">· ${CATDESC[cat.name]}</span>`;
- h+='<table><tr><th>KPI</th><th>What it measures</th><th>Sector avg</th><th>Is that healthy? <span style="font-weight:400">(absolute rule of thumb)</span></th><th>Rank arithmetic (vs other 4 sectors)</th><th>Rank</th></tr>';
+ h+='<table><tr><th>KPI</th><th>What it measures</th><th>Sector avg</th><th>Meaning <span style="font-weight:400">(rule of thumb)</span></th><th>Absolute score /10 <span style="font-weight:400">(60%)</span></th><th>Vs other sectors /10 <span style="font-weight:400">(40%)</span></th><th>Rating</th></tr>';
  const scores=[];
  cat.kpis.forEach(key=>{
   const k=KPI[key], x=D[sector][key];
-  if(x==null){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>N/A</td><td class="muted" colspan="2">skipped — no reliable sector-level data, or the metric doesn't apply here (e.g., banks have no inventory). Not counted as zero.</td><td>—</td></tr>`;return;}
-  const vals=SECTORS.map(s=>D[s][key]).filter(v=>v!=null);
-  const mn=Math.min(...vals),mx=Math.max(...vals);
-  if(k.dir===0){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>${k.fmt(x)}</td><td class="muted" colspan="2">shown for reference only — not ranked</td><td>—</td></tr>`;return;}
-  const sc=kpiScore(key,sector);scores.push(sc);
-  const arith=k.dir===1
-   ?`100×(${x}−${mn})/(${mx}−${mn}) = ${sc.toFixed(1)}`
-   :`100×(${mx}−${x})/(${mx}−${mn}) = ${sc.toFixed(1)} <span class="muted">(lower is better)</span>`;
+  if(x==null){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>N/A</td><td class="muted" colspan="3">skipped — no reliable sector-level data. Not counted as zero.</td><td>—</td></tr>`;return;}
+  if(k.dir===0){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>${k.fmt(x)}</td><td class="muted" colspan="3">shown for reference only — not rated</td><td>—</td></tr>`;return;}
+  const a=absScore(key,x), r=relScore(key,sector), sc=kpiScore(key,sector);scores.push(sc);
   let health=k.abs(x);
-  if(sector==="Financials"&&key==="roa") health+=" — but ~1% is NORMAL for banks: huge asset bases dilute the ratio";
-  if(key==="pe") health+=" — caveat: these all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them); don't compare to headline index P/Es";
-  if(key==="ar") health+=" — computed on total sales (credit-sales split unavailable), so slightly overstated vs your scope-doc definition";
-  h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td><b>${k.fmt(x)}</b></td><td><b>${health}</b></td><td class="formula">${arith}</td><td><b>${Math.round(sc)}</b></td></tr>`;
+  if(key==="pe") health+=" — caveat: all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them)";
+  if(key==="pe"&&sector==="Global Defense") health+="; 50.6% of aerospace/defense firms are currently loss-making, inflating this aggregate further";
+  if(key==="ar") health+=" — computed on total sales, so slightly overstated";
+  const anch=ANCH[key].map(p=>p[0]+"→"+p[1]).join(", ");
+  h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td><b>${k.fmt(x)}</b></td><td>${health}</td>
+   <td title="Anchors: ${anch}"><b>${a.toFixed(1)}</b></td><td><b>${r.toFixed(1)}</b></td>
+   <td><b>${sc.toFixed(1)}</b><br><span class="muted" style="font-size:10px">0.6×${a.toFixed(1)} + 0.4×${r.toFixed(1)}</span></td></tr>`;
  });
  h+='</table>';
- if(scores.length)h+=`<div style="margin-top:8px">Category score = average of ranked KPIs = (${scores.map(s=>s.toFixed(1)).join(" + ")}) / ${scores.length} = <b>${(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1)}</b></div>`;
- h+=`<div class="muted" style="margin-top:6px;font-size:12px">Reminder: the 0–100 rank only compares these five sectors. The "Is that healthy?" column is the absolute check — a sector can rank 0 and still be healthy (or rank 100 and still be weak). Hover a KPI name for its exact formula.</div>`;
+ if(scores.length){
+  const avg=scores.reduce((a,b)=>a+b,0)/scores.length, sp=catSpread(cat,sector);
+  h+=`<div style="margin-top:8px">Category rating = average of KPI ratings = (${scores.map(s=>s.toFixed(1)).join(" + ")}) / ${scores.length} = <b>${avg.toFixed(1)} / 10 → ${verdict(avg)}</b></div>`;
+  if(scores.length>1) h+=`<div style="margin-top:4px">${sp>2
+   ?`⚠ <b>Mixed signals:</b> the ratios in this category disagree by ${sp.toFixed(1)} points — they're telling different stories, so trust the average less and read each row.`
+   :`✓ <b>Signals agree</b> (spread ${sp.toFixed(1)} points): the ratios in this category tell a consistent story.`}</div>`;
+ }
+ h+=`<div class="muted" style="margin-top:6px;font-size:12px">Each rating = 60% absolute meaning (value scored against the rule-of-thumb anchors — hover the absolute score for them) + 40% position among the 4 sectors. 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish. Hover a KPI name for its exact formula.</div>`;
  document.getElementById('detail').innerHTML=h;
 };
 window.showComposite=function(sector){
- let h=`<b>${sector} — COMPOSITE</b><br>Plain average of this sector's available category scores (no weighting):<table><tr><th>Category</th><th>Score</th></tr>`;
+ let h=`<b>${sector} — OVERALL RATING</b><br>Plain average of this sector's category ratings (no hidden weights):<table><tr><th>Category</th><th>Rating /10</th><th>Read</th></tr>`;
  const cs=[];
  CATS.forEach(c=>{const sc=catScore(c,sector);
-  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td></tr>`;
+  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td><td>${sc==null?"—":verdict(sc)+(catSpread(c,sector)>2?" ⚠ mixed":"")}</td></tr>`;
   if(sc!=null)cs.push(sc);});
- h+=`</table><div style="margin-top:8px">Composite = (${cs.map(s=>s.toFixed(1)).join(" + ")}) / ${cs.length} = <b>${(cs.reduce((a,b)=>a+b,0)/cs.length).toFixed(1)}</b></div>`;
- h+=`<div class="muted" style="margin-top:6px;font-size:12px">Caution: composites hide trade-offs (a cheap-but-slow sector can tie an expensive-but-profitable one), and sectors with N/A categories are averaged over fewer inputs. Use it as a summary glance, not a verdict.</div>`;
+ const t=cs.reduce((a,b)=>a+b,0)/cs.length;
+ h+=`</table><div style="margin-top:8px">Overall = (${cs.map(s=>s.toFixed(1)).join(" + ")}) / ${cs.length} = <b>${t.toFixed(1)} / 10 → ${verdict(t)}</b></div>`;
+ h+=`<div class="muted" style="margin-top:6px;font-size:12px">Caution: an overall number hides trade-offs — Info Tech can rate Bullish overall while its Valuation is Bearish. Always scan the row, not just the total.</div>`;
  document.getElementById('detail').innerHTML=h;
 };
 
@@ -405,9 +466,10 @@ window.showComposite=function(sector){
  const rMean=terms.reduce((x,y)=>x+y,0)/paths;
  const ERP=0.04, disc=rMean+ERP;
 
- const ASSUME={ // mu/sig MEASURED: 10Y annualized return & st-dev of SPDR sector ETFs (XLE/XLB/XLY/XLF/XLK) to Jun 30 2026, LazyPortfolioETF. g remains assumed.
+ const ASSUME={ // mu/sig MEASURED: 10Y annualized return & st-dev of sector ETFs to Jun 30 2026, LazyPortfolioETF.
+  // Global Defense uses XLI (Industrials) as a labeled PROXY — no defense-specific ETF in the source. g remains assumed.
   "Energy":{mu:.089,sig:.297,g:.02},"Materials":{mu:.104,sig:.185,g:.025},
-  "Consumer Discretionary":{mu:.128,sig:.202,g:.03},"Financials":{mu:.133,sig:.192,g:.025},
+  "Global Defense":{mu:.147,sig:.188,g:.025},
   "Information Technology":{mu:.256,sig:.206,g:.04}};
  const N=2000, hurdle5=Math.pow(1.07,5);
  let rows="";
@@ -433,7 +495,7 @@ window.showComposite=function(sector){
 })();
 
 /* ================== PAGE 4: SECTOR PROFILES ================== */
-const CATSHORT=["Profit","Liquid","Effic","Value","Lever","GenEarn"];
+const CATSHORT=["Profit","Liquid","Effic","Value","Lever"];
 function radarSVG(sector){
  const cx=180,cy=165,R=115,n=CATS.length;
  const pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];};
@@ -444,16 +506,16 @@ function radarSVG(sector){
  let axes="",labels="";
  for(let i=0;i<n;i++){const[x,y]=pt(i,R);axes+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#2c3442"/>`;
   const[lx,ly]=pt(i,R+22);const sc=catScore(CATS[i],sector);
-  labels+=`<text x="${lx}" y="${ly}" fill="${sc==null?'#5c6673':'#9aa4b2'}" font-size="11" text-anchor="middle" dominant-baseline="middle">${CATSHORT[i]}${sc==null?" (N/A)":" "+Math.round(sc)}</text>`;}
+  labels+=`<text x="${lx}" y="${ly}" fill="${sc==null?'#5c6673':'#9aa4b2'}" font-size="11" text-anchor="middle" dominant-baseline="middle">${CATSHORT[i]}${sc==null?" (N/A)":" "+sc.toFixed(1)}</text>`;}
  const poly=[];
- for(let i=0;i<n;i++){const sc=catScore(CATS[i],sector);poly.push(pt(i,R*(sc==null?0:sc)/100));}
+ for(let i=0;i<n;i++){const sc=catScore(CATS[i],sector);poly.push(pt(i,R*(sc==null?0:sc)/10));}
  const ps=poly.map(p=>p.map(v=>v.toFixed(1)).join(",")).join(" ");
  const dots=poly.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="${catScore(CATS[i],sector)==null?'#5c6673':'#5aa7ff'}"/>`).join("");
  return `<svg viewBox="0 0 360 330" width="360" height="330">${grid}${axes}
   <polygon points="${ps}" fill="rgba(90,167,255,.18)" stroke="#5aa7ff" stroke-width="2"/>${dots}${labels}</svg>`;
 }
 function stripHTML(sector){
- let h='<table><tr><th style="text-align:left">KPI</th><th>Value</th><th style="width:45%">Position in 5-sector range</th><th>Score</th></tr>';
+ let h='<table><tr><th style="text-align:left">KPI</th><th>Value</th><th style="width:45%">Position in 4-sector range</th><th>Rating /10</th></tr>';
  Object.keys(KPI).forEach(key=>{
   const k=KPI[key],x=D[sector][key];
   if(x==null){h+=`<tr><td style="text-align:left">${k.name}</td><td>N/A</td><td class="muted">no reliable sector-level source, or not meaningful for this sector</td><td>—</td></tr>`;return;}
@@ -467,14 +529,14 @@ function stripHTML(sector){
      <div style="position:absolute;left:calc(${pos.toFixed(1)}% - 6px);top:1px;width:12px;height:10px;border-radius:5px;background:${col}"></div>
      <span style="position:absolute;left:4px;top:-1px;font-size:10px;color:#5c6673">${k.fmt(mn)}</span>
      <span style="position:absolute;right:4px;top:-1px;font-size:10px;color:#5c6673">${k.fmt(mx)}</span></div></td>
-   <td>${sc==null?'<span class="muted">display only</span>':"<b>"+Math.round(sc)+"</b>"}</td></tr>`;});
+   <td>${sc==null?'<span class="muted">display only</span>':"<b>"+sc.toFixed(1)+"</b><br><span class=\"muted\" style=\"font-size:9.5px\">"+verdict(sc)+"</span>"}</td></tr>`;});
  return h+'</table>';
 }
 function renderProfile(){
  const s=document.getElementById('profSel').value;
  const scored=CATS.map((c,i)=>({name:c.name,sc:catScore(c,s)})).filter(x=>x.sc!=null).sort((a,b)=>b.sc-a.sc);
- const strong=scored.slice(0,2).map(x=>`${x.name} (${Math.round(x.sc)})`).join(", ");
- const weak=scored.slice(-2).map(x=>`${x.name} (${Math.round(x.sc)})`).join(", ");
+ const strong=scored.slice(0,2).map(x=>`${x.name} (${x.sc.toFixed(1)} — ${verdict(x.sc)})`).join(", ");
+ const weak=scored.slice(-2).map(x=>`${x.name} (${x.sc.toFixed(1)} — ${verdict(x.sc)})`).join(", ");
  document.getElementById('profile').innerHTML=
   `<div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;margin-top:12px">
     <div class="block" style="margin:0">${radarSVG(s)}</div>
@@ -515,7 +577,7 @@ function renderDCF(){
 }
 
 /* ================== PAGE 6: SIMULATION EXPLORER ================== */
-const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials":{mu:.104,sig:.185},"Consumer Discretionary":{mu:.128,sig:.202},"Financials":{mu:.133,sig:.192},"Information Technology":{mu:.256,sig:.206}}; // measured: 10Y ETF history (see Data sources)
+const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials":{mu:.104,sig:.185},"Global Defense":{mu:.147,sig:.188},"Information Technology":{mu:.256,sig:.206}}; // measured: 10Y ETF history; Defense = XLI proxy (see Data sources)
 function renderSim(){
  const s=document.getElementById('simSel').value,{mu,sig}=SIM_ASSUME[s];
  // --- analytic percentile fan ---
