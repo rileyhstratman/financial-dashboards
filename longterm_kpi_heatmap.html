@@ -55,6 +55,11 @@
 
 <!-- ============ PAGE 1: HEATMAP ============ -->
 <div class="page active" id="p1">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>How to read this in 10 seconds.</b> Every number is a <b>rank from 0 to 100 against the other four sectors only</b>. 100 = best of the five, 0 = lowest of the five — <b>a 0 does NOT mean "bad."</b>
+    Example: Energy's Liquidity is 0 because its current ratio (1.4×) is the lowest of the five — but 1.4× is still a healthy level in absolute terms. Click any cell and the panel below shows the real number, what it means in plain English, and whether it's actually healthy.
+    Grey <b>N/A</b> cells mean the metric doesn't apply to that sector (hover them for why) — they're skipped, not counted as zero.
+  </div>
   <div class="legend">
     <span>Score 0 (worst of the 5)</span>
     <span class="swatch" style="background:#c0392b"></span>
@@ -71,8 +76,11 @@
 
 <!-- ============ PAGE 2: COMPLEX LAYER ============ -->
 <div class="page" id="p2">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>Plain English:</b> instead of making ONE guess about the future, this page rolls the dice 2,000 times per sector and counts the outcomes. "P(up, 3y) = 82%" means: in 82% of the simulated futures, the sector was worth more after 3 years. The quality of the answer depends entirely on the assumed growth (μ) and wobble (σ) — both are listed so you can challenge them.
+  </div>
   <div class="block">
-    <b>What this page is.</b> The scope doc's complex-quant sections applied at sector level, with three engines from your notes:
+    <b>The machinery.</b> The scope doc's complex-quant sections applied at sector level, with three engines from your notes:
     <br>1. <b>GBM Monte Carlo</b> (valuation/profitability/liquidity notes): <span class="eq">dVₜ = μVₜ dt + σVₜ dWₜ  →  V_T = exp[(μ − σ²/2)T + σ√T·Z],  Z ~ N(0,1)</span>
     2000 simulated 3-yr and 5-yr paths per sector. μ = illustrative long-run sector drift, σ = illustrative volatility.
     <br>2. <b>Vasicek rate simulation</b> (valuation/liquidity notes): <span class="eq">drₜ = a(b − rₜ)dt + σᵣ dWₜ   with  r₀=4.0%, a=0.30, b=3.5%, σᵣ=1.0%</span>
@@ -163,7 +171,7 @@ lower-better:   score = 100 × (max − x) / (max − min)</span>
 <!-- ============ PAGE 5: DCF EXPLORER ============ -->
 <div class="page" id="p5">
   <div class="block">
-    <b>Interactive full DCF</b> — the 4-step model from the scope doc, live. Change any assumption; every intermediate number recomputes and is shown. Defaults are generic illustrations, not any real company.
+    <b>Interactive full DCF</b> — a DCF answers one question: <i>"what is a company worth today, given the cash we think it will generate in the future?"</i> Money later is worth less than money now, so each future year's cash gets shrunk ("discounted") back to today. This is the 4-step model from the scope doc, live: change any assumption and every intermediate number recomputes. Defaults are generic illustrations, not any real company.
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px" id="dcfInputs">
       <label>Base FCF, $M<br><input id="i_fcf" type="number" value="100" step="10"></label>
       <label>FCF growth, yrs 1–n %<br><input id="i_gr" type="number" value="8" step="0.5"></label>
@@ -183,7 +191,7 @@ lower-better:   score = 100 × (max − x) / (max − min)</span>
   <div class="block" style="display:flex;align-items:center;gap:12px">
     <b>Sector:</b>
     <select id="simSel" style="background:#10141b;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:14px"></select>
-    <span class="muted">GBM value paths: dVₜ = μVₜdt + σVₜdWₜ. Fan = analytic percentile bands (no sampling noise). Histogram = 2000 simulated 5-yr outcomes.</span>
+    <span class="muted">One line = one possible future. The fan shows the range of futures the math considers plausible — wide fan = high uncertainty. (Model: GBM, dVₜ = μVₜdt + σVₜdWₜ; fan = analytic percentile bands; histogram = 2000 simulated 5-yr outcomes.)</span>
   </div>
   <div id="fan"></div>
   <div id="hist"></div>
@@ -219,19 +227,46 @@ const D={
  "Financials":             {gm:null,nm:22.7,cur:null,qk:null,inv:null,ar:null,eps:null,pe:14.4,de:0.81,roe:15.0,roa:1.1},
  "Information Technology": {gm:55.7,nm:19.4,cur:2.16,qk:null,inv:6.7, ar:5.9, eps:null,pe:35.8,de:0.08,roe:23.9,roa:15.3}
 };
-const KPI={
- gm:{name:"Gross profit margin",f:"(Net sales − COGS)/Net sales ×100%",dir:1,fmt:v=>v+"%"},
- nm:{name:"Net profit margin",f:"Net income/Revenue ×100%",dir:1,fmt:v=>v+"%"},
- cur:{name:"Current ratio",f:"Current assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×"},
- qk:{name:"Quick ratio",f:"Quick assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×"},
- inv:{name:"Inventory turnover",f:"COGS/Avg inventory",dir:1,fmt:v=>v+"×/yr"},
- ar:{name:"AR turnover",f:"Credit sales/Avg AR",dir:1,fmt:v=>v+"×/yr"},
- eps:{name:"EPS (display only)",f:"Net income/Wtd-avg shares",dir:0,fmt:v=>"$"+v.toFixed(2)},
- pe:{name:"P/E",f:"Price/EPS",dir:-1,fmt:v=>v+"×"},
- de:{name:"Debt-to-equity",f:"Total liabilities/Equity",dir:-1,fmt:v=>v.toFixed(2)+"×"},
- roe:{name:"ROE",f:"Net income/Avg equity",dir:1,fmt:v=>v+"%"},
- roa:{name:"ROA",f:"Net income/Total assets",dir:1,fmt:v=>v+"%"}
+const KPI={ // desc = plain-English meaning · abs(v) = absolute health check (general rules of thumb, independent of the 0-100 rank)
+ gm:{name:"Gross profit margin",f:"(Net sales − COGS)/Net sales ×100%",dir:1,fmt:v=>v+"%",
+  desc:"Of each $1 of sales, what's left after the direct cost of making the product",
+  abs:v=>v>=40?"strong (>40%)":v>=20?"typical (20–40%)":"thin (<20%)"},
+ nm:{name:"Net profit margin",f:"Net income/Revenue ×100%",dir:1,fmt:v=>v+"%",
+  desc:"Of each $1 of sales, what's left after ALL costs — the bottom line",
+  abs:v=>v>=15?"strong (>15%)":v>=5?"typical (5–15%)":"thin (<5%)"},
+ cur:{name:"Current ratio",f:"Current assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×",
+  desc:"Can it pay bills due in the next 12 months? Assets coming in ÷ bills coming due",
+  abs:v=>v>=2?"very cushioned (>2×)":v>=1.2?"healthy (1.2–2×)":v>=1?"tight (1–1.2×)":"strained (<1×)"},
+ qk:{name:"Quick ratio",f:"Quick assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×",
+  desc:"Same test but ignoring inventory — the hardest asset to sell in a hurry",
+  abs:v=>v>=1?"healthy (>1×)":"tight (<1×)"},
+ inv:{name:"Inventory turnover",f:"COGS/Avg inventory",dir:1,fmt:v=>v+"×/yr",
+  desc:"How many times a year the shelf gets emptied and restocked",
+  abs:v=>v>=8?"fast (>8×/yr)":v>=4?"moderate (4–8×/yr)":"slow (<4×/yr)"},
+ ar:{name:"AR turnover",f:"Credit sales/Avg AR",dir:1,fmt:v=>v+"×/yr",
+  desc:"How quickly it collects money customers owe (higher = paid faster)",
+  abs:v=>v>=10?"fast collection (>10×)":v>=6?"typical (6–10×)":"slow (<6×)"},
+ eps:{name:"EPS (display only)",f:"Net income/Wtd-avg shares",dir:0,fmt:v=>"$"+v.toFixed(2),
+  desc:"Profit per share — only meaningful within one company over time",abs:v=>""},
+ pe:{name:"P/E",f:"Price/EPS",dir:-1,fmt:v=>v+"×",
+  desc:"How many years of current profit you pay for the stock at today's price",
+  abs:v=>v<15?"cheap-ish (<15×)":v<=25?"typical (15–25×)":"priced for growth (>25×)"},
+ de:{name:"Debt-to-equity",f:"Total liabilities/Equity",dir:-1,fmt:v=>v.toFixed(2)+"×",
+  desc:"Debt load vs the owners' stake (here: debt ÷ market value of equity)",
+  abs:v=>v<0.5?"conservative (<0.5×)":v<=1?"moderate (0.5–1×)":"leveraged (>1×)"},
+ roe:{name:"ROE",f:"Net income/Avg equity",dir:1,fmt:v=>v+"%",
+  desc:"Yearly profit as a % of shareholders' money — the owners' return",
+  abs:v=>v>=15?"strong (>15%)":v>=8?"decent (8–15%)":"weak (<8%)"},
+ roa:{name:"ROA",f:"Net income/Total assets",dir:1,fmt:v=>v+"%",
+  desc:"Yearly profit as a % of everything the company owns",
+  abs:v=>v>=10?"excellent (>10%)":v>=5?"good (5–10%)":"low (<5%)"}
 };
+const CATDESC={"Profitability":"How much of each sales dollar becomes profit",
+ "Liquidity":"Can it cover bills due within a year?",
+ "Efficiency":"How fast it turns inventory & collects payment",
+ "Valuation":"How expensive the stock is vs its earnings",
+ "Leverage":"Debt load + the return earned on owners' money",
+ "Generating earnings":"Profit produced by the whole asset base"};
 const CATS=[
  {name:"Profitability",kpis:["gm","nm"]},
  {name:"Liquidity",kpis:["cur","qk"]},
@@ -265,13 +300,14 @@ function color(s){ // 0 red -> 100 green
 /* ---------- render heatmap ---------- */
 (function(){
  let h='<table><tr><th style="text-align:left">Sector</th>';
- CATS.forEach(c=>h+=`<th>${c.name}</th>`); h+='<th>COMPOSITE</th></tr>';
+ CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}<br><span style="font-weight:400;font-size:10.5px">${CATDESC[c.name]}</span></th>`);
+ h+='<th>COMPOSITE<br><span style="font-weight:400;font-size:10.5px">Average of the six categories</span></th></tr>';
  SECTORS.forEach(s=>{
   h+=`<tr><td class="rowhead">${s}</td>`;
   const cs=[];
   CATS.forEach((c,ci)=>{
    const sc=catScore(c,s);
-   if(sc==null){h+='<td class="na">N/A</td>';}
+   if(sc==null){h+=`<td class="na" title="Not applicable for ${s}: banks don't report inventory or a meaningful current ratio — deposit-funded balance sheets break these metrics. Skipped in scoring, NOT counted as zero.">N/A</td>`;}
    else{cs.push(sc);h+=`<td class="cell" style="background:${color(sc)}" onclick="showDetail('${s}',${ci})">${Math.round(sc)}</td>`;}
   });
   const comp=cs.reduce((a,b)=>a+b,0)/cs.length;
@@ -284,23 +320,26 @@ function color(s){ // 0 red -> 100 green
 /* ---------- detail panel: show the arithmetic ---------- */
 window.showDetail=function(sector,ci){
  const cat=CATS[ci];
- let h=`<b>${sector} — ${cat.name}</b> <span class="muted">(sector-average estimates from public sources; scores are min–max rank vs the other 4 sectors)</span>`;
- h+='<table><tr><th>KPI</th><th>Formula (scope doc)</th><th>Sector avg (see sources)</th><th>Range across 5 sectors</th><th>Score arithmetic</th><th>Score</th></tr>';
+ let h=`<b>${sector} — ${cat.name}</b> <span class="muted">· ${CATDESC[cat.name]}</span>`;
+ h+='<table><tr><th>KPI</th><th>What it measures</th><th>Sector avg</th><th>Is that healthy? <span style="font-weight:400">(absolute rule of thumb)</span></th><th>Rank arithmetic (vs other 4 sectors)</th><th>Rank</th></tr>';
  const scores=[];
  cat.kpis.forEach(key=>{
   const k=KPI[key], x=D[sector][key];
-  if(x==null){h+=`<tr><td>${k.name}</td><td class="formula">${k.f}</td><td>N/A</td><td>—</td><td class="muted">excluded (no reliable source or not meaningful for this sector)</td><td>—</td></tr>`;return;}
+  if(x==null){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>N/A</td><td class="muted" colspan="2">skipped — no reliable sector-level data, or the metric doesn't apply here (e.g., banks have no inventory). Not counted as zero.</td><td>—</td></tr>`;return;}
   const vals=SECTORS.map(s=>D[s][key]).filter(v=>v!=null);
   const mn=Math.min(...vals),mx=Math.max(...vals);
-  if(k.dir===0){h+=`<tr><td>${k.name}</td><td class="formula">${k.f}</td><td>${k.fmt(x)}</td><td>${k.fmt(mn)} – ${k.fmt(mx)}</td><td class="muted">display only — raw EPS not comparable across sectors</td><td>—</td></tr>`;return;}
+  if(k.dir===0){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>${k.fmt(x)}</td><td class="muted" colspan="2">shown for reference only — not ranked</td><td>—</td></tr>`;return;}
   const sc=kpiScore(key,sector);scores.push(sc);
   const arith=k.dir===1
    ?`100×(${x}−${mn})/(${mx}−${mn}) = ${sc.toFixed(1)}`
    :`100×(${mx}−${x})/(${mx}−${mn}) = ${sc.toFixed(1)} <span class="muted">(lower is better)</span>`;
-  h+=`<tr><td>${k.name}</td><td class="formula">${k.f}</td><td><b>${k.fmt(x)}</b></td><td>${k.fmt(mn)} – ${k.fmt(mx)}</td><td class="formula">${arith}</td><td><b>${Math.round(sc)}</b></td></tr>`;
+  let health=k.abs(x);
+  if(sector==="Financials"&&key==="roa") health+=" — but ~1% is NORMAL for banks: huge asset bases dilute the ratio";
+  h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td><b>${k.fmt(x)}</b></td><td><b>${health}</b></td><td class="formula">${arith}</td><td><b>${Math.round(sc)}</b></td></tr>`;
  });
  h+='</table>';
- if(scores.length)h+=`<div style="margin-top:8px">Category score = average of scored KPIs = (${scores.map(s=>s.toFixed(1)).join(" + ")}) / ${scores.length} = <b>${(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1)}</b></div>`;
+ if(scores.length)h+=`<div style="margin-top:8px">Category score = average of ranked KPIs = (${scores.map(s=>s.toFixed(1)).join(" + ")}) / ${scores.length} = <b>${(scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1)}</b></div>`;
+ h+=`<div class="muted" style="margin-top:6px;font-size:12px">Reminder: the 0–100 rank only compares these five sectors. The "Is that healthy?" column is the absolute check — a sector can rank 0 and still be healthy (or rank 100 and still be weak). Hover a KPI name for its exact formula.</div>`;
  document.getElementById('detail').innerHTML=h;
 };
 window.showComposite=function(sector){
@@ -310,6 +349,7 @@ window.showComposite=function(sector){
   h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td></tr>`;
   if(sc!=null)cs.push(sc);});
  h+=`</table><div style="margin-top:8px">Composite = (${cs.map(s=>s.toFixed(1)).join(" + ")}) / ${cs.length} = <b>${(cs.reduce((a,b)=>a+b,0)/cs.length).toFixed(1)}</b></div>`;
+ h+=`<div class="muted" style="margin-top:6px;font-size:12px">Caution: composites hide trade-offs (a cheap-but-slow sector can tie an expensive-but-profitable one), and sectors with N/A categories are averaged over fewer inputs. Use it as a summary glance, not a verdict.</div>`;
  document.getElementById('detail').innerHTML=h;
 };
 
@@ -378,7 +418,7 @@ function stripHTML(sector){
   const pos=mx===mn?50:100*(x-mn)/(mx-mn);
   const sc=kpiScore(key,sector);
   const col=sc==null?'#5c6673':color(sc);
-  h+=`<tr><td style="text-align:left">${k.name}</td><td><b>${k.fmt(x)}</b></td>
+  h+=`<tr><td style="text-align:left" title="${k.f}">${k.name}<br><span class="muted" style="font-size:10.5px">${k.desc}</span></td><td><b>${k.fmt(x)}</b>${k.dir!==0?`<br><span class="muted" style="font-size:10.5px">${k.abs(x)}</span>`:""}</td>
    <td><div style="position:relative;height:14px;background:#10141b;border:1px solid var(--border);border-radius:7px">
      <div style="position:absolute;left:calc(${pos.toFixed(1)}% - 6px);top:1px;width:12px;height:10px;border-radius:5px;background:${col}"></div>
      <span style="position:absolute;left:4px;top:-1px;font-size:10px;color:#5c6673">${k.fmt(mn)}</span>
