@@ -100,6 +100,36 @@
     Each cell answers: <i>"on this KPI category, how does this sector's (fake, illustrative) number rank against the other four sectors, scaled 0–100?"</i>
   </div>
   <div class="block">
+    <h3>Variable glossary — every symbol used in this dashboard</h3>
+    <table>
+      <tr><th>Symbol</th><th>Name</th><th>Plain English</th><th>Appears in</th></tr>
+      <tr><td class="formula">μ (mu)</td><td>Drift</td><td>The average yearly growth rate the simulation assumes. Here: measured 10-yr sector-ETF return.</td><td>Tabs 2, 5</td></tr>
+      <tr><td class="formula">σ (sigma)</td><td>Volatility</td><td>How much returns wobble around that average, year to year. Bigger σ = wider fan of outcomes = less certainty. Also the reason the median outcome grows slower than μ (the "volatility tax," σ²/2).</td><td>Tabs 2, 5</td></tr>
+      <tr><td class="formula">dWₜ / W(t)</td><td>Wiener process</td><td>The coin-flip ingredient: a stream of random market shocks. It's what makes each simulated future different.</td><td>Tabs 2, 5</td></tr>
+      <tr><td class="formula">Z</td><td>Standard normal draw</td><td>One random number from a bell curve, used to generate one simulated outcome. 2000 Z's = 2000 futures.</td><td>Tabs 2, 5</td></tr>
+      <tr><td class="formula">r</td><td>Discount rate</td><td>The yearly return you demand for waiting and taking risk. Used to shrink future money into today's dollars. In the DCF it's the WACC; on tab 2 it's the Vasicek rate + 4% equity premium.</td><td>Tabs 2, 4, 6</td></tr>
+      <tr><td class="formula">g</td><td>Perpetual growth rate</td><td>The "forever" growth assumption for cash flows beyond the forecast. Must stay below r or the math explodes — and must stay below long-run economic growth (2–4%) or the company would eventually BE the economy.</td><td>Tabs 2, 4, 6</td></tr>
+      <tr><td class="formula">WACC</td><td>Weighted avg. cost of capital</td><td>The blended "rent" a company pays for its money: cost of equity and after-tax cost of debt, weighted by how much of each it uses.</td><td>Tab 4</td></tr>
+      <tr><td class="formula">E/V, D/V</td><td>Equity / debt weights</td><td>What fraction of the company's funding is shareholders' money (E/V) vs borrowed (D/V). They sum to 100%.</td><td>Tab 4</td></tr>
+      <tr><td class="formula">Rₑ</td><td>Cost of equity</td><td>The return shareholders expect for holding the stock (classically estimated with CAPM).</td><td>Tab 4</td></tr>
+      <tr><td class="formula">R_d × (1−tax)</td><td>After-tax cost of debt</td><td>The interest rate on borrowing, reduced because interest payments are tax-deductible (the "tax shield").</td><td>Tab 4</td></tr>
+      <tr><td class="formula">FCF, FCFₜ</td><td>Free cash flow (year t)</td><td>Cash actually left over after running the business AND reinvesting in it — the money that could be paid out. FCF = EBIT×(1−t) + D&A − CapEx − ΔNWC.</td><td>Tab 4</td></tr>
+      <tr><td class="formula">t, n</td><td>Year index / horizon</td><td>t counts forecast years (1, 2, 3…); n is the last explicitly forecast year (here 5–10).</td><td>Tabs 2, 4</td></tr>
+      <tr><td class="formula">TV</td><td>Terminal value</td><td>A single lump sum standing in for ALL cash flows beyond year n — usually the biggest (and shakiest) piece of a DCF.</td><td>Tab 4</td></tr>
+      <tr><td class="formula">PV / FV</td><td>Present / future value</td><td>The same money viewed from two ends of time: what a future amount is worth today (PV), or what today's amount grows into (FV).</td><td>Tabs 2, 4, 6</td></tr>
+      <tr><td class="formula">e^(rt)</td><td>Continuous compounding</td><td>Growth compounding at every instant rather than once a year — the smooth-math version of interest.</td><td>Tabs 2, 5</td></tr>
+      <tr><td class="formula">a, b, σᵣ</td><td>Vasicek parameters</td><td>For simulating interest rates: b = the long-run average rate, a = how fast rates get pulled back toward b, σᵣ = how hard they get knocked around meanwhile.</td><td>Tab 2</td></tr>
+      <tr><td class="formula">ERP</td><td>Equity risk premium</td><td>The extra yearly return investors demand for holding risky stocks instead of safe bonds (4% here).</td><td>Tab 2</td></tr>
+      <tr><td class="formula">P(up, 3y)</td><td>Probability of gain</td><td>Share of the 2000 simulated futures that end above the starting value after 3 years.</td><td>Tabs 2, 5</td></tr>
+      <tr><td class="formula">CAGR</td><td>Compound annual growth rate</td><td>The smoothed per-year growth rate over a period — "what constant rate would have gotten you here."</td><td>Tab 2</td></tr>
+      <tr><td class="formula">COGS</td><td>Cost of goods sold</td><td>The direct cost of producing what was sold (materials, factory labor) — subtracted from sales to get gross profit.</td><td>Tab 1 KPIs</td></tr>
+      <tr><td class="formula">EBIT / EBITDA</td><td>Operating earnings</td><td>Profit before financing and taxes (EBIT); EBITDA also adds back depreciation & amortization — a rough "cash operating profit."</td><td>Tabs 1, 4</td></tr>
+      <tr><td class="formula">D&A, CapEx, ΔNWC</td><td>FCF adjustments</td><td>D&A = wear-and-tear expense added back (not cash); CapEx = cash spent on equipment/buildings; ΔNWC = cash tied up in inventory and receivables as the business grows.</td><td>Tab 4</td></tr>
+      <tr><td class="formula">AR</td><td>Accounts receivable</td><td>Money customers owe but haven't paid yet.</td><td>Tab 1 KPIs</td></tr>
+    </table>
+    <div class="muted" style="margin-top:6px;font-size:12px">The 11 KPI ratios themselves (gross margin, P/E, ROE…) are defined with formulas in the table below, and in plain English inside every clickable cell on tab 1.</div>
+  </div>
+  <div class="block">
     <h3>Scoring — every number is built the same way</h3>
     <b>Step 1.</b> Each KPI has an illustrative sector value (see cell click-through) and a direction: <i>higher-is-better</i> (margins, ratios of return, turnover, liquidity) or <i>lower-is-better</i> (P/E, debt-to-equity).<br>
     <b>Step 2.</b> Min–max normalize across the 5 sectors:
