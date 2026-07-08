@@ -41,7 +41,7 @@
 <h1>Long-Term Sector KPI Heat Map <span class="muted" style="font-size:14px">(2–5 yr lens)</span></h1>
 <div class="muted" style="font-size:13px">Companion to <code>05_roadmap/LONGTERM_SECTOR_ANALYSIS_SCOPE.md</code> · Built 2026-07-06</div>
 
-<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> KPI inputs are now real sector aggregates: Damodaran/NYU Stern (Jan 2026, all US-listed firms, firm-count-weighted across mapped industries) and FullRatio (Jun–Jul 2026). Full methodology + caveats in "How to Read" → Data sources. Quick ratio and EPS have no reliable sector-level source and show N/A. Monte Carlo μ/σ/g inputs remain assumptions. Company-level analysis will use real filings, not these averages.</div>
+<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> KPI inputs are now real sector aggregates: Damodaran/NYU Stern (Jan 2026, all US-listed firms, firm-count-weighted across mapped industries) and FullRatio (Jun–Jul 2026). Full methodology + caveats in "How to Read" → Data sources. Quick ratio and EPS have no reliable sector-level source and show N/A. Monte Carlo μ/σ are measured from 10-yr sector-ETF history (backward-looking); g is still assumed. Company-level analysis will use real filings, not these averages.</div>
 
 <div class="tabs">
   <div class="tab active" data-page="p1">1 · Heat Map</div>
@@ -82,14 +82,14 @@
   <div class="block">
     <b>The machinery.</b> The scope doc's complex-quant sections applied at sector level, with three engines from your notes:
     <br>1. <b>GBM Monte Carlo</b> (valuation/profitability/liquidity notes): <span class="eq">dVₜ = μVₜ dt + σVₜ dWₜ  →  V_T = exp[(μ − σ²/2)T + σ√T·Z],  Z ~ N(0,1)</span>
-    2000 simulated 3-yr and 5-yr paths per sector. μ = illustrative long-run sector drift, σ = illustrative volatility.
+    2000 simulated 3-yr and 5-yr paths per sector. μ and σ are now <b>measured</b> from 10 years of sector-ETF history (XLE/XLB/XLY/XLF/XLK, to Jun 30 2026); g remains an assumption. ⚠ Caveat: using a trailing 10-yr return as forward drift assumes the next decade looks like the last — most aggressive for Info Tech (25.6%/yr was an exceptional decade).
     <br>2. <b>Vasicek rate simulation</b> (valuation/liquidity notes): <span class="eq">drₜ = a(b − rₜ)dt + σᵣ dWₜ   with  r₀=4.0%, a=0.30, b=3.5%, σᵣ=1.0%</span>
     Simulated monthly for 5 yrs → the mean terminal rate feeds the discount rate below.
     <br>3. <b>Growing perpetuity PV</b> (simple-valuation + generating-earnings notes): <span class="eq">PV per $1 of current cash flow = 1 / (r − g),   r = Vasicek mean rate + 4% equity risk premium</span>
   </div>
   <div id="mc"></div>
   <div class="block muted" style="font-size:12.5px">
-    Seeded RNG — numbers are identical every time you open this file, so anything you question can be traced. All μ, σ, g inputs are assumptions listed in the table, not measurements.
+    Seeded RNG — numbers are identical every time you open this file, so anything you question can be traced. μ and σ are measured from 10-yr sector-ETF history (backward-looking — past ≠ future); g is still an assumption bounded by the scope doc's 2–4% rule.
   </div>
 </div>
 
@@ -144,7 +144,8 @@ lower-better:   score = 100 × (max − x) / (max − min)</span>
       <tr><td>ROA</td><td>Derived / FullRatio</td><td>Non-financials: ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities. Financials: 1.1% from FullRatio bank averages (the approximation breaks for banks).</td></tr>
       <tr><td>Current ratio</td><td>FullRatio, Jul 2026</td><td>Unweighted industry averages, firm-count-weighted into sectors. Financials N/A (deposit funding breaks the metric).</td></tr>
       <tr><td>Quick ratio, EPS</td><td>—</td><td>N/A: no reliable sector-level source found; will be computed per company from filings in the company-analysis step. Not fabricated.</td></tr>
-      <tr><td>μ, σ, g (pages 2/5)</td><td>Assumptions</td><td>Still illustrative — long-run sector drift/vol estimates, not measured.</td></tr>
+      <tr><td>μ, σ (Monte Carlo)</td><td>LazyPortfolioETF, Jun 30 2026</td><td>10-yr annualized return (μ) and 10-yr standard deviation (σ) of the SPDR sector ETFs: XLE (Energy), XLB (Materials), XLY (Cons. Disc.), XLF (Financials), XLK (Info Tech). ⚠ Backward-looking: assumes the next decade resembles the last — most aggressive for Info Tech.</td></tr>
+      <tr><td>g (perpetual growth)</td><td>Assumption</td><td>Still assumed per sector, bounded by the scope doc's 2–4% macro-growth cap.</td></tr>
     </table>
     <div class="muted" style="margin-top:8px;font-size:12px">Sector mapping: Energy = oil/gas integrated + E&P + distribution + oilfield services + coal (282 firms). Materials = chemicals + metals & mining + precious metals + steel + paper + packaging + construction supplies (305). Consumer Discretionary = retail (ex-grocery) + autos + apparel + hotels/gaming + restaurants + homebuilding + recreation + education (606). Financials = banks + brokerage + insurance + asset management + non-bank financial services (1,173). Info Tech = software + semiconductors + hardware + electronics + IT services + telecom equipment (791).</div>
   </div>
@@ -335,6 +336,8 @@ window.showDetail=function(sector,ci){
    :`100×(${mx}−${x})/(${mx}−${mn}) = ${sc.toFixed(1)} <span class="muted">(lower is better)</span>`;
   let health=k.abs(x);
   if(sector==="Financials"&&key==="roa") health+=" — but ~1% is NORMAL for banks: huge asset bases dilute the ratio";
+  if(key==="pe") health+=" — caveat: these all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them); don't compare to headline index P/Es";
+  if(key==="ar") health+=" — computed on total sales (credit-sales split unavailable), so slightly overstated vs your scope-doc definition";
   h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td><b>${k.fmt(x)}</b></td><td><b>${health}</b></td><td class="formula">${arith}</td><td><b>${Math.round(sc)}</b></td></tr>`;
  });
  h+='</table>';
@@ -361,10 +364,10 @@ window.showComposite=function(sector){
  const rMean=terms.reduce((x,y)=>x+y,0)/paths;
  const ERP=0.04, disc=rMean+ERP;
 
- const ASSUME={ // {mu, sigma, g} — all assumptions
-  "Energy":{mu:.07,sig:.24,g:.02},"Materials":{mu:.07,sig:.20,g:.025},
-  "Consumer Discretionary":{mu:.09,sig:.20,g:.03},"Financials":{mu:.08,sig:.18,g:.025},
-  "Information Technology":{mu:.11,sig:.22,g:.04}};
+ const ASSUME={ // mu/sig MEASURED: 10Y annualized return & st-dev of SPDR sector ETFs (XLE/XLB/XLY/XLF/XLK) to Jun 30 2026, LazyPortfolioETF. g remains assumed.
+  "Energy":{mu:.089,sig:.297,g:.02},"Materials":{mu:.104,sig:.185,g:.025},
+  "Consumer Discretionary":{mu:.128,sig:.202,g:.03},"Financials":{mu:.133,sig:.192,g:.025},
+  "Information Technology":{mu:.256,sig:.206,g:.04}};
  const N=2000, hurdle5=Math.pow(1.07,5);
  let rows="";
  SECTORS.forEach(s=>{
@@ -385,7 +388,7 @@ window.showComposite=function(sector){
  });
  document.getElementById('mc').innerHTML=
   `<div class="block"><b>Vasicek result:</b> mean simulated 5-yr rate = <b>${(rMean*100).toFixed(2)}%</b> (500 paths from r₀=4.0%) → discount rate r = ${(rMean*100).toFixed(2)}% + 4.00% ERP = <b>${(disc*100).toFixed(2)}%</b>, used in the PV column.</div>
-  <table><tr><th style="text-align:left">Sector</th><th>μ drift<br><span class="muted">assumed</span></th><th>σ vol<br><span class="muted">assumed</span></th><th>g growth<br><span class="muted">assumed</span></th><th>P(up, 3y)<br><span class="muted">GBM, 2000 paths</span></th><th>P(CAGR&gt;7%, 5y)</th><th>Median 5y multiple</th><th>PV per $1<br><span class="muted">1/(r−g)</span></th></tr>${rows}</table>`;
+  <table><tr><th style="text-align:left">Sector</th><th>μ drift<br><span class="muted">measured, 10Y ETF</span></th><th>σ vol<br><span class="muted">measured, 10Y ETF</span></th><th>g growth<br><span class="muted">assumed</span></th><th>P(up, 3y)<br><span class="muted">GBM, 2000 paths</span></th><th>P(CAGR&gt;7%, 5y)</th><th>Median 5y multiple</th><th>PV per $1<br><span class="muted">1/(r−g)</span></th></tr>${rows}</table>`;
 })();
 
 /* ================== PAGE 4: SECTOR PROFILES ================== */
@@ -471,7 +474,7 @@ function renderDCF(){
 }
 
 /* ================== PAGE 6: SIMULATION EXPLORER ================== */
-const SIM_ASSUME={"Energy":{mu:.07,sig:.24},"Materials":{mu:.07,sig:.20},"Consumer Discretionary":{mu:.09,sig:.20},"Financials":{mu:.08,sig:.18},"Information Technology":{mu:.11,sig:.22}};
+const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials":{mu:.104,sig:.185},"Consumer Discretionary":{mu:.128,sig:.202},"Financials":{mu:.133,sig:.192},"Information Technology":{mu:.256,sig:.206}}; // measured: 10Y ETF history (see Data sources)
 function renderSim(){
  const s=document.getElementById('simSel').value,{mu,sig}=SIM_ASSUME[s];
  // --- analytic percentile fan ---
@@ -485,7 +488,7 @@ function renderSim(){
  const area=(lo,hi)=>T.map((t,i)=>`${X(t).toFixed(1)},${Y(hi[i]).toFixed(1)}`).join(" ")+" "+[...T].reverse().map((t,i)=>{const j=T.length-1-i;return`${X(t).toFixed(1)},${Y(lo[j]).toFixed(1)}`;}).join(" ");
  let gl="";for(let v=0.5;v<=ymax;v+=0.5)gl+=`<line x1="${mL}" y1="${Y(v)}" x2="${W-mR}" y2="${Y(v)}" stroke="#2c3442" stroke-dasharray="3,3"/><text x="${mL-6}" y="${Y(v)+4}" fill="#5c6673" font-size="10" text-anchor="end">×${v.toFixed(1)}</text>`;
  let xl="";for(let t=0;t<=5;t++)xl+=`<text x="${X(t)}" y="${H-8}" fill="#5c6673" font-size="10" text-anchor="middle">yr ${t}</text>`;
- document.getElementById('fan').innerHTML=`<div class="block"><b>${s}</b> — value-multiple fan, μ=${(mu*100).toFixed(0)}%, σ=${(sig*100).toFixed(0)}% (assumed)
+ document.getElementById('fan').innerHTML=`<div class="block"><b>${s}</b> — value-multiple fan, μ=${(mu*100).toFixed(1)}%, σ=${(sig*100).toFixed(1)}% (measured: 10Y ETF history — past ≠ future)
   <svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;display:block;margin-top:8px">
    ${gl}${xl}
    <polygon points="${area(p5,p95)}" fill="rgba(90,167,255,.10)"/>
