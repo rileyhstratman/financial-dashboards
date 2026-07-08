@@ -230,6 +230,17 @@ lower-better:   score = 100 × (max − x) / (max − min)</span>
 
 <!-- ============ PAGE 7: SENSITIVITY ============ -->
 <div class="page" id="p7">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>What am I looking at? (30 seconds)</b><br>
+    This grid answers one question: <i>"how much is $1 per year of growing cash flow worth today?"</i> — under every combination of two assumptions you have to make in any long-term valuation:<br><br>
+    · <b>Rows (r)</b> = the discount rate — the yearly return you demand for waiting and taking risk. Higher r = you're more impatient/risk-averse = future cash is worth less to you.<br>
+    · <b>Columns (g)</b> = the growth assumption — how fast you believe that $1 grows forever. Higher g = more optimism.<br><br>
+    <b>How to use it:</b> pick a row and slide your finger right. Same company, same cash — only your optimism changes. Notice the value doesn't rise smoothly, it <i>accelerates</i>: at r = 8%, going from g = 2% to g = 4% adds +50% of "value" from a 2-point assumption change and nothing real. That acceleration is the whole lesson: <b>long-term valuations are hostage to the r − g gap.</b><br><br>
+    · Green cells = high value, red = low — the color follows the number, not "good/bad".<br>
+    · <b>⚠ cells</b> = g is nearly equal to r. The formula divides by ~zero and spits out infinity-ish numbers. If a valuation you read lives in that corner, the assumptions are doing all the work.<br>
+    · Hover any cell to see its exact arithmetic.<br><br>
+    <b>Why you should care:</b> the DCF's terminal value (tab 4) uses this exact formula, and it's usually 60–80% of a company's total valuation. When two analysts disagree wildly on a price target, the disagreement almost always lives in this grid — in which cell they chose.
+  </div>
   <div class="block">
     <b>The r − g fragility grid.</b> Value of $1/yr of growing cash flow: <span class="formula">PV = 1 / (r − g)</span>.
     This is the single most important intuition for 2–5 yr valuation: <b>the closer growth gets to the discount rate, the more explosive — and fragile — the valuation.</b>
