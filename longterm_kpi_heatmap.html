@@ -140,12 +140,13 @@
       <tr><td>Inventory turnover</td><td>higher better, capped</td><td>1→0 · 4→4 · 8→8 · 15→10 · 30→8</td><td>Fast turns are good until they signal understocking.</td></tr>
       <tr><td>AR turnover</td><td>higher better, capped</td><td>3→0 · 6→4 · 9→7 · 12→10 · 25→9</td><td>Fast collection is good; extreme = credit terms so tight they may cost sales.</td></tr>
       <tr><td>ROA</td><td>higher better</td><td>0%→0 · 5%→5 · 12%→10</td><td>Profit per dollar of assets.</td></tr>
-      <tr><td>P/E</td><td><b>sweet spot ~12–15×</b></td><td>5→3 · 8→6 · 12→10 · 18→8 · 25→5 · 40→1 · 60→0</td><td>High = expensive, but VERY low usually means the market smells distress (value trap), not a bargain.</td></tr>
+      <tr><td>Forward P/E</td><td><b>lower better above 12×; bends below 8×</b></td><td>5→3 · 8→6 · 12→10 · 18→8 · 25→5 · 40→1 · 60→0</td><td>Direction audit: in the practical range (all four sectors are &gt;20×) lower P/E ranks STRICTLY higher. The curve only bends below ~8×, where a rock-bottom multiple means the market smells distress (value trap), not a bargain.</td></tr>
+      <tr><td>PEG ratio</td><td>lower better throughout</td><td>0.5→10 · 1.0→8 · 1.5→6 · 2.0→4.5 · 3.0→2 · 4.0→0</td><td>Peter Lynch thresholds: &lt;1 undervalued vs expected growth, ~1 fair, &gt;2 paying beyond growth. Complements P/E by asking whether growth justifies the price.</td></tr>
       <tr><td>Debt/equity (market)</td><td><b>sweet spot 0.3–0.6×</b></td><td>0→7 · 0.2→9 · 0.5→10 · 0.8→7 · 1.2→4 · 2.0→0</td><td>High debt = risk, but ZERO debt wastes the interest tax shield (see the Leland–Toft framework in the scope doc). Optimal is moderate.</td></tr>
       <tr><td>ROE</td><td>higher better + DuPont check</td><td>4%→0 · 12%→5 · 20%→10, then penalized if leverage-inflated</td><td>ROE = ROA × leverage multiplier: a high ROE built on debt isn't quality. Multiplier &gt;3× costs 1.5 pts, &gt;5× costs 3 pts.</td></tr>
     </table>
     <b>Step 2 — Relative score (40% weight).</b> Computed in <b>goodness space</b>: each sector's ABSOLUTE score (not its raw ratio) is min–max ranked 0–10 across the 4 sectors. This is what makes cross-sector comparison correct for sweet-spot metrics — a sector near the P/E sweet spot beats both the distress-cheap one and the expensive one, which raw-value ranking would get wrong.<br>
-    <b>Step 3 — Blend.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE). Category rating = plain average of its KPI ratings (N/A excluded). Overall = plain average of category ratings.<br>
+    <b>Step 3 — Blend & weight.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE). Category rating = plain average of its KPI ratings (N/A excluded). <b>Overall = weighted average of category ratings</b>: <b>Profitability 25% · Valuation 25% · Efficiency 20% · Liquidity 15% · Leverage 15%</b> — the midpoints of the sector-analysis framework ranges (Prof 20–35, Valu 20–30, Eff 15–25, Liq 10–20, Lev 15–25). There is no universal weighting standard (composite frameworks like Altman Z and the CFI each choose purpose-specific weights), so these are documented, mid-range, and deliberately adjustable. Weights renormalize when a category is N/A. Category membership: Profitability = margins · Efficiency = turnovers + ROA · Valuation = forward P/E + PEG · Leverage = D/E + ROE.<br>
     <b>Step 4 — Cross-checks between ratios.</b> Ratios are tied together by accounting identities, and the panel reads them against each other: <b>net÷gross margin</b> (how much gross profit survives operating costs), <b>ROE÷ROA</b> (DuPont leverage multiplier), <b>P/E÷measured growth</b> (PEG-style: is the price backed by history?). Ratings within a category that disagree by &gt;2 points flag <b>⚠ mixed signals</b>.<br>
     <b>Verdict bands:</b> 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.
   </div>
@@ -168,7 +169,8 @@
       <tr><td>Inventory turnover</td><td class="formula">COGS / Avg inventory</td><td>higher better</td></tr>
       <tr><td>AR turnover</td><td class="formula">Sales on account / Avg AR</td><td>higher better</td></tr>
       <tr><td>EPS</td><td class="formula">Net income / Wtd-avg shares</td><td>display only</td></tr>
-      <tr><td>P/E</td><td class="formula">Share price / EPS</td><td>lower better</td></tr>
+      <tr><td>Forward P/E</td><td class="formula">Share price / next year's expected EPS</td><td>lower better (bends below 8× — distress)</td></tr>
+      <tr><td>PEG ratio</td><td class="formula">Forward P/E / expected 5-yr EPS growth (%)</td><td>lower better</td></tr>
       <tr><td>Debt-to-equity</td><td class="formula">Total liabilities / Shareholder equity</td><td>lower better</td></tr>
       <tr><td>ROE</td><td class="formula">Net income / Avg shareholders' equity</td><td>higher better</td></tr>
       <tr><td>ROA</td><td class="formula">Net income / Total assets</td><td>higher better</td></tr>
@@ -180,7 +182,8 @@
       <tr><th>Metric</th><th>Source</th><th>Method / caveat</th></tr>
       <tr><td>Gross margin, Net margin</td><td>Damodaran (NYU Stern), Jan 2026</td><td>Firm-count-weighted average of mapped industries per GICS sector. Covers ~5,900 US-listed firms — small caps included, so averages differ from S&P-500-only figures.</td></tr>
       <tr><td>Inventory turnover, AR turnover</td><td>Damodaran, Jan 2026 (derived)</td><td>Inv turn = (COGS/Sales) ÷ (Inventory/Sales); AR turn = Sales ÷ AR. Uses total sales, not credit sales (credit-sales split unavailable) — AR turnover is slightly overstated.</td></tr>
-      <tr><td>P/E</td><td>Damodaran, Jan 2026</td><td><b>Forward</b> P/E, all listed firms. Runs higher than S&P 500 sector P/Es (e.g., Energy 21× here vs ~12× S&P-500-only) because unprofitable small caps inflate aggregates.</td></tr>
+      <tr><td>Forward P/E</td><td>Damodaran, Jan 2026</td><td><b>Forward</b> P/E (price ÷ next year's expected earnings), all listed firms. Runs higher than S&P 500 sector P/Es (e.g., Energy 21× here vs ~12× S&P-500-only) because unprofitable small caps inflate aggregates.</td></tr>
+      <tr><td>PEG ratio</td><td>Damodaran, Jan 2026</td><td>Damodaran's PEG column (P/E ÷ expected 5-yr growth), firm-count-weighted across mapped industries, NA industries excluded. Same all-firm caveat as P/E.</td></tr>
       <tr><td>Debt-to-equity</td><td>Damodaran, Jan 2026</td><td>⚠ <b>Market</b> debt/equity (debt ÷ market cap), NOT the scope-doc definition (total liabilities ÷ book equity). Book-based D/E would be much higher. Kept because it's the consistent cross-sector series available.</td></tr>
       <tr><td>ROE</td><td>Damodaran, Jan 2026</td><td>Unadjusted ROE, firm-count-weighted.</td></tr>
       <tr><td>ROA</td><td>Derived</td><td>ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities.</td></tr>
@@ -276,10 +279,10 @@ function randn(){let u=0,v=0;while(u===0)u=rand();while(v===0)v=rand();return Ma
    null = N/A: no reliable sector-level source. */
 const SECTORS=["Energy","Materials","Global Defense","Information Technology"];
 const D={
- "Energy":                 {gm:37.5,nm:9.3, cur:1.36,qk:null,inv:12.2,ar:9.5, eps:null,pe:21.2,de:0.36,roe:10.6,roa:6.6},
- "Materials":              {gm:32.2,nm:9.8, cur:2.36,qk:null,inv:3.9, ar:8.8, eps:null,pe:20.9,de:0.29,roe:12.4,roa:7.8},
- "Global Defense":         {gm:17.5,nm:5.0, cur:2.44,qk:null,inv:2.9, ar:4.2, eps:null,pe:45.9,de:0.15,roe:15.3,roa:6.9},
- "Information Technology": {gm:55.7,nm:19.4,cur:2.16,qk:null,inv:6.7, ar:5.9, eps:null,pe:35.8,de:0.08,roe:23.9,roa:15.3}
+ "Energy":                 {gm:37.5,nm:9.3, cur:1.36,qk:null,inv:12.2,ar:9.5, eps:null,pe:21.2,peg:3.5,de:0.36,roe:10.6,roa:6.6},
+ "Materials":              {gm:32.2,nm:9.8, cur:2.36,qk:null,inv:3.9, ar:8.8, eps:null,pe:20.9,peg:1.5,de:0.29,roe:12.4,roa:7.8},
+ "Global Defense":         {gm:17.5,nm:5.0, cur:2.44,qk:null,inv:2.9, ar:4.2, eps:null,pe:45.9,peg:1.4,de:0.15,roe:15.3,roa:6.9},
+ "Information Technology": {gm:55.7,nm:19.4,cur:2.16,qk:null,inv:6.7, ar:5.9, eps:null,pe:35.8,peg:1.7,de:0.08,roe:23.9,roa:15.3}
 };
 /* ---------- 10-point scoring engine ----------
    Rating = 0.6 × ABSOLUTE score + 0.4 × RELATIVE score, both on 0-10.
@@ -300,7 +303,8 @@ const ANCH={ // [value, score] anchors. NOT all monotonic: some ratios have a SW
  inv:[[1,0],[4,4],[8,8],[15,10],[30,8]],                      // higher better, extreme = understock risk
  ar:[[3,0],[6,4],[9,7],[12,10],[25,9]],                       // higher better, extreme = overly tight credit
  roa:[[0,0],[5,5],[12,10]],                                   // higher better
- pe:[[5,3],[8,6],[12,10],[18,8],[25,5],[40,1],[60,0]],        // sweet spot ~12-15x; <8 = distress-priced value trap, high = expensive
+ pe:[[5,3],[8,6],[12,10],[18,8],[25,5],[40,1],[60,0]],        // sweet spot ~12-15x. DIRECTION AUDIT: in the practical range (>12x) lower P/E ranks STRICTLY higher; the curve only bends below ~8x where a rock-bottom P/E signals distress (value trap), not a bargain
+ peg:[[0.5,10],[1.0,8],[1.5,6],[2.0,4.5],[3.0,2],[4.0,0]],    // lower better throughout (Lynch: <1 undervalued, ~1 fair, >2 premium); clamped at 0.5
  de:[[0,7],[0.2,9],[0.5,10],[0.8,7],[1.2,4],[2.0,0]],         // sweet spot 0.3-0.6x market D/E; ZERO debt wastes the tax shield (Leland-Toft), high = risk
  roe:[[4,0],[12,5],[20,10]]                                   // higher better, but cross-checked vs ROA (DuPont) below
 };
@@ -335,9 +339,12 @@ const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the
   abs:v=>v>=10?"fast collection (>10×)":v>=6?"typical (6–10×)":"slow (<6×)"},
  eps:{name:"EPS (display only)",f:"Net income/Wtd-avg shares",dir:0,fmt:v=>"$"+v.toFixed(2),
   desc:"Profit per share — only meaningful within one company over time",abs:v=>""},
- pe:{name:"P/E",f:"Price/EPS",dir:-1,fmt:v=>v+"×",
-  desc:"How many years of current profit you pay for the stock at today's price",
-  abs:v=>v<15?"cheap-ish (<15×)":v<=25?"typical (15–25×)":"priced for growth (>25×)"},
+ pe:{name:"Forward P/E",f:"Price / NEXT year's expected EPS (Damodaran forward P/E)",dir:-1,fmt:v=>v+"×",
+  desc:"How many years of next year's expected profit you pay at today's price",
+  abs:v=>v<8?"suspiciously cheap — possible distress pricing":v<15?"cheap-ish (8–15×)":v<=25?"typical (15–25×)":"priced for growth (>25×)"},
+ peg:{name:"PEG ratio",f:"Forward P/E ÷ expected 5-yr EPS growth (%)",dir:-1,fmt:v=>v.toFixed(1),
+  desc:"Is the price justified by expected growth? ~1 = fairly priced for its growth (Peter Lynch rule)",
+  abs:v=>v<1?"undervalued vs growth (<1)":v<=2?"fair-to-full (1–2)":"paying well beyond expected growth (>2)"},
  de:{name:"Debt-to-equity",f:"Here: Total debt/Market equity — NOT the scope-doc book definition (see Data sources)",dir:-1,fmt:v=>v.toFixed(2)+"×",
   desc:"Debt load vs the owners' stake (here: debt ÷ market value of equity)",
   abs:v=>v<0.5?"conservative (<0.5×)":v<=1?"moderate (0.5–1×)":"leveraged (>1×)"},
@@ -351,15 +358,25 @@ const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the
 const CATDESC={"Profitability":"How much of each sales dollar becomes profit",
  "Liquidity":"Can it cover bills due within a year?",
  "Efficiency":"How productively it turns inventory, collections & total assets into profit",
- "Valuation":"How expensive the stock is vs its earnings",
+ "Valuation":"How expensive the stock is vs its earnings & growth",
  "Leverage":"Debt load + the return earned on owners' money"};
-const CATS=[
+const CATS=[ // Original mapping retained (ROE/ROA remap reverted Jul 8 per Riley)
  {name:"Profitability",kpis:["gm","nm"]},
  {name:"Liquidity",kpis:["cur","qk"]},
- {name:"Efficiency",kpis:["inv","ar","roa"]},   // roa folded in: asset productivity
- {name:"Valuation",kpis:["pe","eps"]},          // eps display-only
+ {name:"Efficiency",kpis:["inv","ar","roa"]},   // roa = asset productivity
+ {name:"Valuation",kpis:["pe","peg","eps"]},    // eps display-only
  {name:"Leverage",kpis:["de","roe"]}
 ];
+// Weighted overall. No universal standard exists (composite frameworks like Altman Z / CFI each pick
+// purpose-specific weights), so these sit at the midpoints of the sector-analysis framework ranges:
+// Profitability 20-35 → 25 · Valuation 20-30 → 25 · Efficiency 15-25 → 20 · Liquidity 10-20 → 15 · Leverage 15-25 → 15.
+// Renormalized when a category is N/A. Deliberately adjustable — change one line to re-tilt.
+const CATW={"Valuation":.25,"Profitability":.25,"Efficiency":.20,"Liquidity":.15,"Leverage":.15};
+function overall(sector){
+ let num=0,den=0;
+ CATS.forEach(c=>{const sc=catScore(c,sector); if(sc!=null){num+=CATW[c.name]*sc;den+=CATW[c.name];}});
+ return den>0?num/den:null;
+}
 
 /* ---------- scoring: 0.6×absolute + 0.4×relative, 0-10 ----------
    RELATIVE is computed in GOODNESS SPACE: each sector's ABSOLUTE score is min-max ranked,
@@ -410,19 +427,17 @@ function color(s){ // 0 red -> 10 green
 (function(){
  let h='<table><tr><th style="text-align:left">Sector</th>';
  CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}<br><span style="font-weight:400;font-size:10.5px">${CATDESC[c.name]}</span></th>`);
- h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Average of the five categories</span></th></tr>';
+ h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Weighted: Prof 25% · Valu 25% · Eff 20% · Liq 15% · Lev 15%</span></th></tr>';
  SECTORS.forEach(s=>{
   h+=`<tr><td class="rowhead">${s}</td>`;
-  const cs=[];
   CATS.forEach((c,ci)=>{
    const sc=catScore(c,s);
    if(sc==null){h+=`<td class="na" title="No reliable sector-level data for this category. Skipped in scoring, NOT counted as zero.">N/A</td>`;}
    else{
-    cs.push(sc);
     const mixed=catSpread(c,s)>2?`<br><span style="font-size:9px;font-weight:400">⚠ mixed signals</span>`:"";
-    h+=`<td class="cell" style="background:${color(sc)}" title="${verdict(sc)}" onclick="showDetail('${s}',${ci})">${sc.toFixed(1)}${mixed}</td>`;}
+    h+=`<td class="cell" style="background:${color(sc)}" title="${verdict(sc)} · weight ${(CATW[c.name]*100).toFixed(0)}%" onclick="showDetail('${s}',${ci})">${sc.toFixed(1)}${mixed}</td>`;}
   });
-  const comp=cs.reduce((a,b)=>a+b,0)/cs.length;
+  const comp=overall(s);
   h+=`<td class="cell" style="background:${color(comp)}" onclick="showComposite('${s}')">${comp.toFixed(1)}<br><span style="font-size:9.5px;font-weight:600">${verdict(comp)}</span></td></tr>`;
  });
  h+='</table>';
@@ -475,14 +490,15 @@ window.showDetail=function(sector,ci){
  document.getElementById('detail').innerHTML=h;
 };
 window.showComposite=function(sector){
- let h=`<b>${sector} — OVERALL RATING</b><br>Plain average of this sector's category ratings (no hidden weights):<table><tr><th>Category</th><th>Rating /10</th><th>Read</th></tr>`;
- const cs=[];
+ let h=`<b>${sector} — OVERALL RATING</b><br>Weighted average of this sector's category ratings (Valuation-tilted framework):<table><tr><th>Category</th><th>Rating /10</th><th>Weight</th><th>Contribution</th><th>Read</th></tr>`;
+ const terms=[];let num=0,den=0;
  CATS.forEach(c=>{const sc=catScore(c,sector);
-  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td><td>${sc==null?"—":verdict(sc)+(catSpread(c,sector)>2?" ⚠ mixed":"")}</td></tr>`;
-  if(sc!=null)cs.push(sc);});
- const t=cs.reduce((a,b)=>a+b,0)/cs.length;
- h+=`</table><div style="margin-top:8px">Overall = (${cs.map(s=>s.toFixed(1)).join(" + ")}) / ${cs.length} = <b>${t.toFixed(1)} / 10 → ${verdict(t)}</b></div>`;
- h+=`<div class="muted" style="margin-top:6px;font-size:12px">Caution: an overall number hides trade-offs — Info Tech can rate Bullish overall while its Valuation is Bearish. Always scan the row, not just the total.</div>`;
+  const w=CATW[c.name];
+  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td><td>${(w*100).toFixed(0)}%</td><td>${sc==null?"—":(w*sc).toFixed(2)}</td><td>${sc==null?"—":verdict(sc)+(catSpread(c,sector)>2?" ⚠ mixed":"")}</td></tr>`;
+  if(sc!=null){terms.push(`${(w*100).toFixed(0)}%×${sc.toFixed(1)}`);num+=w*sc;den+=w;}});
+ const t=num/den;
+ h+=`</table><div style="margin-top:8px">Overall = (${terms.join(" + ")}) ÷ ${(den*100).toFixed(0)}% = <b>${t.toFixed(1)} / 10 → ${verdict(t)}</b> <span class="muted">(weights renormalized if a category is N/A)</span></div>`;
+ h+=`<div class="muted" style="margin-top:6px;font-size:12px">Weights sit at the midpoints of the sector-analysis framework ranges: Profitability 25% · Valuation 25% · Efficiency 20% · Liquidity 15% · Leverage 15%. No universal standard exists (Altman Z, CFI etc. each pick purpose-specific weights) — these are documented and deliberately adjustable. Caution: an overall number still hides trade-offs — always scan the row, not just the total.</div>`;
  document.getElementById('detail').innerHTML=h;
 };
 
