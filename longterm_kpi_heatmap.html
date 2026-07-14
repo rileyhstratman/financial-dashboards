@@ -203,6 +203,8 @@
       <tr><td>Book D/E</td><td>Damodaran, Jan 2026</td><td>Now SCORED (Leverage): from verified book debt-to-capital. Total debt/assets stays display-only (derived approximation).</td></tr>
       <tr><td>Sector market cap</td><td>Fidelity, Jul 10 2026</td><td>Display-only context: S&P 500 sector aggregates (Energy $4.47T, Materials $3.47T, Info Tech $31.66T). Defense sits inside Industrials ($9.67T); Precious Metals not separately published. Not a ratio — never scored.</td></tr>
       <tr><td>Cross-validation</td><td>Fidelity, Jul 13 2026</td><td>Fidelity's S&P 500 10-yr sector returns cross-check our simulation μ inputs: Info Tech +801% (≈24.6%/yr price-only) vs our 25.6% total-return XLK ✓; Energy, Materials, Industrials similarly consistent once ~2-3.5% dividend yields are added to Fidelity's price-only figures.</td></tr>
+      <tr><td>Business cycle & analyst consensus</td><td>Fidelity research (CFRA Jul 10, Argus Jun 18, 2026)</td><td>Context layers on the Sector Profiles tab: Fidelity's business-cycle sector map + CFRA/Argus sector weightings, compared against our ratings. Consensus covers S&P 500 GICS sectors — Defense compared via broad Industrials, Precious Metals unrated.</td></tr>
+      <tr><td>History grounding (planned)</td><td>Damodaran archives — pending</td><td>Next grounding step: score each sector ratio against its own multi-year history (percentiles instead of fixed anchors). The archive .xls files can't be fetched by tooling — waiting on manual download into the project folder.</td></tr>
       <tr><td>Debt-to-equity</td><td>Damodaran, Jan 2026</td><td>⚠ <b>Market</b> debt/equity (debt ÷ market cap), NOT the scope-doc definition (total liabilities ÷ book equity). Book-based D/E would be much higher. Kept because it's the consistent cross-sector series available.</td></tr>
       <tr><td>ROE</td><td>Damodaran, Jan 2026</td><td>Unadjusted ROE, firm-count-weighted.</td></tr>
       <tr><td>ROA</td><td>Derived</td><td>ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities.</td></tr>
@@ -626,6 +628,19 @@ function stripHTML(sector){
    <td>${sc==null?'<span class="muted">display only</span>':"<b>"+sc.toFixed(1)+"</b><br><span class=\"muted\" style=\"font-size:9.5px\">"+verdict(sc)+"</span>"}</td></tr>`;});
  return h+'</table>';
 }
+/* Context layers — Fidelity research, pulled Jul 13 2026 (logged-in session) */
+const CYCLE={
+ "Energy":"Late-cycle outperformer; underperforms consistently early-cycle (Fidelity business-cycle map).",
+ "Materials (ex-Precious)":"Early-phase outperformer (inconsistent); mid-phase underperformer (consistent).",
+ "Precious Metals":"Not separately mapped by Fidelity; gold miners often behave counter-cyclically vs the broad Materials pattern.",
+ "US Defense & Aerospace":"Mapped via Industrials: outperforms consistently early-cycle; underperforms consistently in recession. Defense spending itself is less cycle-sensitive than the broad sector.",
+ "Information Technology":"Early/mid-phase outperformer; underperforms late-cycle and in recession (consistently)."};
+const ANALYST={
+ "Energy":{txt:"CFRA Underweight · Argus Marketweight",cmp:"Our 5.8 Neutral sits between the two — roughly consistent."},
+ "Materials (ex-Precious)":{txt:"CFRA Underweight · Argus Overweight — the analysts themselves disagree",cmp:"Our 5.2 Neutral splits the difference."},
+ "Precious Metals":{txt:"Not separately rated (sits inside Materials for both houses)",cmp:"Our 8.5 Very Bullish is unchecked by consensus — and carries the cyclical-peak warning."},
+ "US Defense & Aerospace":{txt:"Broad Industrials: CFRA Overweight · Argus Overweight",cmp:"⚠ DIVERGENCE: our 3.9 Bearish vs their double-Overweight. Partly apples-to-oranges — they rate ALL Industrials (machinery, transport, etc.), we rate only the A&D subset using all-firm data with 50.6% loss-makers. Worth investigating at company level."},
+ "Information Technology":{txt:"CFRA Overweight · Argus Overweight",cmp:"Our 7.1 Bullish is consistent with consensus."}};
 function renderProfile(){
  const s=document.getElementById('profSel').value;
  const scored=CATS.map((c,i)=>({name:c.name,sc:catScore(c,s)})).filter(x=>x.sc!=null).sort((a,b)=>b.sc-a.sc);
@@ -637,7 +652,11 @@ function renderProfile(){
     <div class="block" style="margin:0;flex:1;min-width:420px">${stripHTML(s)}</div>
    </div>
    <div class="block"><b>Auto-read (mechanical, from scores only):</b> Relative strengths — ${strong}. Relative weaknesses — ${weak}.
-   <span class="muted">This is arithmetic on sector-average estimates, not a thesis. The 2–5 yr thesis step (pipeline step 4) is where judgment enters.</span></div>`;
+   <span class="muted">This is arithmetic on sector-average estimates, not a thesis. The 2–5 yr thesis step (pipeline step 4) is where judgment enters.</span></div>
+   <div class="block" style="border-left:3px solid var(--accent)"><b>Context layers</b> <span class="muted">(Fidelity research, Jul 2026)</span><br>
+   · <b>Business cycle:</b> ${CYCLE[s]}<br>
+   · <b>Analyst consensus:</b> ${ANALYST[s].txt}.<br>
+   · <b>Vs our rating:</b> ${ANALYST[s].cmp}</div>`;
 }
 
 /* ================== PAGE 5: DCF EXPLORER ================== */
