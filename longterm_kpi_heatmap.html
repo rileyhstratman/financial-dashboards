@@ -41,7 +41,7 @@
 <h1>Long-Term Sector KPI Heat Map <span class="muted" style="font-size:14px">(2–5 yr lens)</span></h1>
 <div class="muted" style="font-size:13px">Companion to <code>05_roadmap/LONGTERM_SECTOR_ANALYSIS_SCOPE.md</code> · Built 2026-07-06</div>
 
-<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> Four sectors: Energy, Materials, Global Defense (US-listed aerospace & defense firms), Information Technology. Data: Damodaran/NYU Stern (Jan 2026, all US-listed firms, firm-count-weighted) and FullRatio (Jun–Jul 2026); all inputs verified against source pages. Scores are 0–10 bullish/bearish ratings blending an absolute health check (60%) with a cross-sector comparison (40%) — methodology in "How to Read". Quick ratio and EPS show N/A (no reliable sector-level source). Monte Carlo μ/σ measured from 10-yr ETF history (Defense uses XLI Industrials as a labeled proxy); g assumed.</div>
+<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> Five sectors: Energy, Materials (ex-Precious), Precious Metals (split out — its 71.8% expected growth was distorting Materials), US Defense & Aerospace (named for what the data covers: 79 US-listed firms), Information Technology. Data: Damodaran/NYU Stern (Jan 2026, firm-count-weighted, verified), FullRatio (Jun–Jul 2026), ReadyRatios SEC medians (quick ratio — SIC-mapped, approximate), Fidelity (S&P 500 sector market caps, Jul 2026). Ratings are 0–10 bullish/bearish: 60% absolute health check + 40% cross-sector, six weighted categories incl. Growth — methodology in "How to Read". Monte Carlo μ/σ from 10-yr ETF history (Defense = XLI proxy; Precious Metals = XLB proxy, inadequate — GDX history needed); g assumed.</div>
 
 <div class="tabs">
   <div class="tab active" data-page="p1">1 · Heat Map</div>
@@ -146,9 +146,13 @@
       <tr><td>PEG ratio</td><td>lower better throughout</td><td>0.5→10 · 1.0→8 · 1.5→6 · 2.0→4.5 · 3.0→2 · 4.0→0</td><td>Peter Lynch thresholds: &lt;1 undervalued vs expected growth, ~1 fair, &gt;2 paying beyond growth. Complements P/E by asking whether growth justifies the price.</td></tr>
       <tr><td>Debt/equity (market)</td><td><b>sweet spot 0.3–0.6×</b></td><td>0→7 · 0.2→9 · 0.5→10 · 0.8→7 · 1.2→4 · 2.0→0</td><td>High debt = risk, but ZERO debt wastes the interest tax shield (see the Leland–Toft framework in the scope doc). Optimal is moderate.</td></tr>
       <tr><td>ROE</td><td>higher better + DuPont check</td><td>4%→0 · 12%→5 · 20%→10, then penalized if leverage-inflated</td><td>ROE = ROA × leverage multiplier: a high ROE built on debt isn't quality. Multiplier &gt;3× costs 1.5 pts, &gt;5× costs 3 pts.</td></tr>
+      <tr><td>Quick ratio ≈</td><td><b>sweet spot ~1–2×</b></td><td>0.3→0 · 0.8→5 · 1.2→10 · 2.5→8</td><td>Bill-paying without selling inventory. Data is approximate (SIC-mapped SEC medians).</td></tr>
+      <tr><td>Expected EPS growth 5yr</td><td>higher better, capped</td><td>0→0 · 5→3 · 10→5 · 20→8 · 30→10</td><td>Analyst estimates skew optimistic — read against the delivered number.</td></tr>
+      <tr><td>Earnings growth last 5yr</td><td>higher better, capped</td><td>same anchors</td><td>What was actually delivered.</td></tr>
+      <tr><td>Book D/E</td><td><b>sweet spot ~0.5–1.0×</b></td><td>0→6 · 0.3→8 · 0.7→10 · 1.2→6 · 2.0→2 · 3.0→0</td><td>Book basis runs higher than market D/E; same tax-shield logic, shifted anchors.</td></tr>
     </table>
     <b>Step 2 — Relative score (40% weight).</b> Computed in <b>goodness space</b>: each sector's ABSOLUTE score (not its raw ratio) is min–max ranked 0–10 across the 4 sectors. This is what makes cross-sector comparison correct for sweet-spot metrics — a sector near the P/E sweet spot beats both the distress-cheap one and the expensive one, which raw-value ranking would get wrong.<br>
-    <b>Step 3 — Blend & weight.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE). Category rating = plain average of its KPI ratings (N/A excluded). <b>Overall = weighted average of category ratings</b>: <b>Profitability 25% · Valuation 25% · Efficiency 20% · Liquidity 15% · Leverage 15%</b> — the midpoints of the sector-analysis framework ranges (Prof 20–35, Valu 20–30, Eff 15–25, Liq 10–20, Lev 15–25). There is no universal weighting standard (composite frameworks like Altman Z and the CFI each choose purpose-specific weights), so these are documented, mid-range, and deliberately adjustable. Weights renormalize when a category is N/A. Category membership: Profitability = margins · Efficiency = turnovers + ROA · Valuation = forward P/E + PEG · Leverage = D/E + ROE.<br>
+    <b>Step 3 — Blend & weight.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE). Category rating = plain average of its KPI ratings (N/A excluded). <b>Overall = weighted average of six category ratings</b>: <b>Profitability 22.5% · Valuation 22.5% · Efficiency 17.5% · Growth 12.5% · Liquidity 12.5% · Leverage 12.5%</b> — the 5-category framework midpoints with the new Growth category carved out proportionally. No universal weighting standard exists (Altman Z, CFI etc. choose purpose-specific weights); these are documented and deliberately adjustable, renormalized when a category is N/A. Membership: Profitability = margins (gross/net/EBITDA) · Liquidity = current + quick · Efficiency = turnovers + ROA · Growth = expected + delivered 5-yr earnings growth · Valuation = forward P/E + trailing P/E + PEG · Leverage = market D/E + book D/E + ROE.<br>
     <b>Step 4 — Cross-checks between ratios.</b> Ratios are tied together by accounting identities, and the panel reads them against each other: <b>net÷gross margin</b> (how much gross profit survives operating costs), <b>ROE÷ROA</b> (DuPont leverage multiplier), <b>P/E÷measured growth</b> (PEG-style: is the price backed by history?). Ratings within a category that disagree by &gt;2 points flag <b>⚠ mixed signals</b>.<br>
     <b>Verdict bands:</b> 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.
   </div>
@@ -158,6 +162,7 @@
     · <b>P/E scored lower-is-better</b> = a value lens. Under a growth lens a high P/E can be justified; the 2–5 yr thesis step decides that per company. Defense's extreme aggregate P/E (45.9×) is partly a data artifact — half its firms are currently loss-making.<br>
     · <b>EPS is displayed but NOT rated</b> — raw EPS isn't comparable across sectors (share counts differ arbitrarily).<br>
     · <b>Global Defense ≈ US-listed aerospace & defense.</b> "Global" reflects the revenue base, not the listing venue — international primes (BAE, Rheinmetall...) are not in the US dataset.<br>
+    · <b>Precious Metals' Very Bullish rating is a cyclical-peak snapshot.</b> With gold near $4,000, miners show fat margins, high ROA and a cheap PEG — which is exactly how commodity producers look at the TOP of their cycle. Ratio frameworks systematically over-rate cyclicals at peak earnings ("peak-earnings trap"): the low multiple prices in the fall. Read this row with the commodity cycle in mind.<br>
     · <b>These are sector averages</b> — a Bullish sector can contain terrible companies and vice versa. Company selection is the next pipeline stage.
   </div>
   <div class="block">
@@ -193,8 +198,11 @@
       <tr><td>P/E (TTM)</td><td>Damodaran, Jan 2026</td><td>Aggregate market cap ÷ trailing net income of MONEY-MAKING firms only — cleaner than the raw trailing-P/E column, which loss-makers distort beyond use.</td></tr>
       <tr><td>EBITDA margin</td><td>Damodaran, Jan 2026</td><td>EBITDA/Sales, firm-count-weighted.</td></tr>
       <tr><td>EPS growth (expected & historical)</td><td>Damodaran, Jan 2026</td><td>Expected EPS growth next 5 yrs (analyst estimates) and net-income CAGR last 5 yrs. Historical is NET INCOME growth, not per-share. Materials' 28.3% expected is inflated by precious-metals miners (71.8%) off a low base.</td></tr>
-      <tr><td>Book D/E, Total debt/assets</td><td>Damodaran (derived)</td><td>Book D/E from book debt-to-capital; debt/assets ≈ book D/E × ROA/ROE — an approximation, display-only, never scored.</td></tr>
-      <tr><td>Market cap</td><td>—</td><td>Omitted deliberately: it's a size measure, not a ratio — a sector-average market cap has no bullish/bearish meaning. Returns when company-level data lands.</td></tr>
+      <tr><td>Quick ratio</td><td>ReadyRatios (SEC filings), latest year</td><td>⚠ APPROXIMATE: industry medians by SIC code, hand-mapped to our sectors (e.g., Oil & Gas Extraction + Refining → Energy). Looser than every other input — scored, but read its rating with slack. Exact figures come with company data.</td></tr>
+      <tr><td>Expected/delivered EPS growth</td><td>Damodaran, Jan 2026</td><td>Now SCORED as the Growth category. Expected = analyst estimates (optimism bias); delivered = NI CAGR last 5 yrs. Precious Metals' 71.8% expected is off a depressed base — flagged in-app.</td></tr>
+      <tr><td>Book D/E</td><td>Damodaran, Jan 2026</td><td>Now SCORED (Leverage): from verified book debt-to-capital. Total debt/assets stays display-only (derived approximation).</td></tr>
+      <tr><td>Sector market cap</td><td>Fidelity, Jul 10 2026</td><td>Display-only context: S&P 500 sector aggregates (Energy $4.47T, Materials $3.47T, Info Tech $31.66T). Defense sits inside Industrials ($9.67T); Precious Metals not separately published. Not a ratio — never scored.</td></tr>
+      <tr><td>Cross-validation</td><td>Fidelity, Jul 13 2026</td><td>Fidelity's S&P 500 10-yr sector returns cross-check our simulation μ inputs: Info Tech +801% (≈24.6%/yr price-only) vs our 25.6% total-return XLK ✓; Energy, Materials, Industrials similarly consistent once ~2-3.5% dividend yields are added to Fidelity's price-only figures.</td></tr>
       <tr><td>Debt-to-equity</td><td>Damodaran, Jan 2026</td><td>⚠ <b>Market</b> debt/equity (debt ÷ market cap), NOT the scope-doc definition (total liabilities ÷ book equity). Book-based D/E would be much higher. Kept because it's the consistent cross-sector series available.</td></tr>
       <tr><td>ROE</td><td>Damodaran, Jan 2026</td><td>Unadjusted ROE, firm-count-weighted.</td></tr>
       <tr><td>ROA</td><td>Derived</td><td>ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities.</td></tr>
@@ -203,7 +211,7 @@
       <tr><td>μ, σ (Monte Carlo)</td><td>LazyPortfolioETF, Jun 30 2026</td><td>10-yr annualized return (μ) and standard deviation (σ) of sector ETFs: XLE (Energy), XLB (Materials), XLK (Info Tech). ⚠ Global Defense uses <b>XLI (Industrials) as a proxy</b> — no defense-specific ETF in the source; defense primes are a subset of XLI. Backward-looking throughout — most aggressive for Info Tech.</td></tr>
       <tr><td>g (perpetual growth)</td><td>Assumption</td><td>Still assumed per sector, bounded by the scope doc's 2–4% macro-growth cap.</td></tr>
     </table>
-    <div class="muted" style="margin-top:8px;font-size:12px">Sector mapping: Energy = oil/gas integrated + E&P + distribution + oilfield services + coal (282 firms). Materials = chemicals + metals & mining + precious metals + steel + paper + packaging + construction supplies (305). Global Defense = Damodaran "Aerospace/Defense" industry (79 US-listed firms — includes commercial aerospace; international primes not covered). Info Tech = software + semiconductors + hardware + electronics + IT services + telecom equipment (791). All Damodaran inputs re-verified against the source pages on Jul 8, 2026.</div>
+    <div class="muted" style="margin-top:8px;font-size:12px">Sector mapping: Energy = oil/gas integrated + E&P + distribution + oilfield services + coal (282 firms). Materials (ex-Precious) = chemicals + metals & mining + steel + paper + packaging + construction supplies (249 firms). Precious Metals = Damodaran "Precious Metals" industry (56 firms) — split out Jul 13 because its extreme growth figures were distorting Materials. US Defense & Aerospace = Damodaran "Aerospace/Defense" (79 US-listed firms — includes commercial aerospace; international primes like BAE/Rheinmetall not covered; name reflects actual coverage). Info Tech = software + semiconductors + hardware + electronics + IT services + telecom equipment (791). All Damodaran inputs verified against source pages.</div>
   </div>
   <div class="block">
     <h3>Complex-layer columns (page 2)</h3>
@@ -288,12 +296,13 @@ function randn(){let u=0,v=0;while(u===0)u=rand();while(v===0)v=rand();return Ma
    gm, nm, inv, ar, pe(forward), de(market), roe, roa(derived). FullRatio Jun-Jul 2026: cur.
    Global Defense = Damodaran "Aerospace/Defense" industry (79 US-listed firms).
    null = N/A: no reliable sector-level source. */
-const SECTORS=["Energy","Materials","Global Defense","Information Technology"];
-const D={
- "Energy":                 {gm:37.5,nm:9.3, em:28.1,cur:1.36,qk:null,inv:12.2,ar:9.5, eps:null,pe:21.2,tpe:16.0,peg:3.5,exp5:6.0, ni5:17.0,de:0.36,bookde:0.59,da:0.37,roe:10.6,roa:6.6},
- "Materials":              {gm:32.2,nm:9.8, em:22.6,cur:2.36,qk:null,inv:3.9, ar:8.8, eps:null,pe:20.9,tpe:23.0,peg:1.5,exp5:28.3,ni5:13.9,de:0.29,bookde:0.58,da:0.37,roe:12.4,roa:7.8},
- "Global Defense":         {gm:17.5,nm:5.0, em:10.7,cur:2.44,qk:null,inv:2.9, ar:4.2, eps:null,pe:45.9,tpe:35.3,peg:1.4,exp5:25.0,ni5:19.6,de:0.15,bookde:1.21,da:0.55,roe:15.3,roa:6.9},
- "Information Technology": {gm:55.7,nm:19.4,em:27.3,cur:2.16,qk:null,inv:6.7, ar:5.9, eps:null,pe:35.8,tpe:36.6,peg:1.7,exp5:21.3,ni5:19.8,de:0.08,bookde:0.56,da:0.36,roe:23.9,roa:15.3}
+const SECTORS=["Energy","Materials (ex-Precious)","Precious Metals","US Defense & Aerospace","Information Technology"];
+const D={ // qk = ReadyRatios SEC medians, SIC-mapped (APPROXIMATE) · mcap = S&P 500 sector market cap $T (Fidelity Jul 10 2026; null = not separately published)
+ "Energy":                 {gm:37.5,nm:9.3, em:28.1,cur:1.36,qk:0.8,inv:12.2,ar:9.5, eps:null,pe:21.2,tpe:16.0,peg:3.5, exp5:6.0, ni5:17.0,de:0.36,bookde:0.59,da:0.37,roe:10.6,roa:6.6, mcap:4.47},
+ "Materials (ex-Precious)":{gm:27.1,nm:5.6, em:19.8,cur:2.19,qk:0.9,inv:4.0, ar:7.8, eps:null,pe:21.9,tpe:24.1,peg:1.8, exp5:18.4,ni5:12.1,de:0.34,bookde:0.71,da:0.42,roe:9.9, roa:5.8, mcap:3.47},
+ "Precious Metals":        {gm:55.0,nm:28.6,em:34.6,cur:2.95,qk:1.2,inv:3.5, ar:20.7,eps:null,pe:16.5,tpe:18.6,peg:0.3, exp5:71.8,ni5:22.0,de:0.05,bookde:0.18,da:0.15,roe:23.5,roa:19.9,mcap:null},
+ "US Defense & Aerospace": {gm:17.5,nm:5.0, em:10.7,cur:2.44,qk:0.9,inv:2.9, ar:4.2, eps:null,pe:45.9,tpe:35.3,peg:1.4, exp5:25.0,ni5:19.6,de:0.15,bookde:1.21,da:0.55,roe:15.3,roa:6.9, mcap:null},
+ "Information Technology": {gm:55.7,nm:19.4,em:27.3,cur:2.16,qk:1.4,inv:6.7, ar:5.9, eps:null,pe:35.8,tpe:36.6,peg:1.7, exp5:21.3,ni5:19.8,de:0.08,bookde:0.56,da:0.36,roe:23.9,roa:15.3,mcap:31.66}
 };
 /* ---------- 10-point scoring engine ----------
    Rating = 0.6 × ABSOLUTE score + 0.4 × RELATIVE score, both on 0-10.
@@ -312,7 +321,10 @@ const ANCH={ // [value, score] anchors. NOT all monotonic: some ratios have a SW
  em:[[5,0],[15,4],[25,7],[40,10]],                            // EBITDA margin: higher better
  tpe:[[5,3],[8,6],[12,10],[18,8],[25,5],[40,1],[60,0]],       // trailing P/E: same shape as forward P/E
  cur:[[0.5,0],[1.0,4],[1.5,9],[2.0,10],[3.0,8],[5.0,5]],      // sweet spot 1.5-2.5x; beyond = idle capital
- qk:[[0.3,0],[0.8,5],[1.2,10],[2.5,8]],                       // sweet spot ~1-2x
+ qk:[[0.3,0],[0.8,5],[1.2,10],[2.5,8]],                       // sweet spot ~1-2x (ACTIVATED — SIC-mapped SEC medians, approximate)
+ exp5:[[0,0],[5,3],[10,5],[20,8],[30,10]],                    // expected EPS growth: higher better, clamped at 30%
+ ni5:[[0,0],[5,3],[10,5],[20,8],[30,10]],                     // delivered 5-yr earnings growth: higher better, clamped
+ bookde:[[0,6],[0.3,8],[0.7,10],[1.2,6],[2.0,2],[3.0,0]],     // book D/E sweet spot ~0.5-1.0 (book basis runs higher than market)
  inv:[[1,0],[4,4],[8,8],[15,10],[30,8]],                      // higher better, extreme = understock risk
  ar:[[3,0],[6,4],[9,7],[12,10],[25,9]],                       // higher better, extreme = overly tight credit
  roa:[[0,0],[5,5],[12,10]],                                   // higher better
@@ -344,20 +356,25 @@ const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the
  tpe:{name:"P/E (TTM)",f:"Aggregate mkt cap / trailing net income of PROFITABLE firms (Damodaran)",dir:-1,fmt:v=>v+"×",
   desc:"Trailing twelve-month P/E — what you pay for LAST year's actual earnings (vs the forward P/E's expected earnings)",
   abs:v=>v<8?"suspiciously cheap — possible distress pricing":v<15?"cheap-ish (8–15×)":v<=25?"typical (15–25×)":"priced for growth (>25×)"},
- exp5:{name:"Expected EPS growth, next 5yr (display)",f:"Analyst-expected EPS growth, next 5 years (Damodaran)",dir:0,fmt:v=>v+"%/yr",
-  desc:"The growth the market is pricing in — this is the denominator of the PEG ratio",abs:v=>""},
- ni5:{name:"Earnings growth, last 5yr (display)",f:"CAGR in net income, last 5 years (Damodaran)",dir:0,fmt:v=>v+"%/yr",
-  desc:"Delivered earnings growth — compare against expected growth to judge whether projections are grounded",abs:v=>""},
- bookde:{name:"Book D/E (display)",f:"Book debt-to-capital ÷ (1 − book debt-to-capital)",dir:0,fmt:v=>v.toFixed(2)+"×",
-  desc:"Debt vs equity at BOOK value (accounting-statement basis) — complements the scored market-based D/E",abs:v=>""},
+ exp5:{name:"Expected EPS growth (5yr)",f:"Analyst-expected EPS growth, next 5 years (Damodaran)",dir:1,fmt:v=>v+"%/yr",
+  desc:"The growth the market is pricing in (PEG's denominator). ACTIVATED — caveat: analyst estimates skew optimistic",
+  abs:v=>v>=20?"very high (>20%/yr)":v>=10?"solid (10–20%)":v>=5?"modest (5–10%)":"weak (<5%)"},
+ ni5:{name:"Earnings growth, last 5yr",f:"CAGR in net income, last 5 years (Damodaran)",dir:1,fmt:v=>v+"%/yr",
+  desc:"DELIVERED earnings growth — the reality check on the expected number above",
+  abs:v=>v>=20?"very high (>20%/yr)":v>=10?"solid (10–20%)":v>=5?"modest (5–10%)":"weak (<5%)"},
+ bookde:{name:"Book D/E",f:"Book debt-to-capital ÷ (1 − book debt-to-capital)",dir:-1,fmt:v=>v.toFixed(2)+"×",
+  desc:"Debt vs equity at BOOK value. ACTIVATED — complements market D/E: book ignores market-cap swings",
+  abs:v=>v<0.3?"very light (mind the unused tax shield)":v<=1.0?"moderate (0.3–1×)":v<=1.5?"elevated (1–1.5×)":"heavy (>1.5×)"},
  da:{name:"Total debt/assets ≈ (display)",f:"Book D/E × (ROA ÷ ROE) — derived approximation",dir:0,fmt:v=>(100*v).toFixed(0)+"%",
-  desc:"Share of the asset base financed by debt — derived from other ratios, treat as approximate",abs:v=>""},
+  desc:"Share of the asset base financed by debt — derived, display-only; real figure comes with company data",abs:v=>""},
+ mcap:{name:"Sector market cap (display)",f:"S&P 500 sector aggregate market cap (Fidelity, Jul 10 2026)",dir:0,fmt:v=>"$"+v.toFixed(2)+"T",
+  desc:"Size context, not a ratio: S&P-500-only basis. Defense sits inside Industrials ($9.67T); Precious Metals not separately published",abs:v=>""},
  cur:{name:"Current ratio",f:"Current assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×",
   desc:"Can it pay bills due in the next 12 months? Assets coming in ÷ bills coming due",
   abs:v=>v>=2?"very cushioned (>2×)":v>=1.2?"healthy (1.2–2×)":v>=1?"tight (1–1.2×)":"strained (<1×)"},
- qk:{name:"Quick ratio",f:"Quick assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×",
-  desc:"Same test but ignoring inventory — the hardest asset to sell in a hurry",
-  abs:v=>v>=1?"healthy (>1×)":"tight (<1×)"},
+ qk:{name:"Quick ratio ≈",f:"(Current assets − inventory)/Current liabilities — SEC-filing medians, SIC-industry-mapped (approximate)",dir:1,fmt:v=>v.toFixed(1)+"×",
+  desc:"Same bill-paying test but ignoring inventory — the hardest asset to sell in a hurry. ACTIVATED with approximate SIC-mapped data",
+  abs:v=>v>=1?"healthy (>1×)":v>=0.7?"adequate (0.7–1×)":"tight (<0.7×)"},
  inv:{name:"Inventory turnover",f:"COGS/Avg inventory",dir:1,fmt:v=>v+"×/yr",
   desc:"How many times a year the shelf gets emptied and restocked",
   abs:v=>v>=8?"fast (>8×/yr)":v>=4?"moderate (4–8×/yr)":"slow (<4×/yr)"},
@@ -385,20 +402,22 @@ const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the
 const CATDESC={"Profitability":"How much of each sales dollar becomes profit",
  "Liquidity":"Can it cover bills due within a year?",
  "Efficiency":"How productively it turns inventory, collections & total assets into profit",
+ "Growth":"How fast earnings are expected to grow — and actually grew",
  "Valuation":"How expensive the stock is vs its earnings & growth",
  "Leverage":"Debt load + the return earned on owners' money"};
-const CATS=[ // Original mapping retained (ROE/ROA remap reverted Jul 8 per Riley)
+const CATS=[ // 6 categories: Growth activated (exp5 + ni5 now SCORED) per Riley Jul 13
  {name:"Profitability",kpis:["gm","nm","em"]},
- {name:"Liquidity",kpis:["cur","qk"]},
+ {name:"Liquidity",kpis:["cur","qk"]},                              // qk activated (approximate)
  {name:"Efficiency",kpis:["inv","ar","roa"]},                       // roa = asset productivity
- {name:"Valuation",kpis:["pe","tpe","peg","exp5","ni5","eps"]},     // exp5/ni5/eps display-only
- {name:"Leverage",kpis:["de","roe","bookde","da"]}                  // bookde/da display-only
+ {name:"Growth",kpis:["exp5","ni5"]},                               // expected + delivered earnings growth
+ {name:"Valuation",kpis:["pe","tpe","peg","eps","mcap"]},           // eps/mcap display-only
+ {name:"Leverage",kpis:["de","bookde","roe","da"]}                  // bookde activated; da display-only
 ];
-// Weighted overall. No universal standard exists (composite frameworks like Altman Z / CFI each pick
-// purpose-specific weights), so these sit at the midpoints of the sector-analysis framework ranges:
-// Profitability 20-35 → 25 · Valuation 20-30 → 25 · Efficiency 15-25 → 20 · Liquidity 10-20 → 15 · Leverage 15-25 → 15.
-// Renormalized when a category is N/A. Deliberately adjustable — change one line to re-tilt.
-const CATW={"Valuation":.25,"Profitability":.25,"Efficiency":.20,"Liquidity":.15,"Leverage":.15};
+// Weighted overall, 6 categories. Growth carved out of the 5-category midpoint weights
+// (which had no universal standard to begin with — documented & adjustable):
+// Profitability 22.5 · Valuation 22.5 · Efficiency 17.5 · Growth 12.5 · Liquidity 12.5 · Leverage 12.5.
+// Renormalized when a category is N/A.
+const CATW={"Profitability":.225,"Valuation":.225,"Efficiency":.175,"Growth":.125,"Liquidity":.125,"Leverage":.125};
 function overall(sector){
  let num=0,den=0;
  CATS.forEach(c=>{const sc=catScore(c,sector); if(sc!=null){num+=CATW[c.name]*sc;den+=CATW[c.name];}});
@@ -454,7 +473,7 @@ function color(s){ // 0 red -> 10 green
 (function(){
  let h='<table><tr><th style="text-align:left">Sector</th>';
  CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}<br><span style="font-weight:400;font-size:10.5px">${CATDESC[c.name]}</span></th>`);
- h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Weighted: Prof 25% · Valu 25% · Eff 20% · Liq 15% · Lev 15%</span></th></tr>';
+ h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Weighted: Prof 22.5 · Valu 22.5 · Eff 17.5 · Growth 12.5 · Liq 12.5 · Lev 12.5%</span></th></tr>';
  SECTORS.forEach(s=>{
   h+=`<tr><td class="rowhead">${s}</td>`;
   CATS.forEach((c,ci)=>{
@@ -484,7 +503,10 @@ window.showDetail=function(sector,ci){
   const a=absScore(key,x), r=relScore(key,sector), sc=kpiScore(key,sector);scores.push(sc);
   let health=k.abs(x);
   if(key==="pe") health+=" — caveat: all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them)";
-  if(key==="pe"&&sector==="Global Defense") health+="; 50.6% of aerospace/defense firms are currently loss-making, inflating this aggregate further";
+  if(key==="pe"&&sector==="US Defense & Aerospace") health+="; 50.6% of aerospace/defense firms are currently loss-making, inflating this aggregate further";
+  if(key==="exp5") health+=" — analyst estimates skew optimistic; compare with the delivered 5-yr number below";
+  if(key==="exp5"&&sector==="Precious Metals") health+="; the 71.8% figure is off a depressed base year — treat as unsustainable";
+  if(key==="qk") health+=" — approximate: SEC-filing medians mapped from SIC industries, looser than other inputs";
   if(key==="ar") health+=" — computed on total sales, so slightly overstated";
   const anch=ANCH[key].map(p=>p[0]+"→"+p[1]).join(", ");
   const pen=key==="roe"?dupontPenalty(sector):0;
@@ -525,7 +547,7 @@ window.showComposite=function(sector){
   if(sc!=null){terms.push(`${(w*100).toFixed(0)}%×${sc.toFixed(1)}`);num+=w*sc;den+=w;}});
  const t=num/den;
  h+=`</table><div style="margin-top:8px">Overall = (${terms.join(" + ")}) ÷ ${(den*100).toFixed(0)}% = <b>${t.toFixed(1)} / 10 → ${verdict(t)}</b> <span class="muted">(weights renormalized if a category is N/A)</span></div>`;
- h+=`<div class="muted" style="margin-top:6px;font-size:12px">Weights sit at the midpoints of the sector-analysis framework ranges: Profitability 25% · Valuation 25% · Efficiency 20% · Liquidity 15% · Leverage 15%. No universal standard exists (Altman Z, CFI etc. each pick purpose-specific weights) — these are documented and deliberately adjustable. Caution: an overall number still hides trade-offs — always scan the row, not just the total.</div>`;
+ h+=`<div class="muted" style="margin-top:6px;font-size:12px">Six categories: Profitability 22.5% · Valuation 22.5% · Efficiency 17.5% · Growth 12.5% · Liquidity 12.5% · Leverage 12.5% — the earlier 5-category midpoints with Growth carved out. No universal standard exists (Altman Z, CFI etc. pick purpose-specific weights) — documented and deliberately adjustable. Caution: an overall number still hides trade-offs — always scan the row.</div>`;
  document.getElementById('detail').innerHTML=h;
 };
 
@@ -538,9 +560,10 @@ window.showComposite=function(sector){
  const ERP=0.04, disc=rMean+ERP;
 
  const ASSUME={ // mu/sig MEASURED: 10Y annualized return & st-dev of sector ETFs to Jun 30 2026, LazyPortfolioETF.
-  // Global Defense uses XLI (Industrials) as a labeled PROXY — no defense-specific ETF in the source. g remains assumed.
-  "Energy":{mu:.089,sig:.297,g:.02},"Materials":{mu:.104,sig:.185,g:.025},
-  "Global Defense":{mu:.147,sig:.188,g:.025},
+  // Defense = XLI (Industrials) proxy; Precious Metals = XLB proxy (INADEQUATE — GDX/gold-miner history needed). g assumed.
+  "Energy":{mu:.089,sig:.297,g:.02},"Materials (ex-Precious)":{mu:.104,sig:.185,g:.025},
+  "Precious Metals":{mu:.104,sig:.185,g:.025},
+  "US Defense & Aerospace":{mu:.147,sig:.188,g:.025},
   "Information Technology":{mu:.256,sig:.206,g:.04}};
  const N=2000, hurdle5=Math.pow(1.07,5);
  let rows="";
@@ -566,7 +589,7 @@ window.showComposite=function(sector){
 })();
 
 /* ================== PAGE 4: SECTOR PROFILES ================== */
-const CATSHORT=["Profit","Liquid","Effic","Value","Lever"];
+const CATSHORT=["Profit","Liquid","Effic","Growth","Value","Lever"];
 function radarSVG(sector){
  const cx=180,cy=165,R=115,n=CATS.length;
  const pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];};
@@ -648,7 +671,7 @@ function renderDCF(){
 }
 
 /* ================== PAGE 6: SIMULATION EXPLORER ================== */
-const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials":{mu:.104,sig:.185},"Global Defense":{mu:.147,sig:.188},"Information Technology":{mu:.256,sig:.206}}; // measured: 10Y ETF history; Defense = XLI proxy (see Data sources)
+const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials (ex-Precious)":{mu:.104,sig:.185},"Precious Metals":{mu:.104,sig:.185},"US Defense & Aerospace":{mu:.147,sig:.188},"Information Technology":{mu:.256,sig:.206}}; // 10Y ETF history; Defense=XLI proxy, Precious Metals=XLB proxy (inadequate)
 function renderSim(){
  const s=document.getElementById('simSel').value,{mu,sig}=SIM_ASSUME[s];
  // --- analytic percentile fan ---
