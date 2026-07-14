@@ -204,6 +204,7 @@
       <tr><td>Sector market cap</td><td>Fidelity, Jul 10 2026</td><td>Display-only context: S&P 500 sector aggregates (Energy $4.47T, Materials $3.47T, Info Tech $31.66T). Defense sits inside Industrials ($9.67T); Precious Metals not separately published. Not a ratio — never scored.</td></tr>
       <tr><td>Cross-validation</td><td>Fidelity, Jul 13 2026</td><td>Fidelity's S&P 500 10-yr sector returns cross-check our simulation μ inputs: Info Tech +801% (≈24.6%/yr price-only) vs our 25.6% total-return XLK ✓; Energy, Materials, Industrials similarly consistent once ~2-3.5% dividend yields are added to Fidelity's price-only figures.</td></tr>
       <tr><td>Business cycle & analyst consensus</td><td>Fidelity research (CFRA Jul 10, Argus Jun 18, 2026)</td><td>Context layers on the Sector Profiles tab: Fidelity's business-cycle sector map + CFRA/Argus sector weightings, compared against our ratings. Consensus covers S&P 500 GICS sectors — Defense compared via broad Industrials, Precious Metals unrated.</td></tr>
+      <tr><td>US Defense & Aerospace (REBUILT)</td><td>S&P Global via stockanalysis.com, Jul 13 2026</td><td>First company-level sector: cap-weighted top-3 primes — LMT ($120B), RTX ($264B), NOC ($76B). Real quick ratios, margins, P/Es, growth forecasts (3-yr analyst EPS). AR turnover + historical growth still Damodaran industry values (not on source pages). GD + LHX pending.</td></tr>
       <tr><td>Defense ETF cross-check</td><td>iShares ITA, Jul 10 2026</td><td>ITA (49 cap-weighted A&D primes): P/E 41.93, P/B 6.79, 3-yr σ 18.03%, 10-yr total return 15.68%/yr, 2025 return +48.7%. Confirms the extreme defense multiple is real; μ/σ inputs upgraded from XLI proxy to ITA-measured (10-yr return, 3-yr σ — mixed windows, noted).</td></tr>
       <tr><td>History grounding (planned)</td><td>Damodaran archives — pending</td><td>Next grounding step: score each sector ratio against its own multi-year history (percentiles instead of fixed anchors). The archive .xls files can't be fetched by tooling (verified: directory unlisted, files binary, Wayback policy-blocked) — waiting on manual download into the project folder.</td></tr>
       <tr><td>Debt-to-equity</td><td>Damodaran, Jan 2026</td><td>⚠ <b>Market</b> debt/equity (debt ÷ market cap), NOT the scope-doc definition (total liabilities ÷ book equity). Book-based D/E would be much higher. Kept because it's the consistent cross-sector series available.</td></tr>
@@ -304,7 +305,9 @@ const D={ // qk = ReadyRatios SEC medians, SIC-mapped (APPROXIMATE) · mcap = S&
  "Energy":                 {gm:37.5,nm:9.3, em:28.1,cur:1.36,qk:0.8,inv:12.2,ar:9.5, eps:null,pe:21.2,tpe:16.0,peg:3.5, exp5:6.0, ni5:17.0,de:0.36,bookde:0.59,da:0.37,roe:10.6,roa:6.6, mcap:4.47},
  "Materials (ex-Precious)":{gm:27.1,nm:5.6, em:19.8,cur:2.19,qk:0.9,inv:4.0, ar:7.8, eps:null,pe:21.9,tpe:24.1,peg:1.8, exp5:18.4,ni5:12.1,de:0.34,bookde:0.71,da:0.42,roe:9.9, roa:5.8, mcap:3.47},
  "Precious Metals":        {gm:55.0,nm:28.6,em:34.6,cur:2.95,qk:1.2,inv:3.5, ar:20.7,eps:null,pe:16.5,tpe:18.6,peg:0.3, exp5:71.8,ni5:22.0,de:0.05,bookde:0.18,da:0.15,roe:23.5,roa:19.9,mcap:null},
- "US Defense & Aerospace": {gm:17.5,nm:5.0, em:10.7,cur:2.44,qk:0.9,inv:2.9, ar:4.2, eps:null,pe:45.9,tpe:35.3,peg:1.4, exp5:25.0,ni5:19.6,de:0.15,bookde:1.21,da:0.55,roe:15.3,roa:6.9, mcap:null},
+ // Defense REBUILT Jul 13 (v1): cap-weighted top-3 primes LMT+RTX+NOC ($461B), S&P Global data via stockanalysis.com.
+ // ar + ni5 still Damodaran industry (not on source pages); GD + LHX to be added. exp5 = 3-yr analyst EPS growth forecast.
+ "US Defense & Aerospace": {gm:17.6,nm:8.1, em:15.3,cur:1.07,qk:0.77,inv:11.2,ar:4.2, eps:null,pe:23.9,tpe:30.5,peg:2.3, exp5:11.4,ni5:19.6,de:0.17,bookde:1.22,da:0.25,roe:29.0,roa:5.4, mcap:0.46},
  "Information Technology": {gm:55.7,nm:19.4,em:27.3,cur:2.16,qk:1.4,inv:6.7, ar:5.9, eps:null,pe:35.8,tpe:36.6,peg:1.7, exp5:21.3,ni5:19.8,de:0.08,bookde:0.56,da:0.36,roe:23.9,roa:15.3,mcap:31.66}
 };
 /* ---------- 10-point scoring engine ----------
@@ -506,7 +509,9 @@ window.showDetail=function(sector,ci){
   const a=absScore(key,x), r=relScore(key,sector), sc=kpiScore(key,sector);scores.push(sc);
   let health=k.abs(x);
   if(key==="pe") health+=" — caveat: all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them)";
-  if(key==="pe"&&sector==="US Defense & Aerospace") health+="; cross-checked vs ITA (cap-weighted defense ETF): P/E 41.9 — the extreme multiple is real even among profitable primes, not just small-cap noise";
+  if(key==="pe"&&sector==="US Defense & Aerospace") health+="; prime-set basis (LMT/RTX/NOC cap-weighted) — far saner than the old 79-firm aggregate's 45.9×, though ITA's broader 49-holding P/E is 41.9×";
+  if(key==="roe"&&sector==="US Defense & Aerospace") health+="; LMT's buyback-shrunken equity (ROE 67.6%) inflates this — the DuPont penalty fires (5.3× multiplier), by design";
+  if(key==="qk"&&sector==="US Defense & Aerospace") health=health.replace(" — approximate: SEC-filing medians mapped from SIC industries, looser than other inputs"," — REAL company data (prime set), not the SIC approximation");
   if(key==="exp5") health+=" — analyst estimates skew optimistic; compare with the delivered 5-yr number below";
   if(key==="exp5"&&sector==="Precious Metals") health+="; the 71.8% figure is off a depressed base year — treat as unsustainable";
   if(key==="qk") health+=" — approximate: SEC-filing medians mapped from SIC industries, looser than other inputs";
@@ -640,7 +645,7 @@ const ANALYST={
  "Energy":{txt:"CFRA Underweight · Argus Marketweight",cmp:"Our 5.8 Neutral sits between the two — roughly consistent."},
  "Materials (ex-Precious)":{txt:"CFRA Underweight · Argus Overweight — the analysts themselves disagree",cmp:"Our 5.2 Neutral splits the difference."},
  "Precious Metals":{txt:"Not separately rated (sits inside Materials for both houses)",cmp:"Our 8.5 Very Bullish is unchecked by consensus — and carries the cyclical-peak warning."},
- "US Defense & Aerospace":{txt:"Broad Industrials: CFRA Overweight · Argus Overweight",cmp:"⚠ DIVERGENCE: our 3.9 Bearish vs their double-Overweight. Cross-checked against ITA (the actual defense ETF, 49 cap-weighted primes): P/E 41.93 — so the extreme multiple is REAL, not a small-cap data artifact. The disagreement is substantive: analysts are paying up for geopolitical momentum (+48.7% in 2025); the ratios say that's already in the price. Resolution path: rebuild this sector from a curated prime set (LMT, RTX, NOC, GD, LHX…) at company level."},
+ "US Defense & Aerospace":{txt:"Broad Industrials: CFRA Overweight · Argus Overweight",cmp:"Sector REBUILT from the top-3 primes (LMT/RTX/NOC, cap-weighted, real company data) — the first company-level sector in the dashboard. The rebuild moved the rating up from 3.9: valuation normalized (fwd P/E 23.9 vs the old aggregate's 45.9), efficiency and margins improved. Remaining gap vs analyst Overweight is substantive: they're paying for geopolitical momentum (+48.7% in 2025, ITA broader P/E still 41.9×). GD + LHX additions and stock-level analysis are next."},
  "Information Technology":{txt:"CFRA Overweight · Argus Overweight",cmp:"Our 7.1 Bullish is consistent with consensus."}};
 function renderProfile(){
  const s=document.getElementById('profSel').value;
