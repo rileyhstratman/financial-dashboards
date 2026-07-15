@@ -41,7 +41,7 @@
 <h1>Long-Term Sector KPI Heat Map <span class="muted" style="font-size:14px">(2–5 yr lens)</span></h1>
 <div class="muted" style="font-size:13px">Companion to <code>05_roadmap/LONGTERM_SECTOR_ANALYSIS_SCOPE.md</code> · Built 2026-07-06</div>
 
-<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> Five sectors: Energy, Materials (ex-Precious), Precious Metals (split out — its 71.8% expected growth was distorting Materials), US Defense & Aerospace (company-level: ten cap-weighted US majors, $1.22T, plus an unrated KTOS/AVAV/RKLB watchlist), Information Technology. Data: Damodaran/NYU Stern (Jan 2026, firm-count-weighted, verified), S&P Global via stockanalysis.com (A&D companies, Jul 2026), FullRatio (Jun–Jul 2026), ReadyRatios SEC medians (quick ratio — SIC-mapped, approximate), Fidelity (S&P 500 sector market caps, Jul 2026). Ratings are 0–10 bullish/bearish: 60% absolute health check + 40% cross-sector, SEVEN weighted categories (Cash Flow + deepened Growth added Jul 14) — methodology in "How to Read"; capital-preservation & tax tooling on tab 8. Monte Carlo μ/σ from ETF history (Defense = ITA-measured; Precious Metals = XLB proxy, inadequate — GDX history needed); g assumed.</div>
+<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> Five sectors: Energy, Materials (ex-Precious), Precious Metals (split out — its 71.8% expected growth was distorting Materials), US Defense & Aerospace (company-level: ten cap-weighted US majors, $1.22T, plus an unrated KTOS/AVAV/RKLB watchlist), Information Technology. Data: Damodaran/NYU Stern (Jan 2026, firm-count-weighted, verified), S&P Global via stockanalysis.com (A&D companies, Jul 2026), FullRatio (Jun–Jul 2026), ReadyRatios SEC medians (quick ratio — SIC-mapped, approximate), Fidelity (S&P 500 sector market caps, Jul 2026). Ratings are 0–10 bullish/bearish: 60% absolute health check + 40% cross-sector, SEVEN weighted categories (Cash Flow + deepened Growth added Jul 14) — methodology in "How to Read"; capital-preservation & tax tooling on tab 8. Monte Carlo μ/σ from ETF history (Defense = ITA-measured; Precious Metals = GDX-measured 2007–2025, upgraded Jul 15); g assumed. Projections now shown nominal AND real (2.5% inflation) with a model-vs-history backtest on the Complex Layer tab.</div>
 
 <div class="tabs">
   <div class="tab active" data-page="p1">1 · Heat Map</div>
@@ -225,7 +225,8 @@
       <tr><td>ROA</td><td>Derived</td><td>ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities.</td></tr>
       <tr><td>Current ratio</td><td>FullRatio, Jul 2026</td><td>Unweighted industry averages, firm-count-weighted into sectors.</td></tr>
       <tr><td>Quick ratio, EPS</td><td>—</td><td>N/A: no reliable sector-level source found; will be computed per company from filings in the company-analysis step. Not fabricated.</td></tr>
-      <tr><td>μ, σ (Monte Carlo)</td><td>LazyPortfolioETF, Jun 30 2026</td><td>10-yr annualized return (μ) and standard deviation (σ) of sector ETFs: XLE (Energy), XLB (Materials), XLK (Info Tech). ⚠ Global Defense uses <b>XLI (Industrials) as a proxy</b> — no defense-specific ETF in the source; defense primes are a subset of XLI. Backward-looking throughout — most aggressive for Info Tech.</td></tr>
+      <tr><td>μ, σ (Monte Carlo)</td><td>LazyPortfolioETF Jun 2026 · ITA Jul 2026 · Yahoo Finance GDX annual returns Jul 2026</td><td>Sector ETFs: XLE (Energy), XLB (Materials), XLK (Info Tech), ITA (Defense — measured), <b>GDX (Precious — measured 2007–2025, UPGRADED Jul 15</b>: arith mean 11.7%, σ 43.7%; the old XLB proxy's σ 18.5% was less than half of gold miners' real volatility and overstated P(up,3y) by ~26 pts). Backward-looking throughout — most aggressive for Info Tech. Known convention bias: plugging annualized (geometric) returns into the GBM μ slot double-counts volatility drag slightly — conservative, largest for high-σ sectors.</td></tr>
+      <tr><td><b>Projections backtest + real terms</b></td><td>ETF annual returns (Yahoo Finance) + BLS CPI Dec/Dec via usinflationcalculator, Jul 15 2026</td><td>Model P(up,3y) and P(CAGR&gt;7%,5y) compared against realized rolling-window frequencies per sector ETF (windows: XLE 1999–2025, others 2007/08–2025) — four of five sectors land within ~5–13 pts; the XLB-for-Precious proxy was the one real failure (fixed). Real-terms columns deflate by 2.5% assumed inflation (2008–25 actual average 2.46%/yr; Jun-2026 actual 3.5%); realized real frequencies use actual CPI per year. Caveat: overlapping windows, one historical path — validation, not proof. Full table on the Complex Layer tab; arithmetic in <code>04_research/backtest/</code>.</td></tr>
       <tr><td>g (perpetual growth)</td><td>Assumption</td><td>Still assumed per sector, bounded by the scope doc's 2–4% macro-growth cap.</td></tr>
     </table>
     <div class="muted" style="margin-top:8px;font-size:12px">Sector mapping: Energy = oil/gas integrated + E&P + distribution + oilfield services + coal (282 firms). Materials (ex-Precious) = chemicals + metals & mining + steel + paper + packaging + construction supplies (249 firms). Precious Metals = Damodaran "Precious Metals" industry (56 firms) — split out Jul 13 because its extreme growth figures were distorting Materials. US Defense & Aerospace = TEN cap-weighted US majors (5 defense primes + GE/HWM/TDG/HEI/LDOS, $1.22T — company-level data, no longer the Damodaran 79-firm industry aggregate) plus an unrated emerging watchlist (KTOS/AVAV/RKLB); international primes like BAE/Rheinmetall not covered; name reflects actual coverage. Info Tech = software + semiconductors + hardware + electronics + IT services + telecom equipment (791). All Damodaran inputs verified against source pages.</div>
@@ -314,6 +315,15 @@
   </div>
   <div class="block" style="border-left:3px solid #b8860b"><h3>The buyback problem: who can actually fund their promises?</h3><div id="growthFund"></div>
     <div class="muted" style="font-size:12px;margin-top:6px">Sustainable growth (classic) = ROE × (1 − dividend payout). But in the buyback era dividends understate distributions: counting buybacks, three of five sectors return MORE than 100% of net income to shareholders — their cash-adjusted sustainable growth is NEGATIVE, meaning any real growth must be financed by new debt, equity issuance, or margin expansion, not retained earnings. Sources: Damodaran divfund + histgr, Jan 2026 (dollar-aggregated). Defense rows are industry-basis (79-firm aggregate), not the 10-major set.</div>
+  </div>
+  <div class="block"><h3>Sector age &amp; lifecycle (added Jul 15)</h3>
+    <table><tr><th>Sector (company set)</th><th>Median founding year (roots)</th><th>Median age</th><th>Oldest / youngest roots</th><th>Lifecycle behavior (from the data above)</th></tr>
+    <tr><td><b>Energy</b> (6)</td><td>~1903</td><td>~123 yrs</td><td>XOM 1870 (Standard Oil) / KMI 1997</td><td>Behaves its age: 121% of earnings returned to shareholders, reinvestment near maintenance, low expected growth — classic old-age harvesting.</td></tr>
+    <tr><td><b>US Defense &amp; Aerospace</b> — 10 majors</td><td>~1917</td><td>~109 yrs</td><td>HWM 1888 (Alcoa roots) / TDG 1993</td><td>THE mismatch: century-old roots and old-age cash habits (128% cash return, dividend payout 50%) but priced like a growth sector (fwd P/E 37×). Someone is wrong — the payout policy or the multiple.</td></tr>
+    <tr><td>— Defense emerging tier (KTOS/AVAV/RKLB)</td><td>1994</td><td>~32 yrs</td><td>AVAV 1971 / RKLB 2006</td><td>The young cohort inside an old sector — loss-making or barely profitable, 24–41% growth forecasts, i.e. actual early-lifecycle behavior. This is where the sector's "more lucrative" thesis actually lives.</td></tr>
+    <tr><td><b>Information Technology</b> (6)</td><td>~1982</td><td>~45 yrs</td><td>INTC 1968 / GTLB 2014</td><td>Prime middle age: reinvesting 201% of depreciation at 26% ROIC, retaining 83% of earnings — the compounding phase, roughly half Energy's age with 12× the reinvestment intensity per payout dollar.</td></tr>
+    <tr><td><b>Materials / Precious Metals</b></td><td colspan="2" class="muted">no company lists yet</td><td class="muted">—</td><td>Sector-level lifecycle reads old (Materials: 138% cash return, payout 77%); Precious behaves cyclically rather than by age — its "lifecycle" is the gold price.</td></tr></table>
+    <div class="muted" style="font-size:12px;margin-top:6px">Founding years are company-history "roots" (earliest predecessor: e.g. LMT←Lockheed 1912, RTX←Raytheon 1922, GD←Electric Boat 1899, LHX←Harris 1895, COP←Continental 1875, CVX←Pacific Coast Oil 1879, EOG←Enron O&amp;G 1985) — approximate, for lifecycle context only, never scored. Current legal entities are often young (RTX 2020, HWM 2020, LMT 1995) — that's M&amp;A, not youth. The lifecycle diagnostics (payout, cash return, reinvestment, growth) are the measured counterpart: age predicts behavior everywhere here EXCEPT Defense's multiple, which is priced two lifecycle stages younger than its cash habits.</div>
   </div>
 </div>
 
@@ -787,30 +797,39 @@ window.showComposite=function(sector){
  const ASSUME={ // mu/sig MEASURED: 10Y annualized return & st-dev of sector ETFs to Jun 30 2026, LazyPortfolioETF.
   // Defense = XLI (Industrials) proxy; Precious Metals = XLB proxy (INADEQUATE — GDX/gold-miner history needed). g assumed.
   "Energy":{mu:.089,sig:.297,g:.02},"Materials (ex-Precious)":{mu:.104,sig:.185,g:.025},
-  "Precious Metals":{mu:.104,sig:.185,g:.025},
+  "Precious Metals":{mu:.117,sig:.437,g:.025}, // UPGRADED Jul 15: GDX-measured 2007–2025 (arith mean of annual returns 11.7%, σ 43.7%) — replaces the inadequate XLB proxy (σ 18.5% was less than HALF of gold miners' real volatility). Window includes the 2013 −54% crash AND 2025's +154.7%.
   "US Defense & Aerospace":{mu:.157,sig:.180,g:.025}, // UPGRADED: ITA (actual defense ETF) 10y total return & 3y std dev — replaces XLI proxy
   "Information Technology":{mu:.256,sig:.206,g:.04}};
- const N=2000, hurdle5=Math.pow(1.07,5);
+ const N=2000, hurdle5=Math.pow(1.07,5), infl=0.025, realK3=Math.pow(1+infl,3); // real-terms threshold: beat 2.5% inflation (long-run; Jun-2026 actual is 3.5% — see note)
  let rows="";
  SECTORS.forEach(s=>{
   const {mu,sig,g}=ASSUME[s];
-  let up3=0,beat5=0,m5=[];
+  let up3=0,up3r=0,beat5=0,m5=[];
   for(let i=0;i<N;i++){
    const z3=randn(),z5=randn();
    const v3=Math.exp((mu-sig*sig/2)*3+sig*Math.sqrt(3)*z3);
    const v5=Math.exp((mu-sig*sig/2)*5+sig*Math.sqrt(5)*z5);
-   if(v3>1)up3++; if(v5>hurdle5)beat5++; m5.push(v5);
+   if(v3>1)up3++; if(v3>realK3)up3r++; if(v5>hurdle5)beat5++; m5.push(v5);
   }
   m5.sort((x,y)=>x-y);
   const pv=1/(disc-g);
   rows+=`<tr><td class="rowhead" style="text-align:left">${s}</td>
    <td>${(mu*100).toFixed(0)}%</td><td>${(sig*100).toFixed(0)}%</td><td>${(g*100).toFixed(1)}%</td>
-   <td>${(100*up3/N).toFixed(1)}%</td><td>${(100*beat5/N).toFixed(1)}%</td>
+   <td>${(100*up3/N).toFixed(1)}%</td><td>${(100*up3r/N).toFixed(1)}%</td><td>${(100*beat5/N).toFixed(1)}%</td>
    <td>×${m5[Math.floor(N/2)].toFixed(2)}</td><td>$${pv.toFixed(1)}</td></tr>`;
  });
  document.getElementById('mc').innerHTML=
   `<div class="block"><b>Vasicek result:</b> mean simulated 5-yr rate = <b>${(rMean*100).toFixed(2)}%</b> (500 paths from r₀=4.0%) → discount rate r = ${(rMean*100).toFixed(2)}% + 4.00% ERP = <b>${(disc*100).toFixed(2)}%</b>, used in the PV column.</div>
-  <table><tr><th style="text-align:left">Sector</th><th>μ drift<br><span class="muted">measured, 10Y ETF</span></th><th>σ vol<br><span class="muted">measured, 10Y ETF</span></th><th>g growth<br><span class="muted">assumed</span></th><th>P(up, 3y)<br><span class="muted">GBM, 2000 paths</span></th><th>P(CAGR&gt;7%, 5y)</th><th>Median 5y multiple</th><th>PV per $1<br><span class="muted">1/(r−g)</span></th></tr>${rows}</table>`;
+  <table><tr><th style="text-align:left">Sector</th><th>μ drift<br><span class="muted">measured ETF</span></th><th>σ vol<br><span class="muted">measured ETF</span></th><th>g growth<br><span class="muted">assumed</span></th><th>P(up, 3y)<br><span class="muted">nominal</span></th><th>P(up, 3y)<br><span class="muted">REAL @2.5% infl</span></th><th>P(CAGR&gt;7%, 5y)</th><th>Median 5y multiple</th><th>PV per $1<br><span class="muted">1/(r−g)</span></th></tr>${rows}</table>
+  <div class="block" style="border-left:3px solid var(--accent)"><b>Inflation makes every column harder (added Jul 15).</b> "P(up, 3y) REAL" asks a stricter question: probability the sector beats <i>purchasing power</i>, i.e. ends above (1.025)³. At the Jun-2026 actual inflation of 3.5% the thresholds are stricter still (roughly 2–7 pts lower than the 2.5% column, worst for low-drift sectors). The nominal column flatters exactly the sectors with the least real cushion — Energy loses ~6 pts of probability going real, Info Tech barely 2. CPI: BLS Dec/Dec; 2008–25 average 2.46%/yr.</div>
+  <div class="block" style="border-left:3px solid #b8860b"><b>Model vs history — do these probabilities survive contact with reality? (backtest, Jul 15)</b>
+  <table style="margin-top:6px"><tr><th style="text-align:left">Sector (ETF)</th><th>P(up,3y) model</th><th>realized freq</th><th>P(CAGR&gt;7%,5y) model</th><th>realized freq</th><th>P(up,3y real) model @2.5%</th><th>realized freq (actual CPI)</th></tr>
+  <tr><td style="text-align:left">Energy (XLE, 1999–2025)</td><td>60.3%</td><td>64.0% (16/25)</td><td>43.2%</td><td>56.5% (13/23)</td><td>54.7%</td><td>56.0% (14/25)</td></tr>
+  <tr><td style="text-align:left">Materials (XLB, 2008–25)</td><td>79.2%</td><td>87.5% (14/16)</td><td>59.2%</td><td>64.3% (9/14)</td><td>72.0%</td><td>87.5% (14/16)</td></tr>
+  <tr><td style="text-align:left">Precious (GDX, 2007–25)</td><td>53%* (was 79% on XLB proxy)</td><td>76.5% (13/17)</td><td>33%*</td><td>33.3% (5/15)</td><td>46%*</td><td><b>52.9% (9/17)</b></td></tr>
+  <tr><td style="text-align:left">Defense (ITA, 2008–25)</td><td>91.2%</td><td>93.8% (15/16)</td><td>81.8%</td><td>78.6% (11/14)</td><td>86.8%</td><td>81.2% (13/16)</td></tr>
+  <tr><td style="text-align:left">Info Tech (XLK, 2008–25)</td><td>97.6%</td><td>93.8% (15/16)</td><td>96.5%</td><td>92.9% (13/14)</td><td>96.1%</td><td>93.8% (15/16)</td></tr></table>
+  <div class="muted" style="font-size:12px;margin-top:6px">Read: for four of five sectors the GBM probabilities land within ~5–13 pts of realized frequencies — the model is coarse but not fantasy. The two honest lessons: (1) <b>the old XLB proxy for Precious was the one real failure</b> — it claimed 79% when gold miners' true volatility (σ 43.7%, not 18.5%) puts the real-terms coin-flip at ~50% — realized: 52.9%. Fixed above (GDX-measured, Jul 15). (2) Realized frequencies use OVERLAPPING rolling windows from one historical path — they are noisy validation, not proof; and plugging 10-yr geometric returns into the GBM μ slot slightly double-counts volatility drag (conservative bias, largest for high-σ sectors — *Precious model values shown use the corrected GDX inputs). Full arithmetic: 04_research/backtest/.</div></div>`;
 })();
 
 /* ================== PAGE 4: SECTOR PROFILES ================== */
@@ -929,7 +948,7 @@ function renderDCF(){
 }
 
 /* ================== PAGE 6: SIMULATION EXPLORER ================== */
-const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials (ex-Precious)":{mu:.104,sig:.185},"Precious Metals":{mu:.104,sig:.185},"US Defense & Aerospace":{mu:.157,sig:.180},"Information Technology":{mu:.256,sig:.206}}; // Defense now ITA-measured (10y return, 3y σ); Precious Metals still XLB proxy (inadequate)
+const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials (ex-Precious)":{mu:.104,sig:.185},"Precious Metals":{mu:.117,sig:.437},"US Defense & Aerospace":{mu:.157,sig:.180},"Information Technology":{mu:.256,sig:.206}}; // Defense ITA-measured; Precious Metals GDX-measured 2007-2025 (Jul 15 — was XLB proxy)
 function renderSim(){
  const s=document.getElementById('simSel').value,{mu,sig}=SIM_ASSUME[s];
  // --- analytic percentile fan ---
