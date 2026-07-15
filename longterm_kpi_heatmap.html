@@ -155,7 +155,7 @@
       <tr><td>Expected revenue growth 5yr</td><td>higher better, capped</td><td>0→0 · 5→3 · 10→5 · 20→8 · 30→10</td><td>Top-line growth — immune to buyback flattery; same optimism bias as EPS forecasts.</td></tr>
       <tr><td>Sustainable growth rate</td><td>higher better</td><td>0→0 · 4→3 · 8→5 · 15→8 · 25→10</td><td>ROE × retention: growth fundable from retained earnings — cross-check on analyst promises.</td></tr>
       <tr><td>Cash-generation margin ≈</td><td>higher better</td><td>−5→0 · 0→2 · 5→5 · 10→7 · 20→10</td><td>EBITDA margin − Net CapEx/Sales: a distributable-cash PROXY (ignores taxes & working capital).</td></tr>
-      <tr><td>CapEx / Depreciation</td><td><b>QUALITY-CONDITIONED</b></td><td>ROE≥15%: plateau 150–350→10 · ROE 8–15%: sweet spot ~100–150→10, 250→6 · ROE&lt;8%: 150→6, 250→3</td><td>Reinvestment is only as good as the return earned on it: heavy build at high ROE is value-creating (IT); the same build at low ROE is the asset-growth-anomaly case (Cooper-Gulen-Schill 2008). Anchors switch on the sector's ROE — regime shown in each cell.</td></tr>
+      <tr><td>CapEx / Depreciation</td><td><b>QUALITY-CONDITIONED</b></td><td>ROIC≥15%: plateau 150–350→10 · ROIC 8–15%: sweet spot ~100–150→10, 250→6 · ROIC&lt;8%: 150→6, 250→3</td><td>Reinvestment is only as good as the return earned on it: heavy build at high ROIC is value-creating (IT, 26.1%); the same build at low ROIC is the asset-growth-anomaly case (Cooper-Gulen-Schill 2008). Gated on ROIC, not ROE — ROIC can't be inflated by buyback-shrunken equity (Defense: ROE 32.3% vs ROIC 16.0%). ROIC source: Damodaran pbvdata Jan-2026, firm-count-weighted. Regime shown in each cell.</td></tr>
     </table>
     <b>Step 2 — Relative score (40% weight).</b> Computed in <b>goodness space</b>: each sector's ABSOLUTE score (not its raw ratio) is min–max ranked 0–10 across the 4 sectors. This is what makes cross-sector comparison correct for sweet-spot metrics — a sector near the P/E sweet spot beats both the distress-cheap one and the expensive one, which raw-value ranking would get wrong.<br>
     <b>Step 3 — Blend & weight.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE; − 1.5 <b>peak-earnings penalty</b> when net margin or ROE sits at ≥90th percentile of the sector's own 2004–25 history, i.e. roughly the top two observations in two decades — the backtest's most robust finding: peak levels mean-revert, FE p=.014, pooled p=.03, 2-yr p=.014 on 90 obs). Category rating = plain average of its KPI ratings (N/A excluded). <b>Overall = weighted average of seven category ratings</b> (Jul 14: Cash Flow added, carving 2.5 pts each from Profitability, Valuation, Efficiency and Liquidity — the categories it partially overlaps): <b>Profitability 20% · Valuation 20% · Efficiency 15% · Growth 12.5% · Leverage 12.5% · Liquidity 10% · Cash Flow 10%</b>. No universal weighting standard exists (Altman Z, CFI etc. choose purpose-specific weights); these are documented and deliberately adjustable, renormalized when a category is N/A. Membership: Profitability = margins (gross/net/EBITDA) · Liquidity = current + quick · Efficiency = turnovers + ROA · Growth = expected EPS + delivered + expected revenue + sustainable growth · Cash Flow = cash-generation margin + CapEx/Depreciation · Valuation = forward P/E + trailing P/E + PEG · Leverage = market D/E + book D/E + ROE.<br>
@@ -417,6 +417,10 @@ const PAYOUT={
  "Precious Metals":{payout:25.2,cashret:51.1,sgr_cash:11.5},
  "US Defense & Aerospace":{payout:50.2,cashret:128.5,sgr_cash:-9.2},
  "Information Technology":{payout:16.8,cashret:75.4,sgr_cash:5.9}};
+// ROIC (Damodaran pbvdata Jan-2026, firm-count-weighted) — gates the CapEx/Dep quality regimes.
+// Chosen over ROE per Riley (Jul 14): ROIC can't be inflated by buyback-shrunken equity the way ROE can
+// (Defense: ROE 32.3% vs ROIC 16.0% — the leverage gap made visible). Defense value is industry-basis.
+const ROIC={"Energy":11.9,"Materials (ex-Precious)":15.6,"Precious Metals":25.4,"US Defense & Aerospace":16.0,"Information Technology":26.1};
 /* ---------- 10-point scoring engine ----------
    Rating = 0.6 × ABSOLUTE score + 0.4 × RELATIVE score, both on 0-10.
    ABSOLUTE: piecewise-linear interpolation between published rule-of-thumb anchors below —
@@ -452,14 +456,15 @@ const ANCH={ // [value, score] anchors. NOT all monotonic: some ratios have a SW
 };
 function capdepAnch(sector){ // QUALITY-CONDITIONED reinvestment anchors (Riley, Jul 14): whether heavy
  // reinvestment is bullish depends on the return earned on the new capital, not the spending itself.
- // High-return sectors get a plateau (reinvestment at ROE≥15% is value-creating — IT's datacenter build
- // isn't penalized until extreme); low-return sectors get penalized harder (capex at sub-8% ROE is the
- // asset-growth-anomaly / value-destruction case, Cooper-Gulen-Schill 2008).
- const roe=D[sector].roe;
- if(roe==null) return ANCH.capdep;
- if(roe>=15) return [[20,2],[60,5],[100,8],[150,10],[350,10],[500,7]];  // high-return: plateau 150–350%
- if(roe>=8)  return ANCH.capdep;                                        // mid-return: sweet spot 100–150%
- return [[20,3],[60,6],[100,8],[150,6],[250,3],[400,0]];                // low-return: heavy build penalized
+ // Gate = ROIC (upgraded from ROE same day, per Riley): ROIC measures return on ALL invested capital and
+ // can't be flattered by buyback-shrunken equity. ROIC ≥15% is comfortably above any sector WACC →
+ // reinvestment is value-creating (plateau); <8% ≈ at-or-below WACC → heavy capex risks value
+ // destruction (asset-growth anomaly, Cooper-Gulen-Schill 2008). Falls back to ROE if ROIC missing.
+ const q=(ROIC[sector]!=null)?ROIC[sector]:D[sector].roe;
+ if(q==null) return ANCH.capdep;
+ if(q>=15) return [[20,2],[60,5],[100,8],[150,10],[350,10],[500,7]];   // high-return: plateau 150–350%
+ if(q>=8)  return ANCH.capdep;                                         // mid-return: sweet spot 100–150%
+ return [[20,3],[60,6],[100,8],[150,6],[250,3],[400,0]];               // low-return: heavy build penalized
 }
 function absScore(key,x,sector){
  let a=ANCH[key];
@@ -720,7 +725,7 @@ window.showDetail=function(sector,ci){
   if(key==="exp5"&&hp!=null&&hp>=0.9&&HIST_BASIS_OK(sector)) health+="; ⚠ OPTIMISM-ERA FLAG: expectations sit above ~90% of this sector's own 22-year history of forecasts — eras of record expectations are where analyst optimism bites hardest (flag only — the backtest found no reliable growth signal to penalize)";
   if(key==="revg"&&sector==="Materials (ex-Precious)") health+=" — ⚠ inflated by Construction Supplies' 60.8% forecast (40 of 249 firms); read with skepticism";
   if((key==="revg"||key==="sgr"||key==="fcfm"||key==="capdep")&&sector==="US Defense & Aerospace") health+=" — industry-aggregate basis (Damodaran 79-firm Aerospace/Defense), NOT the 10-major company set used for margins/valuation here";
-  if(key==="capdep"){const roe=D[sector].roe; health+=` — QUALITY-CONDITIONED anchors: this sector's ROE of ${roe}% puts it in the ${roe>=15?"HIGH-return regime (reinvestment at these returns is value-creating — plateau to 350%, not penalized)":roe>=8?"mid-return regime (sweet spot 100–150%)":"LOW-return regime (heavy capex at these returns risks value destruction — penalized)"}`;}
+  if(key==="capdep"){const q=ROIC[sector]; health+=` — QUALITY-CONDITIONED anchors: this sector's ROIC of ${q}% (return on ALL invested capital — immune to buyback-shrunken equity, unlike ROE) puts it in the ${q>=15?"HIGH-return regime (reinvestment at these returns is value-creating — plateau to 350%, not penalized)":q>=8?"mid-return regime (sweet spot 100–150%)":"LOW-return regime (heavy capex at these returns risks value destruction — penalized)"}`;}
   if(key==="sgr") health+=` — dividend-payout basis; counting buybacks too, cash return is ${PAYOUT[sector].cashret.toFixed(0)}% of net income → cash-adjusted SGR ${PAYOUT[sector].sgr_cash.toFixed(1)}%${PAYOUT[sector].sgr_cash<0?" (NEGATIVE: the sector distributes more than it earns — growth must be externally funded)":""}`;
   if(key==="exp5"&&sector==="Precious Metals") health+="; the 71.8% figure is off a depressed base year — treat as unsustainable";
   if(key==="qk") health+=" — approximate: SEC-filing medians mapped from SIC industries, looser than other inputs";
