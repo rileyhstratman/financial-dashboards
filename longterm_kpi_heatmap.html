@@ -131,7 +131,7 @@
   </div>
   <div class="block">
     <h3>Scoring — how every 0–10 rating is built</h3>
-    <b>Step 1 — Absolute score (60% weight).</b> Each ratio's value is scored 0–10 against published rule-of-thumb anchors by straight-line interpolation. This captures <i>what the number means on its own</i>. Crucially, <b>not every ratio is "lower = better" or "higher = better"</b> — three have a sweet spot where both extremes are penalized:
+    <b>Step 1 — Absolute score (60% weight).</b> Each ratio's value is scored 0–10 against published rule-of-thumb anchors by straight-line interpolation. This captures <i>what the number means on its own</i>. <b>Percentile grounding (added Jul 14):</b> for the three valuation ratios (trailing P/E, forward P/E, PEG) the absolute score is now a 50/50 blend of the anchor score and the sector's <i>own-history cheapness percentile</i> (its position within its own Jan-2018→Jan-2025 Damodaran values) — motivated by the outcome backtest, which found the predictive signal lives in own-history deviations, not cross-sector levels. Defense is excluded from the blend (its history is the old industry aggregate; its current values are the 10-major company set — the bases don't mix). Crucially, <b>not every ratio is "lower = better" or "higher = better"</b> — three have a sweet spot where both extremes are penalized:
     <table style="margin-top:6px">
       <tr><th>KPI</th><th>Shape</th><th>Scoring anchors (value → points)</th><th>Why</th></tr>
       <tr><td>Gross margin</td><td>higher better</td><td>10%→0 · 30%→5 · 50%→10</td><td>More of each sales dollar kept.</td></tr>
@@ -152,13 +152,14 @@
       <tr><td>Book D/E</td><td><b>sweet spot ~0.5–1.0×</b></td><td>0→6 · 0.3→8 · 0.7→10 · 1.2→6 · 2.0→2 · 3.0→0</td><td>Book basis runs higher than market D/E; same tax-shield logic, shifted anchors.</td></tr>
     </table>
     <b>Step 2 — Relative score (40% weight).</b> Computed in <b>goodness space</b>: each sector's ABSOLUTE score (not its raw ratio) is min–max ranked 0–10 across the 4 sectors. This is what makes cross-sector comparison correct for sweet-spot metrics — a sector near the P/E sweet spot beats both the distress-cheap one and the expensive one, which raw-value ranking would get wrong.<br>
-    <b>Step 3 — Blend & weight.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE). Category rating = plain average of its KPI ratings (N/A excluded). <b>Overall = weighted average of six category ratings</b>: <b>Profitability 22.5% · Valuation 22.5% · Efficiency 17.5% · Growth 12.5% · Liquidity 12.5% · Leverage 12.5%</b> — the 5-category framework midpoints with the new Growth category carved out proportionally. No universal weighting standard exists (Altman Z, CFI etc. choose purpose-specific weights); these are documented and deliberately adjustable, renormalized when a category is N/A. Membership: Profitability = margins (gross/net/EBITDA) · Liquidity = current + quick · Efficiency = turnovers + ROA · Growth = expected + delivered 5-yr earnings growth · Valuation = forward P/E + trailing P/E + PEG · Leverage = market D/E + book D/E + ROE.<br>
+    <b>Step 3 — Blend & weight.</b> KPI rating = 0.6 × absolute + 0.4 × relative (− DuPont penalty for ROE; − 1.5 <b>peak-earnings penalty</b> when net margin or ROE sits at a record vs the sector's own 2018–25 history — the backtest measured that peak levels mean-revert, p=.032 at 1-yr, p=.005 at 2-yr; with 8 history points the penalty only fires above the entire range). Category rating = plain average of its KPI ratings (N/A excluded). <b>Overall = weighted average of six category ratings</b>: <b>Profitability 22.5% · Valuation 22.5% · Efficiency 17.5% · Growth 12.5% · Liquidity 12.5% · Leverage 12.5%</b> — the 5-category framework midpoints with the new Growth category carved out proportionally. No universal weighting standard exists (Altman Z, CFI etc. choose purpose-specific weights); these are documented and deliberately adjustable, renormalized when a category is N/A. Membership: Profitability = margins (gross/net/EBITDA) · Liquidity = current + quick · Efficiency = turnovers + ROA · Growth = expected + delivered 5-yr earnings growth · Valuation = forward P/E + trailing P/E + PEG · Leverage = market D/E + book D/E + ROE.<br>
     <b>Step 4 — Cross-checks between ratios.</b> Ratios are tied together by accounting identities, and the panel reads them against each other: <b>net÷gross margin</b> (how much gross profit survives operating costs), <b>ROE÷ROA</b> (DuPont leverage multiplier), <b>P/E÷measured growth</b> (PEG-style: is the price backed by history?). Ratings within a category that disagree by &gt;2 points flag <b>⚠ mixed signals</b>.<br>
     <b>Verdict bands:</b> 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.
   </div>
   <div class="block">
     <h3>Interpretation warnings (read once)</h3>
-    · <b>The anchors are judgment calls</b> — standard finance rules of thumb, but not laws. They're published in the table above precisely so you can challenge them.<br>
+    · <b>The anchors are judgment calls</b> — standard finance rules of thumb, but not laws. They're published in the table above precisely so you can challenge them. Softened Jul 14: the three valuation ratios are now half-grounded in each sector's own measured history (percentile blend), and margins/ROE carry a backtest-measured peak penalty — the judgment-call share of the scoring is shrinking as grounding lands.<br>
+    · <b>Own-history percentiles inherit their window's regime.</b> Only 8 vintages (2018–25) back them, so "cheap vs own history" partially means "cheaper than that era" — Info Tech's forward P/E scores cheap largely because its window contains the 2021 bubble multiples (156× forward). Extending the window into the 2000s (archives exist) will dilute this; until then, read history-blended valuation scores with the window in mind.<br>
     · <b>P/E scored lower-is-better</b> = a value lens. Under a growth lens a high P/E can be justified; the 2–5 yr thesis step decides that per company. Defense's P/E (35.5×) is now measured from ten real companies — the growth-lens debate is real there, not a data artifact (the old 79-firm aggregate's 45.9× was half loss-making firms).<br>
     · <b>EPS is displayed but NOT rated</b> — raw EPS isn't comparable across sectors (share counts differ arbitrarily).<br>
     · <b>US Defense & Aerospace = ten US-listed majors + emerging watchlist.</b> Broad aerospace by construction (GE, Howmet, TransDigm, HEICO are commercial-aero-heavy); international primes (BAE, Rheinmetall...) are not in the dataset. Drone/space up-and-comers (KTOS, AVAV, RKLB) are tracked unrated on the Sector Profiles tab.<br>
@@ -207,7 +208,7 @@
       <tr><td>US Defense & Aerospace (BROADENED v3)</td><td>S&P Global via stockanalysis.com, Jul 13-14 2026</td><td>Cap-weighted TEN majors, $1.22T: five defense primes (LMT $120B, RTX $264B, NOC $76B, GD $101B, LHX $54B) + five broad-aerospace majors (GE Aerospace $369B, Howmet $111B, TransDigm $68B, HEICO $48B, Leidos $13B). GE alone is 30% of the sector weight. TDG excluded from book-D/E and ROE (negative book equity — LBO-style balance sheet). AR turnover + historical growth still Damodaran industry values. Boeing still excluded (loss-making TTM).</td></tr>
       <tr><td>Emerging A&D watchlist (unrated)</td><td>S&P Global via stockanalysis.com, Jul 14 2026</td><td>KTOS ($9.4B), AVAV ($7.2B), RKLB ($47.1B) tracked on the Sector Profiles tab but deliberately excluded from the sector aggregate: AVAV and RKLB are loss-making TTM and KTOS trades at 293× trailing earnings — they'd distort every profitability and valuation ratio while representing 5% of sector cap. They matter for the 2–5yr thesis (drones, space launch) and get their own tier instead.</td></tr>
       <tr><td>Defense ETF cross-check</td><td>iShares ITA, Jul 10 2026</td><td>ITA (49 cap-weighted A&D primes): P/E 41.93, P/B 6.79, 3-yr σ 18.03%, 10-yr total return 15.68%/yr, 2025 return +48.7%. Confirms the extreme defense multiple is real; μ/σ inputs upgraded from XLI proxy to ITA-measured (10-yr return, 3-yr σ — mixed windows, noted).</td></tr>
-      <tr><td>Damodaran archives (acquired)</td><td>NYU Stern archived datasets, Jan 2018–Jan 2025 vintages</td><td>All 24 files (pedata/pbvdata/psdata × 8 years) downloaded Jul 14 2026 into <code>04_research/damodaran_archives/</code>, parse-verified. Powers the backtest below; the percentile-scoring switch (grounding option 1) is the next build.</td></tr>
+      <tr><td>Damodaran archives (acquired)</td><td>NYU Stern archived datasets, Jan 2018–Jan 2025 vintages</td><td>All 24 files (pedata/pbvdata/psdata × 8 years) downloaded Jul 14 2026 into <code>04_research/damodaran_archives/</code>, parse-verified. Powers BOTH grounding steps, now built: the outcome backtest (below) and the percentile scoring — valuation ratios blend 50/50 with own-history cheapness percentiles, and net margin/ROE carry a −1.5 peak-earnings penalty at records vs own history. Defense excluded from percentile machinery (industry-aggregate history vs 10-major current values — bases don't mix; shown as context only).</td></tr>
       <tr><td><b>Outcome backtest (grounding option 2)</b></td><td>Archives + Yahoo Finance ETF annual total returns, Jul 14 2026</td><td>Did these ratings predict forward sector returns, 2018–2025? Panel: 5 sectors × 8 Jan-vintages scored with this dashboard's own anchors (archive-available subset: valuation, net margin, ROE, expected growth) vs next-calendar-year ETF total returns (XLE/XLB/GDX/ITA/XLK). <b>Finding 1 — cross-sector levels did NOT predict:</b> the composite's rank correlation with forward returns averaged −0.23 (positive in only 2 of 8 years). <b>Finding 2 — within-sector deviations DID:</b> with sector fixed effects, a sector cheap vs its own history earned more the next year (+19.4 pts per SD, p=.016), and fat margins vs own history mean-reverted (−20.6, p=.032; at 2-yr horizon −42.3, p=.005) — the "peak-earnings trap" flagged on Precious Metals is now empirically backed by this panel. Joint F-test p=.015. Robust to dropping COVID vintages (stronger: p=.004) and winsorizing; fragile to dropping 2025 (GDX +154.7% carries weight; joint p=.158). <b>Consequences:</b> (1) the planned percentile switch is validated — the signal lives in own-history comparisons, not cross-sector ranks; (2) the 40% relative component should be read as descriptive, not predictive; (3) regression-fitted weights are NOT adopted — pooled coefficients are insignificant at n=40, so the documented midpoint weights stand. Full code + panel in <code>04_research/backtest/</code>. Caveats: 40 observations, one macro regime, ETF proxies ≠ all-firm panel composition. Indicative, not investment-grade.</td></tr>
       <tr><td>Debt-to-equity</td><td>Damodaran, Jan 2026</td><td>⚠ <b>Market</b> debt/equity (debt ÷ market cap), NOT the scope-doc definition (total liabilities ÷ book equity). Book-based D/E would be much higher. Kept because it's the consistent cross-sector series available.</td></tr>
       <tr><td>ROE</td><td>Damodaran, Jan 2026</td><td>Unadjusted ROE, firm-count-weighted.</td></tr>
@@ -440,13 +441,53 @@ function overall(sector){
    RELATIVE is computed in GOODNESS SPACE: each sector's ABSOLUTE score is min-max ranked,
    not the raw ratio. This makes direction handling exact for every metric — including the
    sweet-spot ones (current ratio, P/E, D/E) where neither "higher" nor "lower" is simply better. */
+/* ---------- Self-history percentile grounding (option 1, built Jul 14 2026) ----------
+   HIST = each sector's own Jan-2018..Jan-2025 values, firm-count-weighted from the
+   Damodaran archive vintages in 04_research/damodaran_archives/ (same parser as the backtest).
+   Backtest motivation (04_research/backtest/): cross-sector LEVELS didn't predict forward
+   returns, but WITHIN-sector deviations did — cheap vs own history was bullish (p=.016),
+   peak margins vs own history mean-reverted (p=.032; p=.005 at 2yr).
+   Implementation per Riley's choices:
+   · Valuation (pe/tpe/peg): absolute score = 50% anchor + 50% own-history cheapness percentile.
+   · nm/roe: anchor score kept, but −1.5 peak-earnings penalty at ≥90th pct of own history
+     (with 8 history points that only fires ABOVE the entire 2018–25 range — a true record).
+   · US Defense & Aerospace is EXCLUDED from both (HIST is the old Damodaran industry
+     aggregate; current values are the 10-major company set — bases don't mix). Percentile
+     still displayed there, clearly labeled context-only. */
+const HIST={
+ "Energy":{pe:[19.7,10.6,11.4,22.6,14.6,7.6,7.8,12.5],tpe:[42.2,16.8,28.9,34.0,20.6,20.5,12.3,23.0],peg:[5.33,0.53,1.51,1.01,1.01,0.43,1.28,2.60],nm:[-3.1,7.8,4.8,-48.4,2.1,17.3,19.9,13.1],roe:[-41.8,9.9,2.1,-30.0,3.2,40.3,31.2,15.9]},
+ "Materials (ex-Precious)":{pe:[25.7,12.2,22.9,27.3,16.5,13.1,18.7,19.8],tpe:[22.7,12.0,22.7,28.0,18.5,16.2,34.8,18.5],peg:[1.67,0.87,7.47,2.69,0.84,1.25,1.56,1.72],nm:[5.7,7.8,4.3,2.0,10.5,9.3,7.9,6.9],roe:[14.1,20.1,9.7,3.6,26.6,23.9,15.6,13.5]},
+ "Precious Metals":{pe:[60.0,11.6,18.5,19.6,24.0,29.4,32.2,23.7],tpe:[22.4,62.7,36.2,20.7,19.8,25.0,61.1,14.0],peg:[2.47,1.91,1.70,1.52,6.85,8.83,1.96,2.43],nm:[3.5,-5.9,19.4,15.8,14.5,7.2,-4.3,-4.8],roe:[1.9,-2.9,12.9,8.3,8.0,3.7,-2.3,-3.8]},
+ "US Defense & Aerospace":{pe:[23.8,18.3,24.8,20.5,22.4,24.3,24.2,28.5],tpe:[47.2,21.3,22.9,122.4,27.4,64.4,34.2,35.1],peg:[2.08,1.31,2.08,3.55,2.18,2.99,1.59,1.50],nm:[7.2,7.9,7.2,2.5,3.4,4.1,5.0,4.4],roe:[29.0,32.0,31.4,8.5,9.1,9.9,13.2,11.9]},
+ "Information Technology":{pe:[26.3,32.8,26.6,33.4,34.0,24.5,34.1,35.7],tpe:[43.7,54.9,68.3,156.2,93.8,52.5,42.6,46.3],peg:[1.46,1.90,1.50,1.91,1.65,1.34,1.86,1.96],nm:[14.8,8.9,13.9,13.3,16.1,12.4,13.6,16.5],roe:[18.0,12.6,21.2,20.3,24.4,21.2,18.0,20.4]}};
+const HIST_KEYS_VAL=["pe","tpe","peg"], HIST_KEYS_PEAK=["nm","roe"];
+const HIST_BASIS_OK=s=>s!=="US Defense & Aerospace"; // Defense: history=industry aggregate, current=10 majors — do not mix bases
+function histPct(key,sector,x){ // direction-aware percentile of the CURRENT value within the sector's own 2018–25 history
+ const h=HIST[sector]&&HIST[sector][key]; if(!h||x==null) return null;
+ const lowerBetter=HIST_KEYS_VAL.includes(key);
+ let better=0,ties=0;
+ h.forEach(v=>{ if(v===x) ties++; else if(lowerBetter? x<v : x>v) better++; });
+ return (better+0.5*ties)/h.length;
+}
+function blendedAbs(key,sector){ // valuation metrics: 50% anchor score + 50% own-history cheapness percentile
+ const x=D[sector][key]; const a=absScore(key,x);
+ if(a==null) return null;
+ if(!HIST_KEYS_VAL.includes(key)||!HIST_BASIS_OK(sector)) return a;
+ const p=histPct(key,sector,x);
+ return p==null? a : 0.5*a+0.5*(10*p);
+}
+function peakPenalty(key,sector){ // backtest-measured mean reversion: margins/ROE at a record vs own history → −1.5
+ if(!HIST_KEYS_PEAK.includes(key)||!HIST_BASIS_OK(sector)) return 0;
+ const p=histPct(key,sector,D[sector][key]);
+ return (p!=null&&p>=0.9)?1.5:0;
+}
 function relScore(key,sector){
  const k=KPI[key]; if(k.dir===0) return null;
  if(D[sector][key]==null) return null;
- const A=SECTORS.map(s=>D[s][key]==null?null:absScore(key,D[s][key])).filter(v=>v!=null);
+ const A=SECTORS.map(s=>D[s][key]==null?null:blendedAbs(key,s)).filter(v=>v!=null);
  const mn=Math.min(...A),mx=Math.max(...A);
  if(mx===mn) return 5;
- return 10*(absScore(key,D[sector][key])-mn)/(mx-mn);
+ return 10*(blendedAbs(key,sector)-mn)/(mx-mn);
 }
 function dupontMult(sector){ // ROE = ROA × leverage multiplier (DuPont). High multiplier = debt-fueled ROE.
  const roe=D[sector].roe, roa=D[sector].roa;
@@ -459,10 +500,11 @@ function dupontPenalty(sector){ // cross-reference ROE against ROA: penalize lev
 function kpiScore(key,sector){
  const k=KPI[key]; if(k.dir===0) return null;
  const x=D[sector][key]; if(x==null) return null;
- const a=absScore(key,x), r=relScore(key,sector);
+ const a=blendedAbs(key,sector), r=relScore(key,sector);
  if(a==null||r==null) return null;
  let s=0.6*a+0.4*r;
  if(key==="roe") s=Math.max(0,s-dupontPenalty(sector));
+ s=Math.max(0,s-peakPenalty(key,sector));
  return s;
 }
 function catScore(cat,sector){
@@ -512,8 +554,22 @@ window.showDetail=function(sector,ci){
   const k=KPI[key], x=D[sector][key];
   if(x==null){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>N/A</td><td class="muted" colspan="3">skipped — no reliable sector-level data. Not counted as zero.</td><td>—</td></tr>`;return;}
   if(k.dir===0){h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td>${k.fmt(x)}</td><td class="muted" colspan="3">shown for reference only — not rated</td><td>—</td></tr>`;return;}
-  const a=absScore(key,x), r=relScore(key,sector), sc=kpiScore(key,sector);scores.push(sc);
+  const aAnch=absScore(key,x), a=blendedAbs(key,sector), r=relScore(key,sector), sc=kpiScore(key,sector);scores.push(sc);
+  const hp=histPct(key,sector,x);
   let health=k.abs(x);
+  if(hp!=null&&HIST_KEYS_VAL.includes(key)){
+   const pctTxt=Math.round(hp*100)+"% of its own 2018–25 history is more expensive";
+   health+= HIST_BASIS_OK(sector)
+    ? ` — own-history check: ${pctTxt} (blended into the absolute score)`
+    : ` — own-history percentile shown for context only (${pctTxt}) but NOT scored: history is the old industry aggregate, current is the 10-major company set — bases don't mix`;
+  }
+  if(hp!=null&&HIST_KEYS_PEAK.includes(key)){
+   const lvl=Math.round(hp*100);
+   health+= HIST_BASIS_OK(sector)
+    ? (hp>=0.9? ` — ⚠ at a RECORD vs its own 2018–25 history (${lvl}th pct): the backtest found peak levels mean-revert (−1.5 penalty applied)`
+              : ` — sits at the ${lvl}th percentile of its own 2018–25 history (no peak penalty below the 90th)`)
+    : ` — own-history percentile not applied (industry-aggregate history vs 10-major current — bases don't mix)`;
+  }
   if(key==="pe") health+=" — caveat: all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them)";
   if(key==="pe"&&sector==="US Defense & Aerospace") health+="; ten-major basis (5 primes + GE/HWM/TDG/HEI/LDOS cap-weighted, $1.22T) — GE at 30% weight and P/E 43.9 pulls this up vs the five-prime 23.6×; ITA's 49-holding P/E is 41.9×, so 35.5× is consistent with the broad sector";
   if(key==="roe"&&sector==="US Defense & Aerospace") health+="; buyback-shrunken equity at LMT (ROE 67.6%) and GE (45.4%) inflates this, and TDG is excluded outright (negative book equity) — the DuPont penalty fires (5.1× multiplier), by design";
@@ -524,9 +580,12 @@ window.showDetail=function(sector,ci){
   if(key==="ar") health+=" — computed on total sales, so slightly overstated";
   const anch=ANCH[key].map(p=>p[0]+"→"+p[1]).join(", ");
   const pen=key==="roe"?dupontPenalty(sector):0;
+  const ppen=peakPenalty(key,sector);
+  const blended=(a!==aAnch);
+  const absTitle=blended? `Anchors: ${anch} → ${aAnch.toFixed(1)}; blended 50/50 with own-history cheapness percentile ${(hp*10).toFixed(1)}` : `Anchors: ${anch}`;
   h+=`<tr><td title="${k.f}">${k.name}</td><td class="muted">${k.desc}</td><td><b>${k.fmt(x)}</b></td><td>${health}</td>
-   <td title="Anchors: ${anch}"><b>${a.toFixed(1)}</b></td><td><b>${r.toFixed(1)}</b></td>
-   <td><b>${sc.toFixed(1)}</b><br><span class="muted" style="font-size:10px">0.6×${a.toFixed(1)} + 0.4×${r.toFixed(1)}${pen>0?" − "+pen.toFixed(1)+" DuPont":""}</span></td></tr>`;
+   <td title="${absTitle}"><b>${a.toFixed(1)}</b>${blended?`<br><span class="muted" style="font-size:10px">½·${aAnch.toFixed(1)} anchor + ½·${(hp*10).toFixed(1)} history</span>`:""}</td><td><b>${r.toFixed(1)}</b></td>
+   <td><b>${sc.toFixed(1)}</b><br><span class="muted" style="font-size:10px">0.6×${a.toFixed(1)} + 0.4×${r.toFixed(1)}${pen>0?" − "+pen.toFixed(1)+" DuPont":""}${ppen>0?" − "+ppen.toFixed(1)+" peak":""}</span></td></tr>`;
  });
  h+='</table>';
  // Cross-reference lines: identities that tie the ratios to each other
