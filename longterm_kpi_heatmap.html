@@ -41,19 +41,18 @@
 <h1>Long-Term Sector KPI Heat Map <span class="muted" style="font-size:14px">(2–5 yr lens)</span></h1>
 <div class="muted" style="font-size:13px">Companion to <code>05_roadmap/LONGTERM_SECTOR_ANALYSIS_SCOPE.md</code> · Built 2026-07-06</div>
 
-<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> Five sectors: Energy, Materials (ex-Precious), Precious Metals (split out — its 71.8% expected growth was distorting Materials), US Defense & Aerospace (company-level: ten cap-weighted US majors, $1.22T, plus an unrated KTOS/AVAV/RKLB watchlist), Information Technology. Data: Damodaran/NYU Stern (Jan 2026, firm-count-weighted, verified), S&P Global via stockanalysis.com (A&D companies, Jul 2026), FullRatio (Jun–Jul 2026), ReadyRatios SEC medians (quick ratio — SIC-mapped, approximate), Fidelity (S&P 500 sector market caps, Jul 2026). Ratings are 0–10 bullish/bearish: 60% absolute health check + 40% cross-sector, SEVEN weighted categories (Cash Flow + deepened Growth added Jul 14) — methodology in "How to Read"; capital-preservation & tax tooling on tab 8. Monte Carlo μ/σ from ETF history (Defense = ITA-measured; Precious Metals = GDX-measured 2007–2025, upgraded Jul 15); g assumed. Projections now shown nominal AND real (2.5% inflation) with a model-vs-history backtest on the Complex Layer tab.</div>
+<div class="banner">⚠ <b>SECTOR-AVERAGE ESTIMATES FROM PUBLIC SOURCES — NOT LIVE, NOT INVESTMENT-GRADE.</b> Ratings are 0–10 bullish/bearish. Every number's source, method and caveat: the <b>How to Read</b> tab.</div>
 
 <div class="tabs">
   <div class="tab active" data-page="p1">1 · Heat Map</div>
-  <div class="tab" data-page="p2">2 · Complex Layer (Stochastic)</div>
+  <div class="tab" data-page="p2">2 · Stochastic Lab</div>
   <div class="tab" data-page="p4">3 · Sector Profiles</div>
   <div class="tab" data-page="p5">4 · DCF Explorer</div>
-  <div class="tab" data-page="p6">5 · Simulation Explorer</div>
-  <div class="tab" data-page="p7">6 · Sensitivity</div>
-  <div class="tab" data-page="p8">7 · Growth</div>
-  <div class="tab" data-page="p9">8 · Capital Preservation & Tax</div>
-  <div class="tab" data-page="p10">9 · Event Timelines</div>
-  <div class="tab" data-page="p3">10 · How to Read</div>
+  <div class="tab" data-page="p7">5 · Sensitivity</div>
+  <div class="tab" data-page="p8">6 · Growth</div>
+  <div class="tab" data-page="p9">7 · Capital Preservation & Tax</div>
+  <div class="tab" data-page="p10">8 · Event Timelines</div>
+  <div class="tab" data-page="p3">9 · How to Read</div>
 </div>
 
 <!-- ============ PAGE 1: HEATMAP ============ -->
@@ -91,8 +90,15 @@
     <br>3. <b>Growing perpetuity PV</b> (simple-valuation + generating-earnings notes): <span class="eq">PV per $1 of current cash flow = 1 / (r − g),   r = Vasicek mean rate + 4% equity risk premium</span>
   </div>
   <div id="mc"></div>
+  <div class="block" style="display:flex;align-items:center;gap:12px;margin-top:14px">
+    <b>Explore one sector's futures:</b>
+    <select id="simSel" style="background:#10141b;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:14px"></select>
+    <span class="muted">One line = one possible future. Wide fan = high uncertainty. (Fan = analytic percentile bands; histogram = 2000 simulated 5-yr outcomes — merged from the old Simulation Explorer tab, Jul 15.)</span>
+  </div>
+  <div id="fan"></div>
+  <div id="hist"></div>
   <div class="block muted" style="font-size:12.5px">
-    Seeded RNG — numbers are identical every time you open this file, so anything you question can be traced. μ and σ are measured from 10-yr sector-ETF history (backward-looking — past ≠ future); g is still an assumption bounded by the scope doc's 2–4% rule.
+    Seeded RNG — numbers are identical every time you open this file, so anything you question can be traced. μ and σ are measured from sector-ETF history (windows per row above; backward-looking — past ≠ future); g is still an assumption bounded by the scope doc's 2–4% rule.
   </div>
 </div>
 
@@ -103,34 +109,15 @@
     Each cell answers: <i>"weighing what this sector's ratios actually mean AND how they compare to the other three sectors, how bullish or bearish is the picture, on a 0–10 scale?"</i>
   </div>
   <div class="block">
-    <h3>Variable glossary — every symbol used in this dashboard</h3>
+    <h3>Variable glossary — grouped (collapsed Jul 15 from 24 single-symbol rows)</h3>
     <table>
-      <tr><th>Symbol</th><th>Name</th><th>Plain English</th><th>Appears in</th></tr>
-      <tr><td class="formula">μ (mu)</td><td>Drift</td><td>The average yearly growth rate the simulation assumes. Here: measured 10-yr sector-ETF return.</td><td>Tabs 2, 5</td></tr>
-      <tr><td class="formula">σ (sigma)</td><td>Volatility</td><td>How much returns wobble around that average, year to year. Bigger σ = wider fan of outcomes = less certainty. Also the reason the median outcome grows slower than μ (the "volatility tax," σ²/2).</td><td>Tabs 2, 5</td></tr>
-      <tr><td class="formula">dWₜ / W(t)</td><td>Wiener process</td><td>The coin-flip ingredient: a stream of random market shocks. It's what makes each simulated future different.</td><td>Tabs 2, 5</td></tr>
-      <tr><td class="formula">Z</td><td>Standard normal draw</td><td>One random number from a bell curve, used to generate one simulated outcome. 2000 Z's = 2000 futures.</td><td>Tabs 2, 5</td></tr>
-      <tr><td class="formula">r</td><td>Discount rate</td><td>The yearly return you demand for waiting and taking risk. Used to shrink future money into today's dollars. In the DCF it's the WACC; on tab 2 it's the Vasicek rate + 4% equity premium.</td><td>Tabs 2, 4, 6</td></tr>
-      <tr><td class="formula">g</td><td>Perpetual growth rate</td><td>The "forever" growth assumption for cash flows beyond the forecast. Must stay below r or the math explodes — and must stay below long-run economic growth (2–4%) or the company would eventually BE the economy.</td><td>Tabs 2, 4, 6</td></tr>
-      <tr><td class="formula">WACC</td><td>Weighted avg. cost of capital</td><td>The blended "rent" a company pays for its money: cost of equity and after-tax cost of debt, weighted by how much of each it uses.</td><td>Tab 4</td></tr>
-      <tr><td class="formula">E/V, D/V</td><td>Equity / debt weights</td><td>What fraction of the company's funding is shareholders' money (E/V) vs borrowed (D/V). They sum to 100%.</td><td>Tab 4</td></tr>
-      <tr><td class="formula">Rₑ</td><td>Cost of equity</td><td>The return shareholders expect for holding the stock (classically estimated with CAPM).</td><td>Tab 4</td></tr>
-      <tr><td class="formula">R_d × (1−tax)</td><td>After-tax cost of debt</td><td>The interest rate on borrowing, reduced because interest payments are tax-deductible (the "tax shield").</td><td>Tab 4</td></tr>
-      <tr><td class="formula">FCF, FCFₜ</td><td>Free cash flow (year t)</td><td>Cash actually left over after running the business AND reinvesting in it — the money that could be paid out. FCF = EBIT×(1−t) + D&A − CapEx − ΔNWC.</td><td>Tab 4</td></tr>
-      <tr><td class="formula">t, n</td><td>Year index / horizon</td><td>t counts forecast years (1, 2, 3…); n is the last explicitly forecast year (here 5–10).</td><td>Tabs 2, 4</td></tr>
-      <tr><td class="formula">TV</td><td>Terminal value</td><td>A single lump sum standing in for ALL cash flows beyond year n — usually the biggest (and shakiest) piece of a DCF.</td><td>Tab 4</td></tr>
-      <tr><td class="formula">PV / FV</td><td>Present / future value</td><td>The same money viewed from two ends of time: what a future amount is worth today (PV), or what today's amount grows into (FV).</td><td>Tabs 2, 4, 6</td></tr>
-      <tr><td class="formula">e^(rt)</td><td>Continuous compounding</td><td>Growth compounding at every instant rather than once a year — the smooth-math version of interest.</td><td>Tabs 2, 5</td></tr>
-      <tr><td class="formula">a, b, σᵣ</td><td>Vasicek parameters</td><td>For simulating interest rates: b = the long-run average rate, a = how fast rates get pulled back toward b, σᵣ = how hard they get knocked around meanwhile.</td><td>Tab 2</td></tr>
-      <tr><td class="formula">ERP</td><td>Equity risk premium</td><td>The extra yearly return investors demand for holding risky stocks instead of safe bonds (4% here).</td><td>Tab 2</td></tr>
-      <tr><td class="formula">P(up, 3y)</td><td>Probability of gain</td><td>Share of the 2000 simulated futures that end above the starting value after 3 years.</td><td>Tabs 2, 5</td></tr>
-      <tr><td class="formula">CAGR</td><td>Compound annual growth rate</td><td>The smoothed per-year growth rate over a period — "what constant rate would have gotten you here."</td><td>Tab 2</td></tr>
-      <tr><td class="formula">COGS</td><td>Cost of goods sold</td><td>The direct cost of producing what was sold (materials, factory labor) — subtracted from sales to get gross profit.</td><td>Tab 1 KPIs</td></tr>
-      <tr><td class="formula">EBIT / EBITDA</td><td>Operating earnings</td><td>Profit before financing and taxes (EBIT); EBITDA also adds back depreciation & amortization — a rough "cash operating profit."</td><td>Tabs 1, 4</td></tr>
-      <tr><td class="formula">D&A, CapEx, ΔNWC</td><td>FCF adjustments</td><td>D&A = wear-and-tear expense added back (not cash); CapEx = cash spent on equipment/buildings; ΔNWC = cash tied up in inventory and receivables as the business grows.</td><td>Tab 4</td></tr>
-      <tr><td class="formula">AR</td><td>Accounts receivable</td><td>Money customers owe but haven't paid yet.</td><td>Tab 1 KPIs</td></tr>
+      <tr><th>Cluster</th><th>Symbols</th><th>Plain English</th></tr>
+      <tr><td><b>Simulation</b> (tab 2)</td><td class="formula">μ · σ · dWₜ · Z · P(up,3y) · CAGR</td><td>μ = the yearly growth the simulation assumes (measured ETF return); σ = how much returns wobble (bigger = wider fan, and the reason the median grows slower than μ — volatility drag σ²/2); dWₜ/Z = the random-shock ingredient, one bell-curve draw per simulated future; P(up,3y) = share of 2000 futures that end higher; CAGR = smoothed per-year growth over a period.</td></tr>
+      <tr><td><b>Discounting</b> (tabs 2, 4, 5)</td><td class="formula">r · g · WACC · E/V, D/V · Rₑ · R_d(1−tax) · PV/FV · TV · e^(rt) · t, n</td><td>r = the return you demand for waiting and risk, used to shrink future money to today (in the DCF it's WACC: cost of equity Rₑ and after-tax cost of debt R_d(1−tax), weighted by the funding mix E/V and D/V); g = the "forever" growth assumption — must stay below r AND below 2–4% economy-wide growth; PV/FV = the same money seen from either end of time; TV = one lump sum standing in for everything beyond year n, usually the biggest and shakiest DCF piece; e^(rt) = continuous compounding; t/n = forecast-year index and horizon.</td></tr>
+      <tr><td><b>Rates model</b> (tab 2)</td><td class="formula">a · b · σᵣ · ERP</td><td>Vasicek: rates get knocked around (σᵣ) but pulled back (speed a) toward a long-run level (b); ERP = the extra 4%/yr demanded for stocks over safe bonds, added to the simulated rate to form r.</td></tr>
+      <tr><td><b>Accounting</b> (tabs 1, 4)</td><td class="formula">COGS · EBIT/EBITDA · FCF · D&A, CapEx, ΔNWC · AR</td><td>COGS = direct cost of what was sold; EBIT = profit before financing/taxes, EBITDA adds back depreciation ("cash operating profit"); FCF = EBIT×(1−t) + D&A − CapEx − ΔNWC — cash truly left over after running AND reinvesting in the business; AR = money customers owe.</td></tr>
     </table>
-    <div class="muted" style="margin-top:6px;font-size:12px">The 11 KPI ratios themselves (gross margin, P/E, ROE…) are defined with formulas in the table below, and in plain English inside every clickable cell on tab 1.</div>
+    <div class="muted" style="margin-top:6px;font-size:12px">The KPI ratios themselves (gross margin, P/E, ROE…) are defined with formulas in the table below, and in plain English inside every clickable cell on tab 1.</div>
   </div>
   <div class="block">
     <h3>Scoring — how every 0–10 rating is built</h3>
@@ -165,10 +152,7 @@
   </div>
   <div class="block">
     <h3>Interpretation warnings (read once)</h3>
-    · <b>The anchors are judgment calls</b> — standard finance rules of thumb, but not laws. They're published in the table above precisely so you can challenge them. Softened Jul 14: the three valuation ratios are now half-grounded in each sector's own measured history (percentile blend), and margins/ROE carry a backtest-measured peak penalty — the judgment-call share of the scoring is shrinking as grounding lands.<br>
-    · <b>Own-history percentiles inherit their window's regime — now diluted.</b> Windows extended Jul 14 from 8 vintages (2018–25) to 22 (2004–25), spanning the GFC, the 2013 gold crash, the 2015–16 oil bust, COVID, and 2022. The 2021 bubble multiples (IT fwd P/E 156×) are now 1 observation of 22 rather than 1 of 8. Residual honesty: the extended backtest also showed the valuation signal is weaker than the 2018–25 window suggested (p=.048 on 90 obs; insignificant in 2008–17 alone), while margin mean-reversion held up everywhere — the peak-earnings penalty is the better-grounded of the two mechanisms.<br>
-    · <b>P/E scored lower-is-better</b> = a value lens. Under a growth lens a high P/E can be justified; the 2–5 yr thesis step decides that per company. Defense's P/E (35.5×) is now measured from ten real companies — the growth-lens debate is real there, not a data artifact (the old 79-firm aggregate's 45.9× was half loss-making firms).<br>
-    · <b>EPS is displayed but NOT rated</b> — raw EPS isn't comparable across sectors (share counts differ arbitrarily).<br>
+    · <b>The anchors are judgment calls, increasingly grounded.</b> Standard rules of thumb, published above so you can challenge them; valuation ratios are half-grounded in each sector's own 22-year history (2004–25, spanning GFC/gold crash/oil bust/COVID), and margins/ROE carry the backtest-measured peak penalty. The backtest's honest ranking: peak-earnings mean reversion is well-grounded; the cheapness tilt is modest and regime-dependent (p=.048; nothing in 2008–17 alone).<br>
     · <b>US Defense & Aerospace = ten US-listed majors + emerging watchlist.</b> Broad aerospace by construction (GE, Howmet, TransDigm, HEICO are commercial-aero-heavy); international primes (BAE, Rheinmetall...) are not in the dataset. Drone/space up-and-comers (KTOS, AVAV, RKLB) are tracked unrated on the Sector Profiles tab.<br>
     · <b>Precious Metals' Very Bullish rating is a cyclical-peak snapshot.</b> With gold near $4,000, miners show fat margins, high ROA and a cheap PEG — which is exactly how commodity producers look at the TOP of their cycle. Ratio frameworks systematically over-rate cyclicals at peak earnings ("peak-earnings trap"): the low multiple prices in the fall. The 2008–2025 backtest (data-source table, 90 obs) backs this empirically — its single most robust finding: margins fat vs a sector's own history predicted LOWER forward returns (FE p=.014, pooled p=.03, 2-yr p=.014), and this sector's net margin and ROE both sit near two-decade highs (−1.5 peak penalties applied). Read this row with the commodity cycle in mind.<br>
     · <b>These are sector averages</b> — a Bullish sector can contain terrible companies and vice versa. Company selection is the next pipeline stage.
@@ -183,7 +167,6 @@
       <tr><td>Quick ratio</td><td class="formula">Quick assets / Current liabilities</td><td>higher better</td></tr>
       <tr><td>Inventory turnover</td><td class="formula">COGS / Avg inventory</td><td>higher better</td></tr>
       <tr><td>AR turnover</td><td class="formula">Sales on account / Avg AR</td><td>higher better</td></tr>
-      <tr><td>EPS</td><td class="formula">Net income / Wtd-avg shares</td><td>display only</td></tr>
       <tr><td>Forward P/E</td><td class="formula">Share price / next year's expected EPS</td><td>lower better (bends below 8× — distress)</td></tr>
       <tr><td>P/E (TTM)</td><td class="formula">Mkt cap / trailing net income (profitable firms)</td><td>lower better (same bend)</td></tr>
       <tr><td>PEG ratio</td><td class="formula">Forward P/E / expected 5-yr EPS growth (%)</td><td>lower better</td></tr>
@@ -196,49 +179,28 @@
     </table>
   </div>
   <div class="block">
-    <h3>Data sources & methodology (updated Jul 6, 2026)</h3>
+    <h3>Data sources & methodology (consolidated Jul 15, 2026 — full change history lives in the scope doc)</h3>
     <table>
-      <tr><th>Metric</th><th>Source</th><th>Method / caveat</th></tr>
-      <tr><td>Gross margin, Net margin</td><td>Damodaran (NYU Stern), Jan 2026</td><td>Firm-count-weighted average of mapped industries per GICS sector. Covers ~5,900 US-listed firms — small caps included, so averages differ from S&P-500-only figures.</td></tr>
-      <tr><td>Inventory turnover, AR turnover</td><td>Damodaran, Jan 2026 (derived)</td><td>Inv turn = (COGS/Sales) ÷ (Inventory/Sales); AR turn = Sales ÷ AR. Uses total sales, not credit sales (credit-sales split unavailable) — AR turnover is slightly overstated.</td></tr>
-      <tr><td>Forward P/E</td><td>Damodaran, Jan 2026</td><td><b>Forward</b> P/E (price ÷ next year's expected earnings), all listed firms. Runs higher than S&P 500 sector P/Es (e.g., Energy 21× here vs ~12× S&P-500-only) because unprofitable small caps inflate aggregates.</td></tr>
-      <tr><td>PEG ratio</td><td>Damodaran, Jan 2026</td><td>Damodaran's PEG column (P/E ÷ expected 5-yr growth), firm-count-weighted across mapped industries, NA industries excluded. Same all-firm caveat as P/E.</td></tr>
-      <tr><td>P/E (TTM)</td><td>Damodaran, Jan 2026</td><td>Aggregate market cap ÷ trailing net income of MONEY-MAKING firms only — cleaner than the raw trailing-P/E column, which loss-makers distort beyond use.</td></tr>
-      <tr><td>EBITDA margin</td><td>Damodaran, Jan 2026</td><td>EBITDA/Sales, firm-count-weighted.</td></tr>
-      <tr><td>EPS growth (expected & historical)</td><td>Damodaran, Jan 2026</td><td>Expected EPS growth next 5 yrs (analyst estimates) and net-income CAGR last 5 yrs. Historical is NET INCOME growth, not per-share. Materials' 28.3% expected is inflated by precious-metals miners (71.8%) off a low base.</td></tr>
-      <tr><td>Quick ratio</td><td>ReadyRatios (SEC filings), latest year</td><td>⚠ APPROXIMATE: industry medians by SIC code, hand-mapped to our sectors (e.g., Oil & Gas Extraction + Refining → Energy). Looser than every other input — scored, but read its rating with slack. Exact figures come with company data.</td></tr>
-      <tr><td>Expected/delivered EPS growth</td><td>Damodaran, Jan 2026</td><td>Now SCORED as the Growth category. Expected = analyst estimates (optimism bias); delivered = NI CAGR last 5 yrs. Precious Metals' 71.8% expected is off a depressed base — flagged in-app.</td></tr>
-      <tr><td>Book D/E</td><td>Damodaran, Jan 2026</td><td>Now SCORED (Leverage): from verified book debt-to-capital. Total debt/assets stays display-only (derived approximation).</td></tr>
-      <tr><td>Expected revenue growth (revg)</td><td>Damodaran histgr, Jan 2026</td><td>Analyst-expected revenue growth next 5 yrs, firm-count-weighted. ⚠ Materials inflated by Construction Supplies' 60.8% forecast. Same optimism bias as EPS forecasts, but immune to buyback flattery.</td></tr>
-      <tr><td>Sustainable growth (sgr)</td><td>Damodaran divfund + this dashboard's ROE, Jan 2026</td><td>ROE × (1 − dividend payout), payout dollar-aggregated per sector. The cash-return-adjusted variant (incl. buybacks — NEGATIVE for Energy/Materials/Defense, which distribute &gt;100% of net income) is on the Growth tab. Defense payout is industry-basis.</td></tr>
-      <tr><td>Cash-generation margin (fcfm)</td><td>Damodaran capex + margin, Jan 2026</td><td>PROXY: EBITDA margin − Net CapEx/Sales. Not textbook FCF (ignores taxes &amp; working capital; Net CapEx includes acquisitions and R&amp;D adjustments). Judgment-call anchors — percentile grounding possible later. Defense mixes company-level EBITDA margin with industry Net CapEx — flagged in-cell.</td></tr>
-      <tr><td>CapEx/Depreciation (capdep)</td><td>Damodaran capex, Jan 2026</td><td>Reinvestment intensity, firm-count-weighted; sweet-spot anchors (~100–150% = replacing + growing) are judgment calls.</td></tr>
-      <tr><td>Sector market cap</td><td>Fidelity, Jul 10 2026</td><td>Display-only context: S&P 500 sector aggregates (Energy $4.47T, Materials $3.47T, Info Tech $31.66T). Defense sits inside Industrials ($9.67T); Precious Metals not separately published. Not a ratio — never scored.</td></tr>
-      <tr><td>Cross-validation</td><td>Fidelity, Jul 13 2026</td><td>Fidelity's S&P 500 10-yr sector returns cross-check our simulation μ inputs: Info Tech +801% (≈24.6%/yr price-only) vs our 25.6% total-return XLK ✓; Energy, Materials, Industrials similarly consistent once ~2-3.5% dividend yields are added to Fidelity's price-only figures.</td></tr>
-      <tr><td>Business cycle & analyst consensus</td><td>Fidelity research (CFRA Jul 10, Argus Jun 18, 2026)</td><td>Context layers on the Sector Profiles tab: Fidelity's business-cycle sector map + CFRA/Argus sector weightings, compared against our ratings. Consensus covers S&P 500 GICS sectors — Defense compared via broad Industrials, Precious Metals unrated.</td></tr>
-      <tr><td>US Defense & Aerospace (BROADENED v3)</td><td>S&P Global via stockanalysis.com, Jul 13-14 2026</td><td>Cap-weighted TEN majors, $1.22T: five defense primes (LMT $120B, RTX $264B, NOC $76B, GD $101B, LHX $54B) + five broad-aerospace majors (GE Aerospace $369B, Howmet $111B, TransDigm $68B, HEICO $48B, Leidos $13B). GE alone is 30% of the sector weight. TDG excluded from book-D/E and ROE (negative book equity — LBO-style balance sheet). AR turnover + historical growth still Damodaran industry values. Boeing still excluded (loss-making TTM).</td></tr>
-      <tr><td>Emerging A&D watchlist (unrated)</td><td>S&P Global via stockanalysis.com, Jul 14 2026</td><td>KTOS ($9.4B), AVAV ($7.2B), RKLB ($47.1B) tracked on the Sector Profiles tab but deliberately excluded from the sector aggregate: AVAV and RKLB are loss-making TTM and KTOS trades at 293× trailing earnings — they'd distort every profitability and valuation ratio while representing 5% of sector cap. They matter for the 2–5yr thesis (drones, space launch) and get their own tier instead.</td></tr>
-      <tr><td>Defense ETF cross-check</td><td>iShares ITA, Jul 10 2026</td><td>ITA (49 cap-weighted A&D primes): P/E 41.93, P/B 6.79, 3-yr σ 18.03%, 10-yr total return 15.68%/yr, 2025 return +48.7%. Confirms the extreme defense multiple is real; μ/σ inputs upgraded from XLI proxy to ITA-measured (10-yr return, 3-yr σ — mixed windows, noted).</td></tr>
-      <tr><td>Damodaran archives (acquired)</td><td>NYU Stern archived datasets, Jan 1999–Jan 2025 vintages</td><td>81 files (pedata/pbvdata/psdata × 27 years) downloaded Jul 14 2026 into <code>04_research/damodaran_archives/</code>, parse-verified. Vintages Jan-2004→Jan-2025 (22 years) power BOTH grounding steps: the outcome backtest (below) and the percentile scoring — valuation ratios blend 50/50 with own-history cheapness percentiles, and net margin/ROE carry a −1.5 peak-earnings penalty at ≥90th percentile of own history. Pre-2013 vintages use Damodaran's older industry taxonomy, mapped by documented aliases (Petroleum→Oil/Gas, Gold/Silver Mining→Precious Metals, etc.); pre-2013 PEG derived as fwd-P/E ÷ expected growth. The 1999–2003 files are archived but unparsed (different format, no forward P/E). Defense excluded from percentile machinery (industry-aggregate history vs 10-major current values — bases don't mix; shown as context only).</td></tr>
-      <tr><td><b>Outcome backtest (grounding option 2)</b></td><td>Archives + Yahoo Finance ETF annual total returns, Jul 14 2026</td><td>Did these ratings predict forward sector returns? Panel: 5 sectors × 18 Jan-vintages (2008–2025, extended same day from the original 8) scored with this dashboard's own anchors (archive-available subset: valuation, net margin, ROE, expected growth) vs next-calendar-year ETF total returns (XLE/XLB/GDX/ITA/XLK). n=90, spanning the GFC, 2013 gold crash, 2015–16 oil bust, COVID, 2022, and 2025. <b>Finding 1 — cross-sector levels did NOT predict:</b> the composite's rank correlation with forward returns averaged −0.03 (positive in 7 of 18 years — a coin flip). <b>Finding 2 — margin mean-reversion is the robust within-sector signal:</b> fat margins vs a sector's own history predicted LOWER next-year returns (sector-FE −11.8 per SD, p=.014; also significant in pooled levels p=.03 and at 2-yr p=.014; sorts: 6.4% avg forward return after high-margin years vs 18.9% after low). <b>Finding 3 — the valuation signal is real but modest and regime-dependent:</b> cheap vs own history earned +8.4 per SD (p=.048 full sample; stronger ex-COVID p=.015; but insignificant in the 2008–2017 decade alone — the strong first-pass estimate from the 2018–25 window was partly that regime). Joint F p=.010. <b>Consequences:</b> (1) the peak-earnings penalty is the best-grounded mechanism in the scoring; (2) the valuation percentile blend is kept but should be read as modest tilt, not alpha; (3) the 40% relative (cross-sector) component is descriptive, not predictive; (4) regression-fitted weights are NOT adopted — pooled coefficients (except margins) are insignificant, so the documented midpoint weights stand. Full code + both panels in <code>04_research/backtest/</code>. Caveats: ETF proxies ≠ all-firm panel composition; overlapping 2-yr windows inflate that horizon's significance. Indicative, not investment-grade.</td></tr>
-      <tr><td>Debt-to-equity</td><td>Damodaran, Jan 2026</td><td>⚠ <b>Market</b> debt/equity (debt ÷ market cap), NOT the scope-doc definition (total liabilities ÷ book equity). Book-based D/E would be much higher. Kept because it's the consistent cross-sector series available.</td></tr>
-      <tr><td>ROE</td><td>Damodaran, Jan 2026</td><td>Unadjusted ROE, firm-count-weighted.</td></tr>
-      <tr><td>ROA</td><td>Derived</td><td>ROA ≈ ROE × (1 − book debt-to-capital) — an approximation that ignores non-debt liabilities.</td></tr>
-      <tr><td>Current ratio</td><td>FullRatio, Jul 2026</td><td>Unweighted industry averages, firm-count-weighted into sectors.</td></tr>
-      <tr><td>Quick ratio, EPS</td><td>—</td><td>N/A: no reliable sector-level source found; will be computed per company from filings in the company-analysis step. Not fabricated.</td></tr>
-      <tr><td>μ, σ (Monte Carlo)</td><td>LazyPortfolioETF Jun 2026 · ITA Jul 2026 · Yahoo Finance GDX annual returns Jul 2026</td><td>Sector ETFs: XLE (Energy), XLB (Materials), XLK (Info Tech), ITA (Defense — measured), <b>GDX (Precious — measured 2007–2025, UPGRADED Jul 15</b>: arith mean 11.7%, σ 43.7%; the old XLB proxy's σ 18.5% was less than half of gold miners' real volatility and overstated P(up,3y) by ~26 pts). Backward-looking throughout — most aggressive for Info Tech. Known convention bias: plugging annualized (geometric) returns into the GBM μ slot double-counts volatility drag slightly — conservative, largest for high-σ sectors.</td></tr>
-      <tr><td><b>Projections backtest + real terms</b></td><td>ETF annual returns (Yahoo Finance) + BLS CPI Dec/Dec via usinflationcalculator, Jul 15 2026</td><td>Model P(up,3y) and P(CAGR&gt;7%,5y) compared against realized rolling-window frequencies per sector ETF (windows: XLE 1999–2025, others 2007/08–2025) — four of five sectors land within ~5–13 pts; the XLB-for-Precious proxy was the one real failure (fixed). Real-terms columns deflate by 2.5% assumed inflation (2008–25 actual average 2.46%/yr; Jun-2026 actual 3.5%); realized real frequencies use actual CPI per year. Caveat: overlapping windows, one historical path — validation, not proof. Full table on the Complex Layer tab; arithmetic in <code>04_research/backtest/</code>.</td></tr>
-      <tr><td>g (perpetual growth)</td><td>Assumption</td><td>Still assumed per sector, bounded by the scope doc's 2–4% macro-growth cap.</td></tr>
+      <tr><th>Input</th><th>Source</th><th>Method / caveat</th></tr>
+      <tr><td>Core sector ratios — margins (gross/net/EBITDA), turnovers, forward P/E, trailing P/E, PEG, growth (expected EPS &amp; revenue, delivered NI), market &amp; book D/E, ROE, payout, CapEx ratios</td><td>Damodaran (NYU Stern), Jan 2026 — margin/pedata/histgr/dbtfund/divfund/capex datasets, all verified against source pages</td><td>Firm-count-weighted across mapped industries (~5,900 US-listed firms; payout dollar-aggregated). Key caveats: all-firm P/Es run higher than S&amp;P-500-only figures; trailing P/E uses money-making firms only; AR turnover on total sales (slightly overstated); D/E is MARKET basis (debt ÷ mkt cap) — book D/E scored separately; ROA derived ≈ ROE × (1 − book debt-to-capital); fcfm is a cash-generation PROXY (EBITDA mgn − NetCapEx/Sales, ignores taxes &amp; WC); Materials' expected growth inflated by Construction Supplies' 60.8% forecast — flagged in-cell.</td></tr>
+      <tr><td>US Defense &amp; Aerospace (company-level) + emerging watchlist</td><td>S&amp;P Global via stockanalysis.com, Jul 13–14 2026</td><td>Sector = cap-weighted TEN majors ($1.22T: LMT/RTX/NOC/GD/LHX + GE/HWM/TDG/HEI/LDOS; GE alone 30% of weight; TDG excluded from book-D/E &amp; ROE — negative equity; Boeing excluded — loss-making). KTOS/AVAV/RKLB tracked unrated (would distort ratios at ~5% of cap). AR turnover, delivered growth, payout &amp; capex ratios remain Damodaran industry-basis — flagged in-cell. Cross-checked vs iShares ITA (49 holdings: P/E 41.9, 2025 +48.7%).</td></tr>
+      <tr><td>Quick ratio ≈</td><td>ReadyRatios SEC-filing medians</td><td>⚠ Loosest input in the terminal: SIC-industry medians hand-mapped to sectors. Defense uses real company data. Exact per-company figures arrive with the fundamentals feed (in validation).</td></tr>
+      <tr><td>Current ratio</td><td>FullRatio, Jul 2026</td><td>Industry averages, firm-count-weighted into sectors.</td></tr>
+      <tr><td>Self-history percentiles (scoring)</td><td>Damodaran archives, Jan 1999–Jan 2025 vintages (81 files, parse-verified; 2004–25 used)</td><td>Valuation ratios blend 50/50 anchor + own-history cheapness percentile; net margin/ROE carry −1.5 peak-earnings penalty at ≥90th pct of own 22-yr history; expected growth percentile shown with an optimism-era flag. Pre-2013 taxonomy alias-mapped; Defense excluded (industry history vs company-level current — bases don't mix).</td></tr>
+      <tr><td><b>Outcome backtest</b></td><td>Archives + ETF annual returns, Jul 14 2026 (n=90, 2008–2025)</td><td>Cross-sector rating LEVELS did not predict forward returns (IC −0.03). Within-sector: margin mean-reversion robust (FE p=.014, pooled p=.03, 2-yr p=.014); own-history cheapness modest &amp; regime-dependent (p=.048, insignificant 2008–17 alone). Fitted weights NOT adopted. Full arithmetic: <code>04_research/backtest/</code>.</td></tr>
+      <tr><td>Monte Carlo μ/σ</td><td>LazyPortfolioETF (XLE/XLB/XLK 10y) · ITA (10y ret/3y σ) · GDX measured 2007–25</td><td>Windows are NOT uniform — shown per row on the Stochastic tab. GDX upgrade (Jul 15) replaced the XLB proxy whose σ 18.5% was less than half of gold miners' real 43.7%. Geometric-returns-as-GBM-drift convention slightly double-counts volatility drag (conservative). Backtested vs realized rolling windows: 4 of 5 sectors within ~5–13 pts; real-terms columns use 2.5% inflation (BLS CPI 2008–25 avg 2.46%; Jun-2026 actual 3.5%).</td></tr>
+      <tr><td>Event timelines</td><td>13 events search-verified (Britannica/Wikipedia/NATO.int/CRS) + John's OSINT feed · prices Yahoo Finance adjusted closes, Jul 15 2026</td><td>Reactions = t−1 close → +1/+5/+20 trading days, 13 defense names + ITA/GDX/XLE/SPY. Small sample, overlapping clustered windows, AVAV Jun-2025 contaminated by earnings. Dataset: <code>04_research/event_study/</code>.</td></tr>
+      <tr><td>Context layers</td><td>Fidelity (mkt caps Jul 10; cycle map; CFRA Jul 10 / Argus Jun 18 weightings)</td><td>Display-only context on Sector Profiles; sector mkt caps are S&amp;P-500 basis; Fidelity 10-yr sector returns cross-validated our μ inputs ✓.</td></tr>
+      <tr><td>g (perpetual growth)</td><td>Assumption</td><td>Per sector, bounded by the scope doc's 2–4% macro-growth cap. The one input with no measurement behind it.</td></tr>
     </table>
     <div class="muted" style="margin-top:8px;font-size:12px">Sector mapping: Energy = oil/gas integrated + E&P + distribution + oilfield services + coal (282 firms). Materials (ex-Precious) = chemicals + metals & mining + steel + paper + packaging + construction supplies (249 firms). Precious Metals = Damodaran "Precious Metals" industry (56 firms) — split out Jul 13 because its extreme growth figures were distorting Materials. US Defense & Aerospace = TEN cap-weighted US majors (5 defense primes + GE/HWM/TDG/HEI/LDOS, $1.22T — company-level data, no longer the Damodaran 79-firm industry aggregate) plus an unrated emerging watchlist (KTOS/AVAV/RKLB); international primes like BAE/Rheinmetall not covered; name reflects actual coverage. Info Tech = software + semiconductors + hardware + electronics + IT services + telecom equipment (791). All Damodaran inputs verified against source pages.</div>
   </div>
   <div class="block">
-    <h3>Complex-layer columns (page 2)</h3>
-    <b>μ, σ, g:</b> assumed inputs (drift, volatility, perpetual growth) — shown so you can challenge them.<br>
-    <b>P(up, 3y):</b> share of 2000 GBM paths ending above start after 3 yrs.<br>
+    <h3>Stochastic-tab columns (tab 2)</h3>
+    <b>μ, σ, g:</b> measured/assumed inputs (drift, volatility, perpetual growth) — windows shown per row so you can challenge them.<br>
+    <b>P(up, 3y) nominal / REAL:</b> share of 2000 GBM paths ending above start — and above (1.025)³, i.e. beating purchasing power.<br>
     <b>P(CAGR &gt; 7%, 5y):</b> share of paths whose 5-yr multiple beats 1.07⁵ ≈ 1.403 — a hurdle-rate test.<br>
-    <b>Median 5y multiple:</b> the middle simulated outcome; ×1.50 = +50% over 5 yrs.<br>
-    <b>PV per $1 (r−g):</b> growing-perpetuity value of $1 of current cash flow — bigger = long-duration cash flows worth more <i>if</i> g materializes. Blows up as g → r; that fragility is the lesson, not a bug.
+    <b>Median 5y multiple:</b> the middle simulated outcome; ×1.50 = +50% over 5 yrs.
   </div>
 </div>
 
@@ -270,16 +232,7 @@
   <div id="dcfOut"></div>
 </div>
 
-<!-- ============ PAGE 6: SIMULATION EXPLORER ============ -->
-<div class="page" id="p6">
-  <div class="block" style="display:flex;align-items:center;gap:12px">
-    <b>Sector:</b>
-    <select id="simSel" style="background:#10141b;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:14px"></select>
-    <span class="muted">One line = one possible future. The fan shows the range of futures the math considers plausible — wide fan = high uncertainty. (Model: GBM, dVₜ = μVₜdt + σVₜdWₜ; fan = analytic percentile bands; histogram = 2000 simulated 5-yr outcomes.)</span>
-  </div>
-  <div id="fan"></div>
-  <div id="hist"></div>
-</div>
+<!-- PAGE 6 (Simulation Explorer) MERGED into PAGE 2, Jul 15 — same GBM shown twice was one tab too many -->
 
 <!-- ============ PAGE 7: SENSITIVITY ============ -->
 <div class="page" id="p7">
@@ -314,7 +267,7 @@
     <div id="growthChart"></div>
     <div class="muted" style="font-size:12px;margin-top:6px">Expected EPS growth per Damodaran vintage, firm-count-weighted into the 5 sectors. What to notice: expectations are ALWAYS mostly positive (analysts rarely forecast decline even before 2008/2020/2022), Info Tech's line barely moves (~16–23% every single year for two decades — a house view, not analysis), and commodity-sector expectations whipsaw with the cycle. When a sector's current expectation (● marker) sits at the top of its own 22-year range, you are being sold the most optimistic story that sector has carried since 2004.</div>
   </div>
-  <div class="block" style="border-left:3px solid #b8860b"><h3>The buyback problem: who can actually fund their promises?</h3><div id="growthFund"></div>
+  <div class="block" style="border-left:3px solid #b8860b"><h3>The buyback problem (read the SGR columns above)</h3>
     <div class="muted" style="font-size:12px;margin-top:6px">Sustainable growth (classic) = ROE × (1 − dividend payout). But in the buyback era dividends understate distributions: counting buybacks, three of five sectors return MORE than 100% of net income to shareholders — their cash-adjusted sustainable growth is NEGATIVE, meaning any real growth must be financed by new debt, equity issuance, or margin expansion, not retained earnings. Sources: Damodaran divfund + histgr, Jan 2026 (dollar-aggregated). Defense rows are industry-basis (79-firm aggregate), not the 10-major set.</div>
   </div>
   <div class="block"><h3>Sector age &amp; lifecycle (added Jul 15)</h3>
@@ -424,17 +377,17 @@ const D={ // qk = ReadyRatios SEC medians, SIC-mapped (APPROXIMATE) · mcap = S&
  // payout/cash-return dollar-aggregated). fcfm = EBITDA margin − Net CapEx/Sales (cash-generation PROXY,
  // not textbook FCF: ignores taxes & working capital; NetCapEx includes acquisitions + R&D adj).
  // sgr = ROE × (1 − dividend payout). Cash-return-adjusted variant (incl. buybacks) on the Growth tab.
- "Energy":                 {gm:37.5,nm:9.3, em:28.1,cur:1.36,qk:0.8,inv:12.2,ar:9.5, eps:null,pe:21.2,tpe:16.0,peg:3.5, exp5:6.0, ni5:17.0,revg:10.4,sgr:4.4, fcfm:16.8,capdep:134,de:0.36,bookde:0.59,da:0.37,roe:10.6,roa:6.6, mcap:4.47},
- "Materials (ex-Precious)":{gm:27.1,nm:5.6, em:19.8,cur:2.19,qk:0.9,inv:4.0, ar:7.8, eps:null,pe:21.9,tpe:24.1,peg:1.8, exp5:18.4,ni5:12.1,revg:24.0,sgr:2.3, fcfm:15.1,capdep:167,de:0.34,bookde:0.71,da:0.42,roe:9.9, roa:5.8, mcap:3.47},
- "Precious Metals":        {gm:55.0,nm:28.6,em:34.6,cur:2.95,qk:1.2,inv:3.5, ar:20.7,eps:null,pe:16.5,tpe:18.6,peg:0.3, exp5:71.8,ni5:22.0,revg:19.3,sgr:17.6,fcfm:28.5,capdep:153,de:0.05,bookde:0.18,da:0.15,roe:23.5,roa:19.9,mcap:null},
+ "Energy":                 {gm:37.5,nm:9.3, em:28.1,cur:1.36,qk:0.8,inv:12.2,ar:9.5, pe:21.2,tpe:16.0,peg:3.5, exp5:6.0, ni5:17.0,revg:10.4,sgr:4.4, fcfm:16.8,capdep:134,de:0.36,bookde:0.59,da:0.37,roe:10.6,roa:6.6, mcap:4.47},
+ "Materials (ex-Precious)":{gm:27.1,nm:5.6, em:19.8,cur:2.19,qk:0.9,inv:4.0, ar:7.8, pe:21.9,tpe:24.1,peg:1.8, exp5:18.4,ni5:12.1,revg:24.0,sgr:2.3, fcfm:15.1,capdep:167,de:0.34,bookde:0.71,da:0.42,roe:9.9, roa:5.8, mcap:3.47},
+ "Precious Metals":        {gm:55.0,nm:28.6,em:34.6,cur:2.95,qk:1.2,inv:3.5, ar:20.7,pe:16.5,tpe:18.6,peg:0.3, exp5:71.8,ni5:22.0,revg:19.3,sgr:17.6,fcfm:28.5,capdep:153,de:0.05,bookde:0.18,da:0.15,roe:23.5,roa:19.9,mcap:null},
  // Defense BROADENED Jul 14 (v3): cap-weighted TEN majors — 5 primes (LMT+RTX+NOC+GD+LHX, $615B) + GE Aerospace,
  // HWM, TDG, HEI, LDOS ($609B) = $1.22T total. S&P Global via stockanalysis.com, Jul 14 2026.
  // TDG excluded from bookde/roe (negative book equity from LBO-style debt — ratio undefined); weights renormalized (94.5% coverage).
  // ar + ni5 still Damodaran industry (not on source pages). exp5 = 3-yr analyst EPS growth forecast. Boeing excluded (loss-making TTM).
  // Emerging tier (KTOS, AVAV, RKLB — $63.8B) deliberately EXCLUDED from this aggregate: two are loss-making and all three
  // trade on forward narratives; they are shown as a watchlist in Sector Profiles instead of distorting the fundamentals here.
- "US Defense & Aerospace": {gm:26.6,nm:13.2,em:21.2,cur:1.41,qk:0.91,inv:6.9, ar:4.2, eps:null,pe:35.5,tpe:37.0,peg:2.5, exp5:14.0,ni5:19.6,revg:19.8,sgr:16.1,fcfm:20.4,capdep:95, de:0.14,bookde:1.04,da:0.25,roe:32.3,roa:6.3, mcap:1.22},
- "Information Technology": {gm:55.7,nm:19.4,em:27.3,cur:2.16,qk:1.4,inv:6.7, ar:5.9, eps:null,pe:35.8,tpe:36.6,peg:1.7, exp5:21.3,ni5:19.8,revg:12.5,sgr:19.9,fcfm:15.4,capdep:201,de:0.08,bookde:0.56,da:0.36,roe:23.9,roa:15.3,mcap:31.66}
+ "US Defense & Aerospace": {gm:26.6,nm:13.2,em:21.2,cur:1.41,qk:0.91,inv:6.9, ar:4.2, pe:35.5,tpe:37.0,peg:2.5, exp5:14.0,ni5:19.6,revg:19.8,sgr:16.1,fcfm:20.4,capdep:95, de:0.14,bookde:1.04,da:0.25,roe:32.3,roa:6.3, mcap:1.22},
+ "Information Technology": {gm:55.7,nm:19.4,em:27.3,cur:2.16,qk:1.4,inv:6.7, ar:5.9, pe:35.8,tpe:36.6,peg:1.7, exp5:21.3,ni5:19.8,revg:12.5,sgr:19.9,fcfm:15.4,capdep:201,de:0.08,bookde:0.56,da:0.36,roe:23.9,roa:15.3,mcap:31.66}
 };
 // Dividend payout vs TOTAL cash return (div+buybacks) as % of net income — Damodaran divfund Jan-2026,
 // dollar-aggregated per sector. Cash return >100% = the sector paid out MORE than it earned (equity shrinking).
@@ -552,11 +505,9 @@ const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the
  inv:{name:"Inventory turnover",f:"COGS/Avg inventory",dir:1,fmt:v=>v+"×/yr",
   desc:"How many times a year the shelf gets emptied and restocked",
   abs:v=>v>=8?"fast (>8×/yr)":v>=4?"moderate (4–8×/yr)":"slow (<4×/yr)"},
- ar:{name:"AR turnover",f:"Credit sales/Avg AR",dir:1,fmt:v=>v+"×/yr",
-  desc:"How quickly it collects money customers owe (higher = paid faster)",
+ ar:{name:"AR turnover ≈",f:"Total sales/Avg AR (credit-sales split unavailable — slightly overstated)",dir:1,fmt:v=>v+"×/yr",
+  desc:"How quickly it collects money customers owe (higher = paid faster). Computed on total sales, so slightly overstated",
   abs:v=>v>=10?"fast collection (>10×)":v>=6?"typical (6–10×)":"slow (<6×)"},
- eps:{name:"EPS (display only)",f:"Net income/Wtd-avg shares",dir:0,fmt:v=>"$"+v.toFixed(2),
-  desc:"Profit per share — only meaningful within one company over time",abs:v=>""},
  pe:{name:"Forward P/E",f:"Price / NEXT year's expected EPS (Damodaran forward P/E)",dir:-1,fmt:v=>v+"×",
   desc:"How many years of next year's expected profit you pay at today's price",
   abs:v=>v<8?"suspiciously cheap — possible distress pricing":v<15?"cheap-ish (8–15×)":v<=25?"typical (15–25×)":"priced for growth (>25×)"},
@@ -586,7 +537,7 @@ const CATS=[ // 7 categories: Growth deepened (revg+sgr) + Cash Flow added Jul 1
  {name:"Efficiency",kpis:["inv","ar","roa"]},                       // roa = asset productivity
  {name:"Growth",kpis:["exp5","ni5","revg","sgr"]},                  // expected EPS + delivered + expected REVENUE + self-fundable
  {name:"Cash Flow",kpis:["fcfm","capdep"]},                         // cash-generation proxy + reinvestment intensity (NEW Jul 14)
- {name:"Valuation",kpis:["pe","tpe","peg","eps","mcap"]},           // eps/mcap display-only
+ {name:"Valuation",kpis:["pe","tpe","peg","mcap"]},                 // mcap display-only (eps removed Jul 15 — was null for all 5 sectors, pure noise)
  {name:"Leverage",kpis:["de","bookde","roe","da"]}                  // bookde activated; da display-only
 ];
 // Weighted overall, 7 categories (Jul 14: Cash Flow carved 2.5 pts each from Profitability,
@@ -747,7 +698,7 @@ window.showDetail=function(sector,ci){
   if(key==="pe") health+=" — caveat: all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them)";
   if(key==="pe"&&sector==="US Defense & Aerospace") health+="; ten-major basis (5 primes + GE/HWM/TDG/HEI/LDOS cap-weighted, $1.22T) — GE at 30% weight and P/E 43.9 pulls this up vs the five-prime 23.6×; ITA's 49-holding P/E is 41.9×, so 35.5× is consistent with the broad sector";
   if(key==="roe"&&sector==="US Defense & Aerospace") health+="; buyback-shrunken equity at LMT (ROE 67.6%) and GE (45.4%) inflates this, and TDG is excluded outright (negative book equity) — the DuPont penalty fires (5.1× multiplier), by design";
-  if(key==="qk"&&sector==="US Defense & Aerospace") health=health.replace(" — approximate: SEC-filing medians mapped from SIC industries, looser than other inputs"," — REAL company data (ten-major set), not the SIC approximation");
+  if(key==="qk"&&sector==="US Defense & Aerospace") health+=" — REAL company data (ten-major set), not the SIC approximation used for other sectors";
   if(key==="exp5") health+=" — analyst estimates skew optimistic; compare with the delivered 5-yr number below";
   if(key==="exp5"&&hp!=null&&hp>=0.9&&HIST_BASIS_OK(sector)) health+="; ⚠ OPTIMISM-ERA FLAG: expectations sit above ~90% of this sector's own 22-year history of forecasts — eras of record expectations are where analyst optimism bites hardest (flag only — the backtest found no reliable growth signal to penalize)";
   if(key==="revg"&&sector==="Materials (ex-Precious)") health+=" — ⚠ inflated by Construction Supplies' 60.8% forecast (40 of 249 firms); read with skepticism";
@@ -755,8 +706,7 @@ window.showDetail=function(sector,ci){
   if(key==="capdep"){const q=ROIC[sector]; health+=` — QUALITY-CONDITIONED anchors: this sector's ROIC of ${q}% (return on ALL invested capital — immune to buyback-shrunken equity, unlike ROE) puts it in the ${q>=15?"HIGH-return regime (reinvestment at these returns is value-creating — plateau to 350%, not penalized)":q>=8?"mid-return regime (sweet spot 100–150%)":"LOW-return regime (heavy capex at these returns risks value destruction — penalized)"}`;}
   if(key==="sgr") health+=` — dividend-payout basis; counting buybacks too, cash return is ${PAYOUT[sector].cashret.toFixed(0)}% of net income → cash-adjusted SGR ${PAYOUT[sector].sgr_cash.toFixed(1)}%${PAYOUT[sector].sgr_cash<0?" (NEGATIVE: the sector distributes more than it earns — growth must be externally funded)":""}`;
   if(key==="exp5"&&sector==="Precious Metals") health+="; the 71.8% figure is off a depressed base year — treat as unsustainable";
-  if(key==="qk") health+=" — approximate: SEC-filing medians mapped from SIC industries, looser than other inputs";
-  if(key==="ar") health+=" — computed on total sales, so slightly overstated";
+  // qk/ar data-quality caveats live ONCE in the KPI name/desc + How to Read (removed per-row repetition Jul 15)
   const anch=(key==="capdep"?capdepAnch(sector):ANCH[key]).map(p=>p[0]+"→"+p[1]).join(", ");
   const pen=key==="roe"?dupontPenalty(sector):0;
   const ppen=peakPenalty(key,sector);
@@ -811,12 +761,16 @@ window.showComposite=function(sector){
  const rMean=terms.reduce((x,y)=>x+y,0)/paths;
  const ERP=0.04, disc=rMean+ERP;
 
- const ASSUME={ // mu/sig MEASURED: 10Y annualized return & st-dev of sector ETFs to Jun 30 2026, LazyPortfolioETF.
-  // Defense = XLI (Industrials) proxy; Precious Metals = XLB proxy (INADEQUATE — GDX/gold-miner history needed). g assumed.
-  "Energy":{mu:.089,sig:.297,g:.02},"Materials (ex-Precious)":{mu:.104,sig:.185,g:.025},
-  "Precious Metals":{mu:.117,sig:.437,g:.025}, // UPGRADED Jul 15: GDX-measured 2007–2025 (arith mean of annual returns 11.7%, σ 43.7%) — replaces the inadequate XLB proxy (σ 18.5% was less than HALF of gold miners' real volatility). Window includes the 2013 −54% crash AND 2025's +154.7%.
-  "US Defense & Aerospace":{mu:.157,sig:.180,g:.025}, // UPGRADED: ITA (actual defense ETF) 10y total return & 3y std dev — replaces XLI proxy
-  "Information Technology":{mu:.256,sig:.206,g:.04}};
+ /* SINGLE source of truth for simulation inputs (consolidated Jul 15 — previously duplicated
+    as ASSUME + SIM_ASSUME, which nearly let the XLB proxy survive one of them).
+    win = measurement window, shown per row — the windows are NOT uniform and that's disclosed. */
+ window.SIM_ASSUME={
+  "Energy":{mu:.089,sig:.297,g:.02,win:"XLE 10y (LazyPortfolio)"},
+  "Materials (ex-Precious)":{mu:.104,sig:.185,g:.025,win:"XLB 10y (LazyPortfolio)"},
+  "Precious Metals":{mu:.117,sig:.437,g:.025,win:"GDX 2007–25 (19y, arith/σ)"}, // UPGRADED Jul 15: replaces XLB proxy (σ 18.5% was <half of gold miners' real 43.7%); window includes 2013 −54% AND 2025 +154.7%
+  "US Defense & Aerospace":{mu:.157,sig:.180,g:.025,win:"ITA 10y ret / 3y σ (mixed)"}, // UPGRADED from XLI proxy
+  "Information Technology":{mu:.256,sig:.206,g:.04,win:"XLK 10y (LazyPortfolio)"}};
+ const ASSUME=window.SIM_ASSUME;
  const N=2000, hurdle5=Math.pow(1.07,5), infl=0.025, realK3=Math.pow(1+infl,3); // real-terms threshold: beat 2.5% inflation (long-run; Jun-2026 actual is 3.5% — see note)
  let rows="";
  SECTORS.forEach(s=>{
@@ -829,15 +783,14 @@ window.showComposite=function(sector){
    if(v3>1)up3++; if(v3>realK3)up3r++; if(v5>hurdle5)beat5++; m5.push(v5);
   }
   m5.sort((x,y)=>x-y);
-  const pv=1/(disc-g);
-  rows+=`<tr><td class="rowhead" style="text-align:left">${s}</td>
+  rows+=`<tr><td class="rowhead" style="text-align:left">${s}<br><span class="muted" style="font-size:10px">${SIM_ASSUME[s].win||""}</span></td>
    <td>${(mu*100).toFixed(0)}%</td><td>${(sig*100).toFixed(0)}%</td><td>${(g*100).toFixed(1)}%</td>
    <td>${(100*up3/N).toFixed(1)}%</td><td>${(100*up3r/N).toFixed(1)}%</td><td>${(100*beat5/N).toFixed(1)}%</td>
-   <td>×${m5[Math.floor(N/2)].toFixed(2)}</td><td>$${pv.toFixed(1)}</td></tr>`;
+   <td>×${m5[Math.floor(N/2)].toFixed(2)}</td></tr>`;
  });
  document.getElementById('mc').innerHTML=
-  `<div class="block"><b>Vasicek result:</b> mean simulated 5-yr rate = <b>${(rMean*100).toFixed(2)}%</b> (500 paths from r₀=4.0%) → discount rate r = ${(rMean*100).toFixed(2)}% + 4.00% ERP = <b>${(disc*100).toFixed(2)}%</b>, used in the PV column.</div>
-  <table><tr><th style="text-align:left">Sector</th><th>μ drift<br><span class="muted">measured ETF</span></th><th>σ vol<br><span class="muted">measured ETF</span></th><th>g growth<br><span class="muted">assumed</span></th><th>P(up, 3y)<br><span class="muted">nominal</span></th><th>P(up, 3y)<br><span class="muted">REAL @2.5% infl</span></th><th>P(CAGR&gt;7%, 5y)</th><th>Median 5y multiple</th><th>PV per $1<br><span class="muted">1/(r−g)</span></th></tr>${rows}</table>
+  `<div class="block"><b>Vasicek result:</b> mean simulated 5-yr rate = <b>${(rMean*100).toFixed(2)}%</b> (500 paths from r₀=4.0%) → with the 4.00% ERP that implies a <b>${(disc*100).toFixed(2)}%</b> discount rate — the r that the DCF (tab 4) and Sensitivity grid (tab 5) stress-test. Per-$1 perpetuity values live on the Sensitivity tab, not here (removed Jul 15 — it duplicated that entire tab).</div>
+  <table><tr><th style="text-align:left">Sector<br><span class="muted">μ/σ window</span></th><th>μ drift<br><span class="muted">measured ETF</span></th><th>σ vol<br><span class="muted">measured ETF</span></th><th>g growth<br><span class="muted">assumed</span></th><th>P(up, 3y)<br><span class="muted">nominal</span></th><th>P(up, 3y)<br><span class="muted">REAL @2.5% infl</span></th><th>P(CAGR&gt;7%, 5y)</th><th>Median 5y multiple</th></tr>${rows}</table>
   <div class="block" style="border-left:3px solid var(--accent)"><b>Inflation makes every column harder (added Jul 15).</b> "P(up, 3y) REAL" asks a stricter question: probability the sector beats <i>purchasing power</i>, i.e. ends above (1.025)³. At the Jun-2026 actual inflation of 3.5% the thresholds are stricter still (roughly 2–7 pts lower than the 2.5% column, worst for low-drift sectors). The nominal column flatters exactly the sectors with the least real cushion — Energy loses ~6 pts of probability going real, Info Tech barely 2. CPI: BLS Dec/Dec; 2008–25 average 2.46%/yr.</div>
   <div class="block" style="border-left:3px solid #b8860b"><b>Model vs history — do these probabilities survive contact with reality? (backtest, Jul 15)</b>
   <table style="margin-top:6px"><tr><th style="text-align:left">Sector (ETF)</th><th>P(up,3y) model</th><th>realized freq</th><th>P(CAGR&gt;7%,5y) model</th><th>realized freq</th><th>P(up,3y real) model @2.5%</th><th>realized freq (actual CPI)</th></tr>
@@ -850,7 +803,7 @@ window.showComposite=function(sector){
 })();
 
 /* ================== PAGE 4: SECTOR PROFILES ================== */
-const CATSHORT=["Profit","Liquid","Effic","Growth","Value","Lever"];
+const CATSHORT=["Profit","Liquid","Effic","Growth","CashFl","Value","Lever"]; // MUST match CATS order — 7th label was missing after Cash Flow was added (radar showed "undefined"), fixed Jul 15
 function radarSVG(sector){
  const cx=180,cy=165,R=115,n=CATS.length;
  const pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];};
@@ -965,7 +918,7 @@ function renderDCF(){
 }
 
 /* ================== PAGE 6: SIMULATION EXPLORER ================== */
-const SIM_ASSUME={"Energy":{mu:.089,sig:.297},"Materials (ex-Precious)":{mu:.104,sig:.185},"Precious Metals":{mu:.117,sig:.437},"US Defense & Aerospace":{mu:.157,sig:.180},"Information Technology":{mu:.256,sig:.206}}; // Defense ITA-measured; Precious Metals GDX-measured 2007-2025 (Jul 15 — was XLB proxy)
+/* SIM_ASSUME is defined ONCE in the Complex Layer section (window.SIM_ASSUME) — consolidated Jul 15. */
 function renderSim(){
  const s=document.getElementById('simSel').value,{mu,sig}=SIM_ASSUME[s];
  // --- analytic percentile fan ---
@@ -1030,12 +983,12 @@ function renderSim(){
 /* ================== PAGE 8: GROWTH ================== */
 const GCOLOR={"Energy":"#e67e22","Materials (ex-Precious)":"#95a5a6","Precious Metals":"#d4a017","US Defense & Aerospace":"#3498db","Information Technology":"#2ecc71"};
 function renderGrowthTab(){
- // table: expected vs deliverable
- let t=`<table><tr><th>Sector</th><th>Expected EPS gr (5y)</th><th>vs own 22-yr history</th><th>Expected REVENUE gr (5y)</th><th>Delivered NI gr (5y)</th><th>Sustainable gr (div-basis)</th><th>Cash return / NI</th><th>Cash-adj sustainable gr</th></tr>`;
+ // ONE table (merged Jul 15 — expected/deliverable + funding shared half their columns)
+ let t=`<table><tr><th>Sector</th><th>Expected EPS gr (5y)</th><th>vs own 22-yr history</th><th>Expected REVENUE gr (5y)</th><th>Delivered NI gr (5y)</th><th>ROE × retention → SGR</th><th>Cash return / NI</th><th>Cash-adj SGR</th><th>Promise − self-fundable</th></tr>`;
  SECTORS.forEach(s=>{
-  const d=D[s],p=PAYOUT[s],hp=histPct("exp5",s,d.exp5);
+  const d=D[s],p=PAYOUT[s],hp=histPct("exp5",s,d.exp5),gap=d.exp5-d.sgr;
   const pctTxt=hp==null?"—":(HIST_BASIS_OK(s)?Math.round(hp*100)+"th pct"+(hp>=0.9?" ⚠ optimism era":""):Math.round(hp*100)+"th pct (context only)");
-  t+=`<tr><td><b>${s}</b></td><td>${d.exp5}%</td><td>${pctTxt}</td><td>${d.revg}%${s==="Materials (ex-Precious)"?" ⚠":""}</td><td>${d.ni5}%</td><td>${d.sgr.toFixed(1)}%</td><td>${p.cashret.toFixed(0)}%${p.cashret>100?" ⚠":""}</td><td style="${p.sgr_cash<0?'color:#c0392b;font-weight:bold':''}">${p.sgr_cash.toFixed(1)}%</td></tr>`;
+  t+=`<tr><td><b>${s}</b></td><td>${d.exp5}%</td><td>${pctTxt}</td><td>${d.revg}%${s==="Materials (ex-Precious)"?" ⚠":""}</td><td>${d.ni5}%</td><td>${d.roe}% × ${(100-p.payout).toFixed(0)}% = <b>${d.sgr.toFixed(1)}%</b></td><td>${p.cashret.toFixed(0)}%${p.cashret>100?" ⚠":""}</td><td style="${p.sgr_cash<0?'color:#c0392b;font-weight:bold':''}">${p.sgr_cash.toFixed(1)}%</td><td style="${gap>5?'color:#c0392b;font-weight:bold':''}">${gap>0?"+":""}${gap.toFixed(1)} pts${gap>5?" — needs external funding":""}</td></tr>`;
  });
  t+=`</table><div class="muted" style="font-size:12px;margin-top:6px">⚠ on revenue growth: Materials inflated by Construction Supplies' 60.8% forecast. ⚠ on cash return: sector paid out more than it earned. Defense growth inputs are industry-basis.</div>`;
  document.getElementById('growthTable').innerHTML=t;
@@ -1053,14 +1006,7 @@ function renderGrowthTab(){
  });
  svg+=`</svg>`;
  document.getElementById('growthChart').innerHTML=svg;
- // funding block
- let f=`<table><tr><th>Sector</th><th>ROE</th><th>Dividend payout</th><th>Retention (div-basis)</th><th>SGR = ROE×retention</th><th>Analyst EPS expectation</th><th>Gap (promise − self-fundable)</th></tr>`;
- SECTORS.forEach(s=>{
-  const d=D[s],p=PAYOUT[s],gap=d.exp5-d.sgr;
-  f+=`<tr><td><b>${s}</b></td><td>${d.roe}%</td><td>${p.payout.toFixed(0)}%</td><td>${(100-p.payout).toFixed(0)}%</td><td>${d.sgr.toFixed(1)}%</td><td>${d.exp5}%</td><td style="${gap>5?'color:#c0392b;font-weight:bold':''}">${gap>0?"+":""}${gap.toFixed(1)} pts${gap>5?" — needs external funding or margin gains":""}</td></tr>`;
- });
- f+=`</table>`;
- document.getElementById('growthFund').innerHTML=f;
+ // funding table MERGED into the main table above (Jul 15) — shared half its columns
 }
 
 /* ================== PAGE 9: CAPITAL PRESERVATION & TAX ================== */
