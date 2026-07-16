@@ -52,7 +52,8 @@
   <div class="tab" data-page="p7">6 · Sensitivity</div>
   <div class="tab" data-page="p8">7 · Growth</div>
   <div class="tab" data-page="p9">8 · Capital Preservation & Tax</div>
-  <div class="tab" data-page="p3">9 · How to Read</div>
+  <div class="tab" data-page="p10">9 · Event Timelines</div>
+  <div class="tab" data-page="p3">10 · How to Read</div>
 </div>
 
 <!-- ============ PAGE 1: HEATMAP ============ -->
@@ -386,6 +387,22 @@
       <div class="muted" style="font-size:12px">Positive PCGE = embedded gains that can be distributed as taxable capital gains even to NEW holders of a fund; negative = harvestable losses (Morningstar methodology).</div>
     </div>
     <div class="banner" style="margin-top:10px">⚠ <b>Formula correction (flagged during intake):</b> the formula supplied as "TER = (1 − (1+after-tax)/(1+pre-tax)) × 100%" is actually Morningstar's <b>Tax-Cost Ratio</b>. The standard <b>Tax Efficiency Ratio</b> is simply after-tax ÷ pre-tax × 100%. Both are computed above, correctly labeled, plus the simple-difference variant. (Sources: Morningstar tax-cost methodology; AnalystPrep CFA-III post-tax returns; Passiv.)</div>
+  </div>
+</div>
+
+<!-- ============ PAGE 10: EVENT TIMELINES ============ -->
+<div class="page" id="p10">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>How the defense universe actually reacted to OSINT-class events, 2022–2026.</b> Thirteen dated geopolitical events (invasions, strikes, ceasefires, the NATO spending pledge — E1–E12 search-verified against Britannica/Wikipedia/NATO.int/CRS; E13 from John's live OSINT feed), each paired with measured price reactions: return from the close BEFORE the event to +1, +5 and +20 trading days after, for the 13 defense names plus ITA (sector), GDX (gold miners), XLE (energy) and SPY (market) as benchmarks. Prices: Yahoo Finance adjusted closes, pulled Jul 15 2026. <span class="muted">Associations, not causal effects — John's screening-language discipline applies here too. Going forward, his event feed extends this timeline automatically (reaction clock starts at first_seen).</span>
+  </div>
+  <div class="block"><h3>Pick an event</h3><select id="evtSel"></select><div id="evtTable" style="margin-top:10px"></div></div>
+  <div class="block"><h3>Per-firm event sensitivity (average next-day reaction)</h3><div id="evtSens"></div></div>
+  <div class="block" style="border-left:3px solid #b8860b"><h3>The four findings</h3>
+    · <b>1. Escalation lifted defense reliably — until 2026.</b> Around every 2022–2025 escalation (E1, E2, E5–E6), the sector rose: ITA averaged +8–11% twenty days after Ukraine and Oct 7. But the 2026 war itself (E9) was sell-the-news: twenty days after the war started, ITA was −13.5%, LMT −8.6%, KTOS −24.3% — and SPY −7.6%. Three years of escalation was already in the price; the war delivered the priced-in event plus a growth shock.<br>
+    · <b>2. Energy was the only +20d winner off the 2026 war start</b> (XLE +11.5% while everything else fell) — the Strait-of-Hormuz channel (John's maritime_chokepoint category) is the live transmission mechanism, and it showed up again on the ceasefire collapse (E12: XLE +3.4% at +5d while defense fell).<br>
+    · <b>3. The emerging tier is the high-beta end in BOTH directions.</b> KTOS +39%, AVAV +75% twenty days after Ukraine; RKLB +69%, KTOS +24% after the 12-Day War began — but KTOS −24%, AVAV −30% after the 2026 war start. Event sensitivity is where their "lucrative" story lives AND its price.<br>
+    · <b>4. Gold miners were not the war hedge the label promises.</b> GDX fell 9.2% the day after the 2026 war began and was −25.9% twenty days later — after +154.7% in 2025, the hedge was already spent. Peace hurt too (E11: −13.3% at +5d). The peak-earnings penalty on Precious and this are the same lesson from two directions.<br>
+    <div class="muted" style="font-size:12px;margin-top:6px">Caveats, honestly: 13 events is a small sample from one historical path; clustered events (E5–E8, E12–E13) share overlapping windows; AVAV's E7/E8 windows are contaminated by its own Jun-24-2025 earnings blowout (+40.9% next day is earnings + NATO, inseparable); +5/+20-day cells for June–July 2026 events don't exist yet (null). Full dataset + methodology: <code>04_research/event_study/event_windows.json</code>.</div>
   </div>
 </div>
 
@@ -1100,6 +1117,64 @@ function renderCapTax(){
  document.getElementById('tx_pcge').innerHTML=`→ PCGE = <b>${na>0?(ug/na*100).toFixed(1):"—"}%</b>${ug<0?" (negative: harvestable losses)":""}`;
 }
 
+/* ================== PAGE 10: EVENT TIMELINES ================== */
+/* Events E1-E12 search-verified Jul 15 2026 (Britannica/Wikipedia/NATO.int/CRS); E13 = John's OSINT feed.
+   Returns: % from close at t0-1 (t0 = first trading day >= event date) to +1/+5/+20 trading days.
+   Prices: Yahoo Finance v8 adjusted closes, fetched Jul 15 2026. Dataset copy: 04_research/event_study/. */
+const EVT=[["E1","2022-02-24","Russia invades Ukraine"],["E2","2023-10-07","Hamas attack on Israel"],["E3","2024-04-13","Iran's 1st direct attack on Israel"],["E4","2024-10-01","Iran ballistic attack on Israel"],["E5","2025-06-13","Israel strikes Iran — 12-Day War"],["E6","2025-06-22","US strikes Fordow/Natanz/Isfahan"],["E7","2025-06-24","12-Day War ceasefire"],["E8","2025-06-25","NATO 5%-of-GDP pledge"],["E9","2026-02-28","US-Israel initiate 2026 Iran war"],["E10","2026-04-08","Two-week ceasefire begins"],["E11","2026-06-17","War-ending memorandum (Versailles)"],["E12","2026-07-08","Ceasefire collapses"],["E13","2026-07-14","Renewed US strikes (OSINT feed)"]];
+const EVT_TICKS=["LMT","RTX","NOC","GD","LHX","GE","HWM","TDG","HEI","LDOS","KTOS","AVAV","RKLB"];
+const EVT_BENCH=["ITA","GDX","XLE","SPY"];
+const EVTRET={
+"LMT":{"E1":[5.29,15.94,16.44],"E2":[8.58,9.9,12.58],"E3":[0.87,2.43,4.48],"E4":[3.19,4.02,-6.46],"E5":[-0.47,0.68,0.18],"E6":[-2.2,-1.58,-12.71],"E7":[-2.98,-1.38,-11.23],"E8":[-0.5,0.51,-8.62],"E9":[2.01,1.45,-8.56],"E10":[-0.61,-2.64,-18.07],"E11":[-4.66,-5.77,null],"E12":[-3.2,-3.91,null],"E13":[-1.19,null,null]},
+"RTX":{"E1":[6.97,8.83,10.88],"E2":[5.13,6.03,18.1],"E3":[0.74,1.46,5.69],"E4":[2.38,1.93,1.35],"E5":[3.89,3.43,5.46],"E6":[-3.27,-0.42,1.73],"E7":[-3.04,-1.11,7.32],"E8":[0.58,1.88,9.43],"E9":[1.92,2.77,-7.63],"E10":[2.66,0.24,-10.7],"E11":[-0.63,-0.1,null],"E12":[-2.81,-2.47,null],"E13":[-0.25,null,null]},
+"NOC":{"E1":[6.53,16.94,18.21],"E2":[9.9,15.55,11.28],"E3":[-1.26,3.26,4.5],"E4":[2.05,0.87,-4.55],"E5":[0.08,0.51,3.96],"E6":[-2.75,0.46,13.28],"E7":[-2.55,0.77,13.78],"E8":[2,3.08,17.45],"E9":[4.79,3.17,-7.29],"E10":[0.01,-1.72,-18.96],"E11":[-5.39,-9.41,null],"E12":[-3.06,-4.34,null],"E13":[-3.06,null,null]},
+"GD":{"E1":[5.41,10.11,11.43],"E2":[7.61,10.43,10.91],"E3":[-0.89,1.19,1.97],"E4":[0.57,-1.75,0.33],"E5":[-0.23,0.85,8.02],"E6":[0.81,4.62,7.3],"E7":[1.27,4.27,12.84],"E8":[3.68,4.58,12.38],"E9":[2.14,1.38,-4.55],"E10":[-1.3,-2.29,0.13],"E11":[-3.87,-5.33,null],"E12":[-0.01,-2.4,null],"E13":[-1.92,null,null]},
+"LHX":{"E1":[7.96,18.12,19.29],"E2":[8.35,9.22,10.9],"E3":[-1.13,2.72,8.86],"E4":[2.85,1.43,3.03],"E5":[-1.05,0.29,4.31],"E6":[-1.21,0.47,5.91],"E7":[-1.29,0.43,7.36],"E8":[0.06,2.8,10.77],"E9":[0.95,2.2,-6.43],"E10":[1.12,0.54,-14.63],"E11":[-5.03,-7.06,null],"E12":[-1.87,-2.9,null],"E13":[-0.65,null,null]},
+"GE":{"E1":[4.02,-0.22,1.68],"E2":[0.01,-2.09,0.28],"E3":[1.38,-2.87,3.15],"E4":[-1.13,-0.59,-7.7],"E5":[-1.44,3.26,10.44],"E6":[3.92,7.53,8.36],"E7":[0.84,0.49,6.36],"E8":[0.9,-1.61,7.9],"E9":[-2.37,-5.8,-20.05],"E10":[8.46,8.78,5.97],"E11":[1.68,5.58,null],"E12":[-2.16,-1.81,null],"E13":[1.96,null,null]},
+"HWM":{"E1":[5.74,3.08,9.49],"E2":[1.09,-2.96,6.03],"E3":[0.03,-1.67,25.42],"E4":[1.04,2.73,-0.16],"E5":[0.05,2.4,7.67],"E6":[1.86,7.38,5.77],"E7":[0.26,0.34,6.13],"E8":[0.16,-0.35,5.79],"E9":[-1.41,-3.2,-15.06],"E10":[7.64,7.63,8.65],"E11":[0.09,-1.54,null],"E12":[-0.6,1.38,null],"E13":[2.93,null,null]},
+"TDG":{"E1":[5.63,4.36,7.75],"E2":[1.89,1.63,4.55],"E3":[0.23,-1.59,4.93],"E4":[1.08,1.77,-1.15],"E5":[-0.59,2.43,9.73],"E6":[2.12,5.42,8.92],"E7":[-0.91,2.86,8.64],"E8":[-0.07,2.63,8.57],"E9":[1.81,-1.91,-13.04],"E10":[4.78,8.99,5.46],"E11":[2.08,2.41,null],"E12":[-2.55,-7.33,null],"E13":[-0.23,null,null]},
+"HEI":{"E1":[4.63,7.16,12.66],"E2":[4.25,3.68,1.45],"E3":[3.43,3.99,9.46],"E4":[1.59,-0.57,-4.8],"E5":[0.06,4.96,4.65],"E6":[0.66,3.96,0.32],"E7":[-0.77,0.76,0.74],"E8":[1.16,0.42,0.92],"E9":[2.27,-2.87,-17.04],"E10":[6.48,6.17,7.63],"E11":[0.47,2.06,null],"E12":[-1.65,-1.8,null],"E13":[2.17,null,null]},
+"LDOS":{"E1":[6.7,15.41,18.53],"E2":[3.64,4.87,13.56],"E3":[-0.87,0.24,16.19],"E4":[1.35,2.22,14.02],"E5":[0.42,2.06,8.53],"E6":[2.55,6.27,8.64],"E7":[2.18,6.82,8.79],"E8":[2.27,6.83,7.24],"E9":[3.17,2.54,-11.72],"E10":[-2.04,0.11,-15.09],"E11":[-5.69,-11.96,null],"E12":[-1.8,-0.33,null],"E13":[1.53,null,null]},
+"KTOS":{"E1":[24.2,26,39.43],"E2":[14.08,14.94,16.06],"E3":[-3.19,-2.09,7.19],"E4":[8.76,7.6,3.82],"E5":[-0.07,5.8,23.96],"E6":[-5.43,7.75,28.55],"E7":[-2.98,-1.28,34.72],"E8":[1.37,6.16,43.88],"E9":[3.21,7.3,-24.25],"E10":[-5.04,3.75,-14.51],"E11":[-3.78,-17.78,null],"E12":[-2.96,-1.31,null],"E13":[5.79,null,null]},
+"AVAV":{"E1":[9.38,28.19,74.72],"E2":[3.65,9.76,13.1],"E3":[1.59,1.77,27.3],"E4":[1.75,3.65,10.15],"E5":[-1.81,0.58,38.8],"E6":[1.91,50.25,38.4],"E7":[22.86,31.99,42.66],"E8":[40.92,27.41,40.31],"E9":[-9.49,-9.89,-29.84],"E10":[-4.9,6.19,-6.68],"E11":[1.74,-18.01,null],"E12":[-8.69,-13.11,null],"E13":[-0.41,null,null]},
+"RKLB":{"E1":[9.5,-1.74,0.12],"E2":[8,-0.89,-3.33],"E3":[-4.56,-3.75,11.53],"E4":[-0.21,-3.29,17.88],"E5":[0.57,24.17,68.94],"E6":[11.38,19.07,56.06],"E7":[-1.31,4.73,49.94],"E8":[8.01,6.63,43.84],"E9":[1.49,3.44,-16.96],"E10":[0.63,10.98,27.64],"E11":[2.49,-22.88,null],"E12":[-1.03,-8.64,null],"E13":[-0.69,null,null]},
+"ITA":{"E1":[5.84,8.02,10.85],"E2":[5.2,5.03,8.68],"E3":[-0.05,0.61,5.16],"E4":[1.15,1.16,-1.41],"E5":[-0.08,2.07,7.76],"E6":[0.73,4.54,6.51],"E7":[-0.53,1.09,7.58],"E8":[1.51,1.64,8.3],"E9":[0.52,-0.71,-13.46],"E10":[3.79,4.79,0.05],"E11":[-0.22,-0.89,null],"E12":[-2.24,-3.55,null],"E13":[0.58,null,null]},
+"GDX":{"E1":[-1.01,3.68,11],"E2":[3.42,7.85,8.4],"E3":[-2.16,-3.64,3.52],"E4":[1.38,-2.08,5.52],"E5":[0.04,-0.78,-3.57],"E6":[-0.82,-0.44,4.19],"E7":[-2.24,-2.01,1.37],"E8":[1.47,1.54,2.83],"E9":[-9.15,-11.57,-25.94],"E10":[3.56,2.95,-2.66],"E11":[-5.42,-13.26,null],"E12":[0.03,-2.32,null],"E13":[0.86,null,null]},
+"XLE":{"E1":[1.83,8.1,15.02],"E2":[3.46,5.2,-0.04],"E3":[-1.8,-0.56,-2.65],"E4":[3.33,3.72,0.05],"E5":[1.44,0.16,1.15],"E6":[-3.8,-3.91,-3.16],"E7":[-1.73,-0.66,0.91],"E8":[0.99,2.38,2.97],"E9":[1.07,0.72,11.53],"E10":[-4.7,-7.31,-5.25],"E11":[-2.87,-1.59,null],"E12":[0.33,3.4,null],"E13":[-0.42,null,null]},
+"SPY":{"E1":[3.74,3.26,7.1],"E2":[1.16,1.51,1.43],"E3":[-1.43,-2.18,1.97],"E4":[-0.85,-0.1,1.4],"E5":[-0.18,-0.3,3.35],"E6":[2.1,3.97,5.82],"E7":[1.16,2.92,5.68],"E8":[0.84,2.25,4.56],"E9":[-0.83,-1.13,-7.62],"E10":[3.14,6.18,11.32],"E11":[-0.22,-1.88,null],"E12":[0.53,0.95,null],"E13":[0.75,null,null]}};
+function evtCell(v,spy){
+ if(v==null) return `<td class="muted">—</td>`;
+ const ex=(spy!=null)?` <span class="muted" style="font-size:10px">(${(v-spy)>=0?"+":""}${(v-spy).toFixed(1)} vs SPY)</span>`:"";
+ return `<td style="color:${v>=0?"var(--pos,#28a745)":"var(--neg,#dc3545)"}"><b>${v>=0?"+":""}${v.toFixed(2)}%</b>${ex}</td>`;
+}
+function renderEvtTable(){
+ const eid=document.getElementById('evtSel').value.split(" ")[0];
+ const ev=EVT.find(e=>e[0]===eid)||EVT[0];
+ const spy=EVTRET["SPY"][ev[0]];
+ let h=`<div class="muted" style="margin-bottom:6px">${ev[1]} — <b>${ev[2]}</b>. Return from the close before the event to +1 / +5 / +20 trading days (excess vs SPY in grey).</div>`;
+ h+=`<table><tr><th style="text-align:left">Ticker</th><th>t+1</th><th>t+5</th><th>t+20</th></tr>`;
+ EVT_TICKS.forEach(t=>{const r=EVTRET[t][ev[0]];
+  h+=`<tr><td style="text-align:left"><b>${t}</b></td>${evtCell(r&&r[0],spy&&spy[0])}${evtCell(r&&r[1],spy&&spy[1])}${evtCell(r&&r[2],spy&&spy[2])}</tr>`;});
+ h+=`<tr><td colspan="4" class="muted" style="font-size:11px;padding-top:8px">benchmarks</td></tr>`;
+ EVT_BENCH.forEach(t=>{const r=EVTRET[t][ev[0]];
+  h+=`<tr><td style="text-align:left">${t}</td>${evtCell(r&&r[0])}${evtCell(r&&r[1])}${evtCell(r&&r[2])}</tr>`;});
+ h+=`</table>`;
+ if(ev[0]==="E7"||ev[0]==="E8") h+=`<div class="muted" style="font-size:12px;margin-top:6px">⚠ AVAV's number here is contaminated by its own Jun-24-2025 earnings blowout — firm event inside the macro window.</div>`;
+ document.getElementById('evtTable').innerHTML=h;
+}
+function renderEvtSens(){
+ // average next-day reaction across ESCALATION events only (E1,E2,E3,E4,E5,E6,E9,E12,E13) vs de-escalations (E7,E10,E11)
+ const esc=["E1","E2","E3","E4","E5","E6","E9","E12","E13"], calm=["E7","E10","E11"];
+ const avg=(t,set)=>{const vs=set.map(e=>EVTRET[t][e]&&EVTRET[t][e][0]).filter(v=>v!=null);return vs.length?vs.reduce((a,b)=>a+b,0)/vs.length:null;};
+ const rows=EVT_TICKS.map(t=>({t,e:avg(t,esc),c:avg(t,calm)})).sort((a,b)=>b.e-a.e);
+ let h=`<table><tr><th style="text-align:left">Ticker</th><th>Avg t+1 on ESCALATION (9 events)</th><th>Avg t+1 on DE-ESCALATION (3 events)</th><th>Read</th></tr>`;
+ rows.forEach(r=>{
+  const read=r.e>3?"war-sensitive, high beta":r.e>1?"consistent escalation bid":r.e>0?"mild escalation bid":"escalation-indifferent";
+  h+=`<tr><td style="text-align:left"><b>${r.t}</b></td>${evtCell(r.e)}${evtCell(r.c)}<td class="muted">${read}</td></tr>`;});
+ h+=`</table><div class="muted" style="font-size:12px;margin-top:6px">Escalations: E1–E6, E9, E12, E13. De-escalations: ceasefires + peace memorandum (E7, E10, E11). ITA benchmarks: escalation avg ${(esc.map(e=>EVTRET["ITA"][e][0]).filter(v=>v!=null).reduce((a,b)=>a+b,0)/esc.length).toFixed(2)}%, SPY ${(esc.map(e=>EVTRET["SPY"][e][0]).filter(v=>v!=null).reduce((a,b)=>a+b,0)/esc.length).toFixed(2)}%.</div>`;
+ document.getElementById('evtSens').innerHTML=h;
+}
+
 /* ---------- init selectors + inputs ---------- */
 (function(){
  ['profSel','simSel'].forEach(id=>{
@@ -1112,7 +1187,9 @@ function renderCapTax(){
  ['cp_loss','ps_cap','ps_risk','ps_entry','ps_stop','sq_start','sq_wd','rr_nom','rr_inf','tx_pre','tx_post','tx_ug','tx_na'].forEach(id=>{
   const el=document.getElementById(id); if(el) el.addEventListener('input',renderCapTax);
  });
- renderProfile();renderDCF();renderSim();renderGrowthTab();renderCapTax();
+ const es=document.getElementById('evtSel');
+ if(es){es.innerHTML=EVT.map(e=>`<option>${e[0]} — ${e[1]} ${e[2]}</option>`).join("");es.addEventListener('change',renderEvtTable);}
+ renderProfile();renderDCF();renderSim();renderGrowthTab();renderCapTax();renderEvtTable();renderEvtSens();
 })();
 
 /* ---------- tabs ---------- */
