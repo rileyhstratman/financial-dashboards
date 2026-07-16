@@ -350,6 +350,10 @@
   </div>
   <div class="block"><h3>Pick an event</h3><select id="evtSel"></select><div id="evtTable" style="margin-top:10px"></div></div>
   <div class="block"><h3>Per-firm event sensitivity (average next-day reaction)</h3><div id="evtSens"></div></div>
+  <div class="block" style="border-left:3px solid var(--accent)"><h3>Class playbook — projections narrowed by TYPE and SIZE</h3>
+    <div class="muted" style="margin-bottom:6px">Average reactions conditional on event class. This is the projection tool: when a new event lands (John's feed maps in via armed_conflict → onset/strike ops, maritime_chokepoint → strike ops w/ Energy channel, sanctions → policy), read its class row for the historical reaction band. Classifications are ex-ante judgment against documented criteria — not fitted to outcomes.</div>
+    <div id="evtClass"></div>
+  </div>
   <div class="block" style="border-left:3px solid #b8860b"><h3>The four findings</h3>
     · <b>1. Escalation lifted defense reliably — until 2026.</b> Around every 2022–2025 escalation (E1, E2, E5–E6), the sector rose: ITA averaged +8–11% twenty days after Ukraine and Oct 7. But the 2026 war itself (E9) was sell-the-news: twenty days after the war started, ITA was −13.5%, LMT −8.6%, KTOS −24.3% — and SPY −7.6%. Three years of escalation was already in the price; the war delivered the priced-in event plus a growth shock.<br>
     · <b>2. Energy was the only +20d winner off the 2026 war start</b> (XLE +11.5% while everything else fell) — the Strait-of-Hormuz channel (John's maritime_chokepoint category) is the live transmission mechanism, and it showed up again on the ceasefire collapse (E12: XLE +3.4% at +5d while defense fell).<br>
@@ -1067,7 +1071,32 @@ function renderCapTax(){
 /* Events E1-E12 search-verified Jul 15 2026 (Britannica/Wikipedia/NATO.int/CRS); E13 = John's OSINT feed.
    Returns: % from close at t0-1 (t0 = first trading day >= event date) to +1/+5/+20 trading days.
    Prices: Yahoo Finance v8 adjusted closes, fetched Jul 15 2026. Dataset copy: 04_research/event_study/. */
-const EVT=[["E1","2022-02-24","Russia invades Ukraine"],["E2","2023-10-07","Hamas attack on Israel"],["E3","2024-04-13","Iran's 1st direct attack on Israel"],["E4","2024-10-01","Iran ballistic attack on Israel"],["E5","2025-06-13","Israel strikes Iran — 12-Day War"],["E6","2025-06-22","US strikes Fordow/Natanz/Isfahan"],["E7","2025-06-24","12-Day War ceasefire"],["E8","2025-06-25","NATO 5%-of-GDP pledge"],["E9","2026-02-28","US-Israel initiate 2026 Iran war"],["E10","2026-04-08","Two-week ceasefire begins"],["E11","2026-06-17","War-ending memorandum (Versailles)"],["E12","2026-07-08","Ceasefire collapses"],["E13","2026-07-14","Renewed US strikes (OSINT feed)"]];
+/* Two-class taxonomy (added Jul 15, Riley): TYPE narrows the reaction channel, SIZE the magnitude.
+   TYPE:  onset = new interstate war begins · attack_ally = direct state attack on a US ally ·
+          strike_ops = strikes/re-escalation within an existing conflict · deesc = ceasefire/peace ·
+          policy = spending/alliance commitments.
+   SIZE:  systemic = new great-power war or superpower-led campaign · major = multi-day campaign,
+          first-of-kind attack, war-ending agreement, alliance-wide commitment · limited = repeat or
+          contained exchange, single operation, temporary pause.  Classifications are ex-ante
+          judgment (documented criteria), not fitted to outcomes.
+   Forward mapping from John's feed: armed_conflict → onset/strike_ops · maritime_chokepoint →
+   strike_ops w/ Energy channel · sanctions_export_controls → policy. */
+const EVT=[
+ ["E1","2022-02-24","Russia invades Ukraine","onset","systemic"],
+ ["E2","2023-10-07","Hamas attack on Israel","attack_ally","major"],
+ ["E3","2024-04-13","Iran's 1st direct attack on Israel","attack_ally","limited"],
+ ["E4","2024-10-01","Iran ballistic attack on Israel","attack_ally","limited"],
+ ["E5","2025-06-13","Israel strikes Iran — 12-Day War","onset","major"],
+ ["E6","2025-06-22","US strikes Fordow/Natanz/Isfahan","strike_ops","major"],
+ ["E7","2025-06-24","12-Day War ceasefire","deesc","major"],
+ ["E8","2025-06-25","NATO 5%-of-GDP pledge","policy","major"],
+ ["E9","2026-02-28","US-Israel initiate 2026 Iran war","onset","systemic"],
+ ["E10","2026-04-08","Two-week ceasefire begins","deesc","limited"],
+ ["E11","2026-06-17","War-ending memorandum (Versailles)","deesc","major"],
+ ["E12","2026-07-08","Ceasefire collapses","strike_ops","limited"],
+ ["E13","2026-07-14","Renewed US strikes (OSINT feed)","strike_ops","limited"]];
+const EVT_TYPENAMES={onset:"Conflict onset",attack_ally:"Attack on ally",strike_ops:"Strike ops / re-escalation",deesc:"De-escalation",policy:"Policy / spending"};
+const EVT_SIZENAMES={systemic:"Systemic",major:"Major",limited:"Limited"};
 const EVT_TICKS=["LMT","RTX","NOC","GD","LHX","GE","HWM","TDG","HEI","LDOS","KTOS","AVAV","RKLB"];
 const EVT_BENCH=["ITA","GDX","XLE","SPY"];
 const EVTRET={
@@ -1097,7 +1126,7 @@ function renderEvtTable(){
  const eid=document.getElementById('evtSel').value.split(" ")[0];
  const ev=EVT.find(e=>e[0]===eid)||EVT[0];
  const spy=EVTRET["SPY"][ev[0]];
- let h=`<div class="muted" style="margin-bottom:6px">${ev[1]} — <b>${ev[2]}</b>. Return from the close before the event to +1 / +5 / +20 trading days (excess vs SPY in grey).</div>`;
+ let h=`<div class="muted" style="margin-bottom:6px">${ev[1]} — <b>${ev[2]}</b> &nbsp;<span style="border:1px solid #888;border-radius:10px;padding:1px 8px;font-size:11px">${EVT_TYPENAMES[ev[3]]}</span> <span style="border:1px solid #b8860b;border-radius:10px;padding:1px 8px;font-size:11px">${EVT_SIZENAMES[ev[4]]}</span><br>Return from the close before the event to +1 / +5 / +20 trading days (excess vs SPY in grey).</div>`;
  h+=`<table><tr><th style="text-align:left">Ticker</th><th>t+1</th><th>t+5</th><th>t+20</th></tr>`;
  EVT_TICKS.forEach(t=>{const r=EVTRET[t][ev[0]];
   h+=`<tr><td style="text-align:left"><b>${t}</b></td>${evtCell(r&&r[0],spy&&spy[0])}${evtCell(r&&r[1],spy&&spy[1])}${evtCell(r&&r[2],spy&&spy[2])}</tr>`;});
@@ -1121,6 +1150,32 @@ function renderEvtSens(){
  document.getElementById('evtSens').innerHTML=h;
 }
 
+const EVT_PRIMES=["LMT","RTX","NOC","GD","LHX","GE","HWM","TDG","HEI","LDOS"], EVT_EMERG=["KTOS","AVAV","RKLB"];
+function classAvg(events,ticks,k){ // mean over (events × tickers) at horizon k; nulls skipped
+ const vs=[];
+ events.forEach(e=>ticks.forEach(t=>{const r=EVTRET[t][e];if(r&&r[k]!=null)vs.push(r[k]);}));
+ return vs.length?vs.reduce((a,b)=>a+b,0)/vs.length:null;
+}
+function classRow(label,events){
+ const groups=[["Defense majors (10 avg)",EVT_PRIMES],["Emerging tier (3 avg)",EVT_EMERG],["ITA",["ITA"]],["GDX",["GDX"]],["XLE",["XLE"]],["SPY",["SPY"]]];
+ let h=`<tr><td style="text-align:left"><b>${label}</b><br><span class="muted" style="font-size:10px">${events.join(", ")} (n=${events.length})</span></td>`;
+ groups.forEach(([g,ticks])=>{
+  const c=k=>{const v=classAvg(events,ticks,k);return v==null?"—":`<span style="color:${v>=0?"var(--pos,#28a745)":"var(--neg,#dc3545)"}">${v>=0?"+":""}${v.toFixed(1)}</span>`;};
+  h+=`<td>${c(0)} / ${c(2)}</td>`;
+ });
+ return h+`</tr>`;
+}
+function renderEvtClass(){
+ const head=`<tr><th style="text-align:left">Class</th><th>Defense majors<br><span class="muted">t+1 / t+20 %</span></th><th>Emerging tier<br><span class="muted">t+1 / t+20 %</span></th><th>ITA</th><th>GDX</th><th>XLE</th><th>SPY</th></tr>`;
+ let h=`<b>By TYPE</b><table>${head}`;
+ Object.keys(EVT_TYPENAMES).forEach(ty=>{h+=classRow(EVT_TYPENAMES[ty],EVT.filter(e=>e[3]===ty).map(e=>e[0]));});
+ h+=`</table><b style="display:block;margin-top:10px">By SIZE</b><table>${head}`;
+ Object.keys(EVT_SIZENAMES).forEach(sz=>{h+=classRow(EVT_SIZENAMES[sz],EVT.filter(e=>e[4]===sz).map(e=>e[0]));});
+ h+=`</table>
+ <div class="muted" style="font-size:12px;margin-top:8px"><b>How to read this honestly:</b> classes narrow the DAY-ONE reaction well — within-type t+1 signs are consistent (attacks on allies and strike ops lift defense next-day; de-escalations cut it). The 20-day path is a different animal: the two SYSTEMIC onsets produced opposite defense outcomes (Ukraine 2022: ITA +10.9% — 2026 Iran war: ITA −13.5%), and the difference tracks the terminal's own valuation machinery — in Feb 2022 Defense sat cheap vs its own history; by Feb 2026 it was priced two lifecycle stages younger than its cash habits (fwd P/E ~37×). So the playbook's projection logic is: TYPE × SIZE gives you the immediate-reaction band; the STARTING VALUATION PERCENTILE decides whether the 20-day drift extends it or reverses it. Small n per cell (1–3 events) — bands, not point estimates.</div>`;
+ document.getElementById('evtClass').innerHTML=h;
+}
+
 /* ---------- init selectors + inputs ---------- */
 (function(){
  ['profSel','simSel'].forEach(id=>{
@@ -1135,7 +1190,7 @@ function renderEvtSens(){
  });
  const es=document.getElementById('evtSel');
  if(es){es.innerHTML=EVT.map(e=>`<option>${e[0]} — ${e[1]} ${e[2]}</option>`).join("");es.addEventListener('change',renderEvtTable);}
- renderProfile();renderDCF();renderSim();renderGrowthTab();renderCapTax();renderEvtTable();renderEvtSens();
+ renderProfile();renderDCF();renderSim();renderGrowthTab();renderCapTax();renderEvtTable();renderEvtSens();renderEvtClass();
 })();
 
 /* ---------- tabs ---------- */
