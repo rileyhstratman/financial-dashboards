@@ -681,7 +681,15 @@ function color(s){ // 0 red -> 10 green
 })();
 
 /* ---------- detail panel: show the arithmetic ---------- */
+/* Toggle behavior (Riley, Jul 16): clicking the same cell again closes the panel back to its placeholder */
+const DETAIL_PLACEHOLDER='<span class="muted">Click a cell above — this panel will show the raw KPI values, formulas, and the arithmetic that produced the score.</span>';
+let detailOpen=null; // key of the currently open cell ("sector|ci" or "sector|overall")
+function detailToggle(key){
+ if(detailOpen===key){document.getElementById('detail').innerHTML=DETAIL_PLACEHOLDER;detailOpen=null;return true;}
+ detailOpen=key;return false;
+}
 window.showDetail=function(sector,ci){
+ if(detailToggle(sector+"|"+ci)) return;
  const cat=CATS[ci];
  let h=`<b>${sector} — ${cat.name}</b> <span class="muted">· ${CATDESC[cat.name]}</span>`;
  h+='<table><tr><th>KPI</th><th>What it measures</th><th>Sector avg</th><th>Meaning <span style="font-weight:400">(rule of thumb)</span><span class="info" data-pop="flags">i</span></th><th>Absolute /10 <span style="font-weight:400">(60%)</span><span class="info" data-pop="abs">i</span></th><th>Vs sectors /10 <span style="font-weight:400">(40%)</span><span class="info" data-pop="rel">i</span></th><th>Rating</th></tr>';
@@ -751,6 +759,7 @@ window.showDetail=function(sector,ci){
  document.getElementById('detail').innerHTML=h;
 };
 window.showComposite=function(sector){
+ if(detailToggle(sector+"|overall")) return;
  let h=`<b>${sector} — OVERALL RATING</b><br>Weighted average of this sector's category ratings (Valuation-tilted framework):<table><tr><th>Category</th><th>Rating /10</th><th>Weight</th><th>Contribution</th><th>Read</th></tr>`;
  const terms=[];let num=0,den=0;
  CATS.forEach(c=>{const sc=catScore(c,sector);
