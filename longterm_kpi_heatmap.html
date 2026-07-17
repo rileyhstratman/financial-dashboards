@@ -655,7 +655,7 @@ function color(s){ // 0 red -> 10 green
 (function(){
  let h='<table><tr><th style="text-align:left">Sector</th>';
  CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}<br><span style="font-weight:400;font-size:10.5px">${CATDESC[c.name]}</span></th>`);
- h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Weighted: Prof 22.5 · Valu 22.5 · Eff 17.5 · Growth 12.5 · Liq 12.5 · Lev 12.5%</span></th></tr>';
+ h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Weighted: '+CATS.map(c=>c.name.replace("Profitability","Prof").replace("Valuation","Val").replace("Efficiency","Eff").replace("Liquidity","Liq").replace("Leverage","Lev").replace("Cash Flow","CF")+" "+(CATW[c.name]*100)).join(" · ")+'%</span></th></tr>'; // dynamic from CATW (was hardcoded & went stale — fixed Jul 16)
  SECTORS.forEach(s=>{
   h+=`<tr><td class="rowhead">${s}</td>`;
   CATS.forEach((c,ci)=>{
