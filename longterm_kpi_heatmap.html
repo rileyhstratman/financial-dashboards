@@ -102,7 +102,7 @@
     <span class="swatch" style="background:#7dcb4b"></span>
     <span class="swatch" style="background:#27ae60"></span>
     <span>10 Very Bullish</span>
-    <span style="margin-left:14px">· Click any cell to see exactly how its rating was computed.</span>
+    
   </div>
   <div id="heatmap"></div>
   <div class="detail" id="detail"><span class="muted">Click a cell above — this panel will show the raw KPI values, formulas, and the arithmetic that produced the score.</span></div>
@@ -128,10 +128,6 @@
 
 <!-- ============ PAGE 3: HOW TO READ ============ -->
 <div class="page" id="p3">
-  <div class="block">
-    <h3>The one-sentence version</h3>
-    Each cell answers: <i>"weighing what this sector's ratios actually mean AND how they compare to the other three sectors, how bullish or bearish is the picture, on a 0–10 scale?"</i>
-  </div>
   <details class="acc"><summary>Variable glossary<span class="muted">every symbol, grouped in 4 clusters</span></summary><div class="inner">
     <table>
       <tr><th>Cluster</th><th>Symbols</th><th>Plain English</th></tr>
@@ -207,7 +203,7 @@
       <tr><td>Current ratio</td><td>FullRatio, Jul 2026</td><td>Industry averages, firm-count-weighted into sectors.</td></tr>
       <tr><td>Self-history percentiles (scoring)</td><td>Damodaran archives, Jan 1999–Jan 2025 vintages (81 files, parse-verified; 2004–25 used)</td><td>Valuation ratios blend 50/50 anchor + own-history cheapness percentile; net margin/ROE carry −1.5 peak-earnings penalty at ≥90th pct of own 22-yr history; expected growth percentile shown with an optimism-era flag. Pre-2013 taxonomy alias-mapped; Defense excluded (industry history vs company-level current — bases don't mix).</td></tr>
       <tr><td><b>Outcome backtest</b></td><td>Archives + ETF annual returns, Jul 14 2026 (n=90, 2008–2025)</td><td>Cross-sector rating LEVELS did not predict forward returns (IC −0.03). Within-sector: margin mean-reversion robust (FE p=.014, pooled p=.03, 2-yr p=.014); own-history cheapness modest &amp; regime-dependent (p=.048, insignificant 2008–17 alone). Fitted weights NOT adopted. Full arithmetic: <code>04_research/backtest/</code>.</td></tr>
-      <tr><td>Monte Carlo μ/σ</td><td>LazyPortfolioETF (XLE/XLB/XLK 10y) · ITA (10y ret/3y σ) · GDX measured 2007–25</td><td>Windows are NOT uniform — shown per row on the Stochastic tab. GDX upgrade (Jul 15) replaced the XLB proxy whose σ 18.5% was less than half of gold miners' real 43.7%. Geometric-returns-as-GBM-drift convention slightly double-counts volatility drag (conservative). Backtested vs realized rolling windows: 4 of 5 sectors within ~5–13 pts; real-terms columns use 2.5% inflation (BLS CPI 2008–25 avg 2.46%; Jun-2026 actual 3.5%).</td></tr>
+      <tr><td>Monte Carlo μ/σ</td><td>LazyPortfolioETF (XLE/XLB/XLK 10y) · ITA (10y ret/3y σ) · GDX measured 2007–25</td><td>Windows are NOT uniform — shown per row on the Stochastic tab. GDX upgrade (Jul 15) replaced the XLB proxy whose σ 18.5% was less than half of gold miners' real 43.7%. Geometric-returns-as-GBM-drift convention slightly double-counts volatility drag (conservative). Backtested vs realized rolling windows: 4 of 5 sectors within ~5–13 pts; real-terms columns use 2.5% inflation (BLS CPI 2008–25 avg 2.46%; current figure in the REAL column ⓘ).</td></tr>
       <tr><td>Event timelines</td><td>13 events search-verified (Britannica/Wikipedia/NATO.int/CRS) + John's OSINT feed · prices Yahoo Finance adjusted closes, Jul 15 2026</td><td>Reactions = t−1 close → +1/+5/+20 trading days, 13 defense names + ITA/GDX/XLE/SPY. Small sample, overlapping clustered windows, AVAV Jun-2025 contaminated by earnings. Dataset: <code>04_research/event_study/</code>.</td></tr>
       <tr><td>Context layers</td><td>Fidelity (mkt caps Jul 10; cycle map; CFRA Jul 10 / Argus Jun 18 weightings)</td><td>Display-only context on Sector Profiles; sector mkt caps are S&amp;P-500 basis; Fidelity 10-yr sector returns cross-validated our μ inputs ✓.</td></tr>
       <tr><td>g (perpetual growth)</td><td>Assumption</td><td>Per sector, bounded by the scope doc's 2–4% macro-growth cap. The one input with no measurement behind it.</td></tr>
@@ -235,7 +231,7 @@
 <!-- ============ PAGE 5: DCF EXPLORER ============ -->
 <div class="page" id="p5">
   <div class="block">
-    <b>Interactive full DCF</b> — a DCF answers one question: <i>"what is a company worth today, given the cash we think it will generate in the future?"</i> Money later is worth less than money now, so each future year's cash gets shrunk ("discounted") back to today. This is the 4-step model from the scope doc, live: change any assumption and every intermediate number recomputes. Defaults are generic illustrations, not any real company.
+    <b>Interactive DCF</b> — change any assumption and every intermediate number recomputes. Defaults are generic illustrations, not a real company.<span class="info" data-pop="dcf">i</span>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px" id="dcfInputs">
       <label>Base FCF, $M<br><input id="i_fcf" type="number" value="100" step="10"></label>
       <label>FCF growth, yrs 1–n %<br><input id="i_gr" type="number" value="8" step="0.5"></label>
@@ -270,9 +266,6 @@
   <div class="block"><h3>22 years of analyst growth expectations (2004–2025 vintages)</h3>
     <div id="growthChart"></div>
     <div class="muted" style="font-size:12px;margin-top:6px">What to notice: analysts almost never forecast decline; Tech's line barely moves for two decades (a house view, not analysis); commodity expectations whipsaw with the cycle. A ● marker at the top of its range = the most optimistic story that sector has carried since 2004.</div>
-  </div>
-  <div class="block" style="border-left:3px solid #b8860b"><h3>The buyback problem (read the SGR columns above)</h3>
-    <div class="muted" style="font-size:12px;margin-top:6px">Sustainable growth (classic) = ROE × (1 − dividend payout). But in the buyback era dividends understate distributions: counting buybacks, three of five sectors return MORE than 100% of net income to shareholders — their cash-adjusted sustainable growth is NEGATIVE, meaning any real growth must be financed by new debt, equity issuance, or margin expansion, not retained earnings. Sources: Damodaran divfund + histgr, Jan 2026 (dollar-aggregated). Defense rows are industry-basis (79-firm aggregate), not the 10-major set.</div>
   </div>
   <div class="block"><h3>Sector age &amp; lifecycle (added Jul 15)</h3>
     <table><tr><th>Sector (company set)</th><th>Median founding year (roots)</th><th>Median age</th><th>Oldest / youngest roots</th><th>Lifecycle behavior (from the data above)</th></tr>
@@ -677,7 +670,7 @@ function color(s){ // 0 red -> 10 green
    const sc=catScore(c,s);
    if(sc==null){h+=`<td class="na" title="No reliable sector-level data for this category. Skipped in scoring, NOT counted as zero.">N/A</td>`;}
    else{
-    const mixed=catSpread(c,s)>2?`<br><span style="font-size:9px;font-weight:400">⚠ mixed signals</span>`:"";
+    const mixed=catSpread(c,s)>3?`<br><span style="font-size:9px;font-weight:400">⚠ mixed signals</span>`:"";
     h+=`<td class="cell" style="background:${color(sc)}" title="${verdict(sc)} · weight ${(CATW[c.name]*100).toFixed(0)}%" onclick="showDetail('${s}',${ci})">${sc.toFixed(1)}${mixed}</td>`;}
   });
   const comp=overall(s);
@@ -762,7 +755,7 @@ window.showComposite=function(sector){
  const terms=[];let num=0,den=0;
  CATS.forEach(c=>{const sc=catScore(c,sector);
   const w=CATW[c.name];
-  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td><td>${(w*100).toFixed(0)}%</td><td>${sc==null?"—":(w*sc).toFixed(2)}</td><td>${sc==null?"—":verdict(sc)+(catSpread(c,sector)>2?" ⚠ mixed":"")}</td></tr>`;
+  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td><td>${(w*100).toFixed(0)}%</td><td>${sc==null?"—":(w*sc).toFixed(2)}</td><td>${sc==null?"—":verdict(sc)+(catSpread(c,sector)>3?" ⚠ mixed":"")}</td></tr>`;
   if(sc!=null){terms.push(`${(w*100).toFixed(0)}%×${sc.toFixed(1)}`);num+=w*sc;den+=w;}});
  const t=num/den;
  h+=`</table><div style="margin-top:8px">Overall = (${terms.join(" + ")}) ÷ ${(den*100).toFixed(0)}% = <b>${t.toFixed(1)} / 10 → ${verdict(t)}</b> <span class="muted">(weights renormalized if a category is N/A)</span></div>`;
@@ -788,7 +781,7 @@ window.showComposite=function(sector){
   "US Defense & Aerospace":{mu:.157,sig:.180,g:.025,win:"ITA 10y ret / 3y σ (mixed)"}, // UPGRADED from XLI proxy
   "Information Technology":{mu:.256,sig:.206,g:.04,win:"XLK 10y (LazyPortfolio)"}};
  const ASSUME=window.SIM_ASSUME;
- const N=2000, hurdle5=Math.pow(1.07,5), infl=0.025, realK3=Math.pow(1+infl,3); // real-terms threshold: beat 2.5% inflation (long-run; Jun-2026 actual is 3.5% — see note)
+ const N=2000, hurdle5=Math.pow(1.07,5), infl=0.025, realK3=Math.pow(1+infl,3); // real-terms threshold: beat 2.5% long-run inflation (CURRENT CPI lives in ONE place: POPS.pupr — update there on CPI releases)
  let rows="";
  SECTORS.forEach(s=>{
   const {mu,sig,g}=ASSUME[s];
@@ -808,19 +801,30 @@ window.showComposite=function(sector){
  document.getElementById('mc').innerHTML=
   `<div class="block"><b>Vasicek result:</b> mean simulated 5-yr rate = <b>${(rMean*100).toFixed(2)}%</b> (500 paths from r₀=4.0%) → with the 4.00% ERP that implies a <b>${(disc*100).toFixed(2)}%</b> discount rate — the r that the DCF (tab 4) and Sensitivity grid (tab 5) stress-test. Per-$1 perpetuity values live on the Sensitivity tab, not here (removed Jul 15 — it duplicated that entire tab).</div>
   <table><tr><th style="text-align:left">Sector<br><span class="muted nt">μ/σ window</span></th><th><span class="nt">μ</span> drift<span class="info" data-pop="mu">i</span><br><span class="muted">measured ETF</span></th><th><span class="nt">σ</span> vol<span class="info" data-pop="sg">i</span><br><span class="muted">measured ETF</span></th><th>g growth<span class="info" data-pop="gg">i</span><br><span class="muted">assumed</span></th><th>P(up, 3y)<span class="info" data-pop="pup">i</span><br><span class="muted">nominal</span></th><th>P(up, 3y)<span class="info" data-pop="pupr">i</span><br><span class="muted">REAL @2.5% infl</span></th><th>P(CAGR&gt;7%, 5y)<span class="info" data-pop="pcagr">i</span></th><th>Median 5y multiple<span class="info" data-pop="med5">i</span></th></tr>${rows}</table>
-  <div class="block" style="border-left:3px solid var(--accent)"><b>Inflation makes every column harder (added Jul 15).</b> "P(up, 3y) REAL" asks a stricter question: probability the sector beats <i>purchasing power</i>, i.e. ends above (1.025)³. At the Jun-2026 actual inflation of 3.5% the thresholds are stricter still (roughly 2–7 pts lower than the 2.5% column, worst for low-drift sectors). The nominal column flatters exactly the sectors with the least real cushion — Energy loses ~6 pts of probability going real, Info Tech barely 2. CPI: BLS Dec/Dec; 2008–25 average 2.46%/yr.</div>
+  <div class="block" style="border-left:3px solid var(--accent)"><b>Inflation makes every column harder (added Jul 15).</b> "P(up, 3y) REAL" asks a stricter question: probability the sector beats <i>purchasing power</i>, i.e. ends above (1.025)³. At today's actual inflation the thresholds are stricter still (see the REAL column ⓘ for the current figure). The nominal column flatters exactly the sectors with the least real cushion — Energy loses ~6 pts of probability going real, Info Tech barely 2. CPI: BLS Dec/Dec; 2008–25 average 2.46%/yr.</div>
   <div class="block" style="border-left:3px solid #b8860b"><b>Model vs history — do these probabilities survive contact with reality?</b><span class="info" data-pop="mvh">i</span>
-  <table style="margin-top:6px"><tr><th style="text-align:left">Sector (ETF)</th><th>P(up,3y) model</th><th>realized freq</th><th>P(CAGR&gt;7%,5y) model</th><th>realized freq</th><th>P(up,3y real) model @2.5%</th><th>realized freq (actual CPI)</th></tr>
-  <tr><td style="text-align:left">Energy (XLE, 1999–2025)</td><td>60.3%</td><td>64.0% (16/25)</td><td>43.2%</td><td>56.5% (13/23)</td><td>54.7%</td><td>56.0% (14/25)</td></tr>
-  <tr><td style="text-align:left">Materials (XLB, 2008–25)</td><td>79.2%</td><td>87.5% (14/16)</td><td>59.2%</td><td>64.3% (9/14)</td><td>72.0%</td><td>87.5% (14/16)</td></tr>
-  <tr><td style="text-align:left">Precious (GDX, 2007–25)</td><td>53%* (was 79% on XLB proxy)</td><td>76.5% (13/17)</td><td>33%*</td><td>33.3% (5/15)</td><td>46%*</td><td><b>52.9% (9/17)</b></td></tr>
-  <tr><td style="text-align:left">Defense (ITA, 2008–25)</td><td>91.2%</td><td>93.8% (15/16)</td><td>81.8%</td><td>78.6% (11/14)</td><td>86.8%</td><td>81.2% (13/16)</td></tr>
-  <tr><td style="text-align:left">Info Tech (XLK, 2008–25)</td><td>97.6%</td><td>93.8% (15/16)</td><td>96.5%</td><td>92.9% (13/14)</td><td>96.1%</td><td>93.8% (15/16)</td></tr></table>
-  <div class="muted" style="font-size:12px;margin-top:6px">Read: for four of five sectors the GBM probabilities land within ~5–13 pts of realized frequencies — the model is coarse but not fantasy. The two honest lessons: (1) <b>the old XLB proxy for Precious was the one real failure</b> — it claimed 79% when gold miners' true volatility (σ 43.7%, not 18.5%) puts the real-terms coin-flip at ~50% — realized: 52.9%. Fixed above (GDX-measured, Jul 15). (2) Realized frequencies use OVERLAPPING rolling windows from one historical path — they are noisy validation, not proof; and plugging 10-yr geometric returns into the GBM μ slot slightly double-counts volatility drag (conservative bias, largest for high-σ sectors — *Precious model values shown use the corrected GDX inputs). Full arithmetic: 04_research/backtest/.</div></div>`;
+  <table style="margin-top:6px"><tr><th style="text-align:left">Sector (ETF)</th><th>P(up,3y) model</th><th>realized freq</th><th>P(CAGR&gt;7%,5y) model</th><th>realized freq</th><th>P(up,3y real) model @2.5%</th><th>realized freq (actual CPI)</th></tr>${mvhRows()}</table>
+  <div class="muted" style="font-size:12px;margin-top:6px">Model columns are COMPUTED live from the μ/σ above (they can never drift from the table they validate); realized frequencies are measured history (fixed facts, Jul 2026 backtest). Four of five sectors land within ~5–13 pts — coarse but not fantasy. The one real failure was the old XLB proxy for Precious (claimed 79%; gold miners' true σ makes the real-terms outcome a coin flip — realized 52.9%; fixed via GDX). Caveat: overlapping windows, one historical path — validation, not proof. Full arithmetic: 04_research/backtest/.</div></div>`;
 })();
+/* Model columns computed analytically from SIM_ASSUME (Jul 16 — replaced hardcoded values, same stale-risk class as the weights bug) */
+function normCdf(x){const t=1/(1+0.2316419*Math.abs(x));const d=0.3989423*Math.exp(-x*x/2);let p=d*t*(0.3193815+t*(-0.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return x>0?1-p:p;}
+function mvhRows(){
+ const R={ // realized rolling-window frequencies — measured history, Jul 2026 backtest (04_research/backtest/)
+  "Energy":{etf:"XLE, 1999–2025",up:"64.0% (16/25)",cagr:"56.5% (13/23)",real:"56.0% (14/25)"},
+  "Materials (ex-Precious)":{etf:"XLB, 2008–25",up:"87.5% (14/16)",cagr:"64.3% (9/14)",real:"87.5% (14/16)"},
+  "Precious Metals":{etf:"GDX, 2007–25",up:"76.5% (13/17)",cagr:"33.3% (5/15)",real:"<b>52.9% (9/17)</b>"},
+  "US Defense & Aerospace":{etf:"ITA, 2008–25",up:"93.8% (15/16)",cagr:"78.6% (11/14)",real:"81.2% (13/16)"},
+  "Information Technology":{etf:"XLK, 2008–25",up:"93.8% (15/16)",cagr:"92.9% (13/14)",real:"93.8% (15/16)"}};
+ return SECTORS.map(s=>{
+  const {mu,sig}=SIM_ASSUME[s], r=R[s];
+  const p=(T,lnK)=>normCdf(((mu-sig*sig/2)*T-lnK)/(sig*Math.sqrt(T)));
+  const up=p(3,0), real=p(3,3*Math.log(1.025)), cagr=p(5,5*Math.log(1.07));
+  return `<tr><td style="text-align:left">${s.split(" (")[0].replace("US Defense & Aerospace","Defense").replace("Information Technology","Info Tech")} (${r.etf})</td><td>${(up*100).toFixed(1)}%</td><td>${r.up}</td><td>${(cagr*100).toFixed(1)}%</td><td>${r.cagr}</td><td>${(real*100).toFixed(1)}%</td><td>${r.real}</td></tr>`;
+ }).join("");
+}
 
 /* ================== PAGE 4: SECTOR PROFILES ================== */
-const CATSHORT=["Profit","Liquid","Effic","Growth","CashFl","Value","Lever"]; // MUST match CATS order — 7th label was missing after Cash Flow was added (radar showed "undefined"), fixed Jul 15
+const CATSHORT=CATS.map(c=>({Profitability:"Profit",Liquidity:"Liquid",Efficiency:"Effic",Growth:"Growth","Cash Flow":"CashFl",Valuation:"Value",Leverage:"Lever"}[c.name]||c.name.slice(0,6))); // DERIVED from CATS (Jul 16) — the parallel-list bug class is dead
 function radarSVG(sector){
  const cx=180,cy=165,R=115,n=CATS.length;
  const pt=(i,r)=>{const a=-Math.PI/2+i*2*Math.PI/n;return[cx+r*Math.cos(a),cy+r*Math.sin(a)];};
@@ -865,11 +869,11 @@ const CYCLE={
  "US Defense & Aerospace":"Mapped via Industrials: outperforms consistently early-cycle; underperforms consistently in recession. Defense spending itself is less cycle-sensitive than the broad sector.",
  "Information Technology":"Early/mid-phase outperformer; underperforms late-cycle and in recession (consistently)."};
 const ANALYST={
- "Energy":{txt:"CFRA Underweight · Argus Marketweight",cmp:"Our 5.8 Neutral sits between the two — roughly consistent."},
- "Materials (ex-Precious)":{txt:"CFRA Underweight · Argus Overweight — the analysts themselves disagree",cmp:"Our 5.2 Neutral splits the difference."},
- "Precious Metals":{txt:"Not separately rated (sits inside Materials for both houses)",cmp:"Our 8.5 Very Bullish is unchecked by consensus — and carries the cyclical-peak warning."},
- "US Defense & Aerospace":{txt:"Broad Industrials: CFRA Overweight · Argus Overweight",cmp:"Sector BROADENED to ten cap-weighted majors ($1.22T): the five classic primes plus GE Aerospace, Howmet, TransDigm, HEICO, Leidos. Profitability improved sharply vs the primes-only view (net margin 13.2 vs 8.0; the commercial-aero supply chain out-earns the primes) — but so did the price of admission (fwd P/E 37.0 vs 29.5; GE at 30% weight trades at 45.6× forward). The analyst Overweight is easier to reconcile now: this IS the sector they're rating. What our fundamentals still can't capture: order backlogs at record highs and the emerging tier below."},
- "Information Technology":{txt:"CFRA Overweight · Argus Overweight",cmp:"Our 7.1 Bullish is consistent with consensus."}};
+ "Energy":{txt:"CFRA Underweight · Argus Marketweight",cmp:"Our Neutral sits between the two — consistent."},
+ "Materials (ex-Precious)":{txt:"CFRA Underweight · Argus Overweight — the houses disagree",cmp:"Our Neutral splits the difference."},
+ "Precious Metals":{txt:"Not separately rated by either house",cmp:"Our Very Bullish is unchecked by consensus — and carries the cyclical-peak warning + both peak penalties."},
+ "US Defense & Aerospace":{txt:"Broad Industrials: CFRA Overweight · Argus Overweight",cmp:"They pay for momentum + record backlogs; we price the mismatch — old-age cash habits (128% cash return) at a growth multiple (37× fwd). The emerging tier carries the growth story."},
+ "Information Technology":{txt:"CFRA Overweight · Argus Overweight",cmp:"Our Bullish is consistent with consensus."}};
 function renderProfile(){
  const s=document.getElementById('profSel').value;
  const scored=CATS.map((c,i)=>({name:c.name,sc:catScore(c,s)})).filter(x=>x.sc!=null).sort((a,b)=>b.sc-a.sc);
@@ -880,7 +884,7 @@ function renderProfile(){
     <div class="block" style="margin:0">${radarSVG(s)}</div>
     <div class="block" style="margin:0;flex:1;min-width:420px">${stripHTML(s)}</div>
    </div>
-   <div class="block"><b>Auto-read (mechanical, from scores only):</b> Relative strengths — ${strong}. Relative weaknesses — ${weak}.
+   <div class="muted" style="font-size:12.5px;margin:6px 2px"><b>Auto-read:</b> strengths — ${strong} · weaknesses — ${weak}.
    <span class="muted">This is arithmetic on sector-average estimates, not a thesis. The 2–5 yr thesis step (pipeline step 4) is where judgment enters.</span></div>
    <div class="block" style="border-left:3px solid var(--accent)"><b>Context layers</b> <span class="muted">(Fidelity research, Jul 2026)</span><br>
    · <b>Business cycle:</b> ${CYCLE[s]}<br>
@@ -1113,23 +1117,23 @@ const EVT_SIZENAMES={systemic:"Systemic",major:"Major",limited:"Limited"};
 const EVT_TICKS=["LMT","RTX","NOC","GD","LHX","GE","HWM","TDG","HEI","LDOS","KTOS","AVAV","RKLB"];
 const EVT_BENCH=["ITA","GDX","XLE","SPY"];
 const EVTRET={
-"LMT":{"E1":[5.29,15.94,16.44],"E2":[8.58,9.9,12.58],"E3":[0.87,2.43,4.48],"E4":[3.19,4.02,-6.46],"E5":[-0.47,0.68,0.18],"E6":[-2.2,-1.58,-12.71],"E7":[-2.98,-1.38,-11.23],"E8":[-0.5,0.51,-8.62],"E9":[2.01,1.45,-8.56],"E10":[-0.61,-2.64,-18.07],"E11":[-4.66,-5.77,null],"E12":[-3.2,-3.91,null],"E13":[-1.19,null,null]},
-"RTX":{"E1":[6.97,8.83,10.88],"E2":[5.13,6.03,18.1],"E3":[0.74,1.46,5.69],"E4":[2.38,1.93,1.35],"E5":[3.89,3.43,5.46],"E6":[-3.27,-0.42,1.73],"E7":[-3.04,-1.11,7.32],"E8":[0.58,1.88,9.43],"E9":[1.92,2.77,-7.63],"E10":[2.66,0.24,-10.7],"E11":[-0.63,-0.1,null],"E12":[-2.81,-2.47,null],"E13":[-0.25,null,null]},
-"NOC":{"E1":[6.53,16.94,18.21],"E2":[9.9,15.55,11.28],"E3":[-1.26,3.26,4.5],"E4":[2.05,0.87,-4.55],"E5":[0.08,0.51,3.96],"E6":[-2.75,0.46,13.28],"E7":[-2.55,0.77,13.78],"E8":[2,3.08,17.45],"E9":[4.79,3.17,-7.29],"E10":[0.01,-1.72,-18.96],"E11":[-5.39,-9.41,null],"E12":[-3.06,-4.34,null],"E13":[-3.06,null,null]},
-"GD":{"E1":[5.41,10.11,11.43],"E2":[7.61,10.43,10.91],"E3":[-0.89,1.19,1.97],"E4":[0.57,-1.75,0.33],"E5":[-0.23,0.85,8.02],"E6":[0.81,4.62,7.3],"E7":[1.27,4.27,12.84],"E8":[3.68,4.58,12.38],"E9":[2.14,1.38,-4.55],"E10":[-1.3,-2.29,0.13],"E11":[-3.87,-5.33,null],"E12":[-0.01,-2.4,null],"E13":[-1.92,null,null]},
-"LHX":{"E1":[7.96,18.12,19.29],"E2":[8.35,9.22,10.9],"E3":[-1.13,2.72,8.86],"E4":[2.85,1.43,3.03],"E5":[-1.05,0.29,4.31],"E6":[-1.21,0.47,5.91],"E7":[-1.29,0.43,7.36],"E8":[0.06,2.8,10.77],"E9":[0.95,2.2,-6.43],"E10":[1.12,0.54,-14.63],"E11":[-5.03,-7.06,null],"E12":[-1.87,-2.9,null],"E13":[-0.65,null,null]},
-"GE":{"E1":[4.02,-0.22,1.68],"E2":[0.01,-2.09,0.28],"E3":[1.38,-2.87,3.15],"E4":[-1.13,-0.59,-7.7],"E5":[-1.44,3.26,10.44],"E6":[3.92,7.53,8.36],"E7":[0.84,0.49,6.36],"E8":[0.9,-1.61,7.9],"E9":[-2.37,-5.8,-20.05],"E10":[8.46,8.78,5.97],"E11":[1.68,5.58,null],"E12":[-2.16,-1.81,null],"E13":[1.96,null,null]},
-"HWM":{"E1":[5.74,3.08,9.49],"E2":[1.09,-2.96,6.03],"E3":[0.03,-1.67,25.42],"E4":[1.04,2.73,-0.16],"E5":[0.05,2.4,7.67],"E6":[1.86,7.38,5.77],"E7":[0.26,0.34,6.13],"E8":[0.16,-0.35,5.79],"E9":[-1.41,-3.2,-15.06],"E10":[7.64,7.63,8.65],"E11":[0.09,-1.54,null],"E12":[-0.6,1.38,null],"E13":[2.93,null,null]},
-"TDG":{"E1":[5.63,4.36,7.75],"E2":[1.89,1.63,4.55],"E3":[0.23,-1.59,4.93],"E4":[1.08,1.77,-1.15],"E5":[-0.59,2.43,9.73],"E6":[2.12,5.42,8.92],"E7":[-0.91,2.86,8.64],"E8":[-0.07,2.63,8.57],"E9":[1.81,-1.91,-13.04],"E10":[4.78,8.99,5.46],"E11":[2.08,2.41,null],"E12":[-2.55,-7.33,null],"E13":[-0.23,null,null]},
-"HEI":{"E1":[4.63,7.16,12.66],"E2":[4.25,3.68,1.45],"E3":[3.43,3.99,9.46],"E4":[1.59,-0.57,-4.8],"E5":[0.06,4.96,4.65],"E6":[0.66,3.96,0.32],"E7":[-0.77,0.76,0.74],"E8":[1.16,0.42,0.92],"E9":[2.27,-2.87,-17.04],"E10":[6.48,6.17,7.63],"E11":[0.47,2.06,null],"E12":[-1.65,-1.8,null],"E13":[2.17,null,null]},
-"LDOS":{"E1":[6.7,15.41,18.53],"E2":[3.64,4.87,13.56],"E3":[-0.87,0.24,16.19],"E4":[1.35,2.22,14.02],"E5":[0.42,2.06,8.53],"E6":[2.55,6.27,8.64],"E7":[2.18,6.82,8.79],"E8":[2.27,6.83,7.24],"E9":[3.17,2.54,-11.72],"E10":[-2.04,0.11,-15.09],"E11":[-5.69,-11.96,null],"E12":[-1.8,-0.33,null],"E13":[1.53,null,null]},
-"KTOS":{"E1":[24.2,26,39.43],"E2":[14.08,14.94,16.06],"E3":[-3.19,-2.09,7.19],"E4":[8.76,7.6,3.82],"E5":[-0.07,5.8,23.96],"E6":[-5.43,7.75,28.55],"E7":[-2.98,-1.28,34.72],"E8":[1.37,6.16,43.88],"E9":[3.21,7.3,-24.25],"E10":[-5.04,3.75,-14.51],"E11":[-3.78,-17.78,null],"E12":[-2.96,-1.31,null],"E13":[5.79,null,null]},
-"AVAV":{"E1":[9.38,28.19,74.72],"E2":[3.65,9.76,13.1],"E3":[1.59,1.77,27.3],"E4":[1.75,3.65,10.15],"E5":[-1.81,0.58,38.8],"E6":[1.91,50.25,38.4],"E7":[22.86,31.99,42.66],"E8":[40.92,27.41,40.31],"E9":[-9.49,-9.89,-29.84],"E10":[-4.9,6.19,-6.68],"E11":[1.74,-18.01,null],"E12":[-8.69,-13.11,null],"E13":[-0.41,null,null]},
-"RKLB":{"E1":[9.5,-1.74,0.12],"E2":[8,-0.89,-3.33],"E3":[-4.56,-3.75,11.53],"E4":[-0.21,-3.29,17.88],"E5":[0.57,24.17,68.94],"E6":[11.38,19.07,56.06],"E7":[-1.31,4.73,49.94],"E8":[8.01,6.63,43.84],"E9":[1.49,3.44,-16.96],"E10":[0.63,10.98,27.64],"E11":[2.49,-22.88,null],"E12":[-1.03,-8.64,null],"E13":[-0.69,null,null]},
-"ITA":{"E1":[5.84,8.02,10.85],"E2":[5.2,5.03,8.68],"E3":[-0.05,0.61,5.16],"E4":[1.15,1.16,-1.41],"E5":[-0.08,2.07,7.76],"E6":[0.73,4.54,6.51],"E7":[-0.53,1.09,7.58],"E8":[1.51,1.64,8.3],"E9":[0.52,-0.71,-13.46],"E10":[3.79,4.79,0.05],"E11":[-0.22,-0.89,null],"E12":[-2.24,-3.55,null],"E13":[0.58,null,null]},
-"GDX":{"E1":[-1.01,3.68,11],"E2":[3.42,7.85,8.4],"E3":[-2.16,-3.64,3.52],"E4":[1.38,-2.08,5.52],"E5":[0.04,-0.78,-3.57],"E6":[-0.82,-0.44,4.19],"E7":[-2.24,-2.01,1.37],"E8":[1.47,1.54,2.83],"E9":[-9.15,-11.57,-25.94],"E10":[3.56,2.95,-2.66],"E11":[-5.42,-13.26,null],"E12":[0.03,-2.32,null],"E13":[0.86,null,null]},
-"XLE":{"E1":[1.83,8.1,15.02],"E2":[3.46,5.2,-0.04],"E3":[-1.8,-0.56,-2.65],"E4":[3.33,3.72,0.05],"E5":[1.44,0.16,1.15],"E6":[-3.8,-3.91,-3.16],"E7":[-1.73,-0.66,0.91],"E8":[0.99,2.38,2.97],"E9":[1.07,0.72,11.53],"E10":[-4.7,-7.31,-5.25],"E11":[-2.87,-1.59,null],"E12":[0.33,3.4,null],"E13":[-0.42,null,null]},
-"SPY":{"E1":[3.74,3.26,7.1],"E2":[1.16,1.51,1.43],"E3":[-1.43,-2.18,1.97],"E4":[-0.85,-0.1,1.4],"E5":[-0.18,-0.3,3.35],"E6":[2.1,3.97,5.82],"E7":[1.16,2.92,5.68],"E8":[0.84,2.25,4.56],"E9":[-0.83,-1.13,-7.62],"E10":[3.14,6.18,11.32],"E11":[-0.22,-1.88,null],"E12":[0.53,0.95,null],"E13":[0.75,null,null]}};
+"LMT":{"E1":[5.29,15.94,16.44],"E2":[8.58,9.9,12.58],"E3":[0.87,2.43,4.48],"E4":[3.19,4.02,-6.46],"E5":[-0.47,0.68,0.18],"E6":[-2.2,-1.58,-12.71],"E7":[-2.98,-1.38,-11.23],"E8":[-0.5,0.51,-8.62],"E9":[2.01,1.45,-8.56],"E10":[-0.61,-2.64,-18.07],"E11":[-4.66,-5.77,-5.07],"E12":[-3.2,-3.91,null],"E13":[-1.19,null,null]},
+"RTX":{"E1":[6.97,8.83,10.88],"E2":[5.13,6.03,18.1],"E3":[0.74,1.46,5.69],"E4":[2.38,1.93,1.35],"E5":[3.89,3.43,5.46],"E6":[-3.27,-0.42,1.73],"E7":[-3.04,-1.11,7.32],"E8":[0.58,1.88,9.43],"E9":[1.92,2.77,-7.63],"E10":[2.66,0.24,-10.7],"E11":[-0.63,-0.1,3.61],"E12":[-2.81,-2.47,null],"E13":[-0.25,null,null]},
+"NOC":{"E1":[6.53,16.94,18.21],"E2":[9.9,15.55,11.28],"E3":[-1.26,3.26,4.5],"E4":[2.05,0.87,-4.55],"E5":[0.08,0.51,3.96],"E6":[-2.75,0.46,13.28],"E7":[-2.55,0.77,13.78],"E8":[2,3.08,17.45],"E9":[4.79,3.17,-7.29],"E10":[0.01,-1.72,-18.96],"E11":[-5.39,-9.41,-5.38],"E12":[-3.06,-4.34,null],"E13":[-3.06,null,null]},
+"GD":{"E1":[5.41,10.11,11.43],"E2":[7.61,10.43,10.91],"E3":[-0.89,1.19,1.97],"E4":[0.57,-1.75,0.33],"E5":[-0.23,0.85,8.02],"E6":[0.81,4.62,7.3],"E7":[1.27,4.27,12.84],"E8":[3.68,4.58,12.38],"E9":[2.14,1.38,-4.55],"E10":[-1.3,-2.29,0.13],"E11":[-3.87,-5.33,1.67],"E12":[-0.01,-2.4,null],"E13":[-1.92,null,null]},
+"LHX":{"E1":[7.96,18.12,19.29],"E2":[8.35,9.22,10.9],"E3":[-1.13,2.72,8.86],"E4":[2.85,1.43,3.03],"E5":[-1.05,0.29,4.31],"E6":[-1.21,0.47,5.91],"E7":[-1.29,0.43,7.36],"E8":[0.06,2.8,10.77],"E9":[0.95,2.2,-6.43],"E10":[1.12,0.54,-14.63],"E11":[-5.03,-7.06,-9.16],"E12":[-1.87,-2.9,null],"E13":[-0.65,null,null]},
+"GE":{"E1":[4.02,-0.22,1.68],"E2":[0.01,-2.09,0.28],"E3":[1.38,-2.87,3.15],"E4":[-1.13,-0.59,-7.7],"E5":[-1.44,3.26,10.44],"E6":[3.92,7.53,8.36],"E7":[0.84,0.49,6.36],"E8":[0.9,-1.61,7.9],"E9":[-2.37,-5.8,-20.05],"E10":[8.46,8.78,5.97],"E11":[1.68,5.58,-0.7],"E12":[-2.16,-1.81,null],"E13":[1.96,null,null]},
+"HWM":{"E1":[5.74,3.08,9.49],"E2":[1.09,-2.96,6.03],"E3":[0.03,-1.67,25.42],"E4":[1.04,2.73,-0.16],"E5":[0.05,2.4,7.67],"E6":[1.86,7.38,5.77],"E7":[0.26,0.34,6.13],"E8":[0.16,-0.35,5.79],"E9":[-1.41,-3.2,-15.06],"E10":[7.64,7.63,8.65],"E11":[0.09,-1.54,-1.8],"E12":[-0.6,1.38,null],"E13":[2.93,null,null]},
+"TDG":{"E1":[5.63,4.36,7.75],"E2":[1.89,1.63,4.55],"E3":[0.23,-1.59,4.93],"E4":[1.08,1.77,-1.15],"E5":[-0.59,2.43,9.73],"E6":[2.12,5.42,8.92],"E7":[-0.91,2.86,8.64],"E8":[-0.07,2.63,8.57],"E9":[1.81,-1.91,-13.04],"E10":[4.78,8.99,5.46],"E11":[2.08,2.41,-6.67],"E12":[-2.55,-7.33,null],"E13":[-0.23,null,null]},
+"HEI":{"E1":[4.63,7.16,12.66],"E2":[4.25,3.68,1.45],"E3":[3.43,3.99,9.46],"E4":[1.59,-0.57,-4.8],"E5":[0.06,4.96,4.65],"E6":[0.66,3.96,0.32],"E7":[-0.77,0.76,0.74],"E8":[1.16,0.42,0.92],"E9":[2.27,-2.87,-17.04],"E10":[6.48,6.17,7.63],"E11":[0.47,2.06,2.16],"E12":[-1.65,-1.8,null],"E13":[2.17,null,null]},
+"LDOS":{"E1":[6.7,15.41,18.53],"E2":[3.64,4.87,13.56],"E3":[-0.87,0.24,16.19],"E4":[1.35,2.22,14.02],"E5":[0.42,2.06,8.53],"E6":[2.55,6.27,8.64],"E7":[2.18,6.82,8.79],"E8":[2.27,6.83,7.24],"E9":[3.17,2.54,-11.72],"E10":[-2.04,0.11,-15.09],"E11":[-5.69,-11.96,-6.25],"E12":[-1.8,-0.33,null],"E13":[1.53,null,null]},
+"KTOS":{"E1":[24.2,26,39.43],"E2":[14.08,14.94,16.06],"E3":[-3.19,-2.09,7.19],"E4":[8.76,7.6,3.82],"E5":[-0.07,5.8,23.96],"E6":[-5.43,7.75,28.55],"E7":[-2.98,-1.28,34.72],"E8":[1.37,6.16,43.88],"E9":[3.21,7.3,-24.25],"E10":[-5.04,3.75,-14.51],"E11":[-3.78,-17.78,-18.3],"E12":[-2.96,-1.31,null],"E13":[5.79,null,null]},
+"AVAV":{"E1":[9.38,28.19,74.72],"E2":[3.65,9.76,13.1],"E3":[1.59,1.77,27.3],"E4":[1.75,3.65,10.15],"E5":[-1.81,0.58,38.8],"E6":[1.91,50.25,38.4],"E7":[22.86,31.99,42.66],"E8":[40.92,27.41,40.31],"E9":[-9.49,-9.89,-29.84],"E10":[-4.9,6.19,-6.68],"E11":[1.74,-18.01,-14.7],"E12":[-8.69,-13.11,null],"E13":[-0.41,null,null]},
+"RKLB":{"E1":[9.5,-1.74,0.12],"E2":[8,-0.89,-3.33],"E3":[-4.56,-3.75,11.53],"E4":[-0.21,-3.29,17.88],"E5":[0.57,24.17,68.94],"E6":[11.38,19.07,56.06],"E7":[-1.31,4.73,49.94],"E8":[8.01,6.63,43.84],"E9":[1.49,3.44,-16.96],"E10":[0.63,10.98,27.64],"E11":[2.49,-22.88,-35.37],"E12":[-1.03,-8.64,null],"E13":[-0.69,null,null]},
+"ITA":{"E1":[5.84,8.02,10.85],"E2":[5.2,5.03,8.68],"E3":[-0.05,0.61,5.16],"E4":[1.15,1.16,-1.41],"E5":[-0.08,2.07,7.76],"E6":[0.73,4.54,6.51],"E7":[-0.53,1.09,7.58],"E8":[1.51,1.64,8.3],"E9":[0.52,-0.71,-13.46],"E10":[3.79,4.79,0.05],"E11":[-0.22,-0.89,-3.67],"E12":[-2.24,-3.55,null],"E13":[0.58,null,null]},
+"GDX":{"E1":[-1.01,3.68,11],"E2":[3.42,7.85,8.4],"E3":[-2.16,-3.64,3.52],"E4":[1.38,-2.08,5.52],"E5":[0.04,-0.78,-3.57],"E6":[-0.82,-0.44,4.19],"E7":[-2.24,-2.01,1.37],"E8":[1.47,1.54,2.83],"E9":[-9.15,-11.57,-25.94],"E10":[3.56,2.95,-2.66],"E11":[-5.42,-13.26,-18.25],"E12":[0.03,-2.32,null],"E13":[0.86,null,null]},
+"XLE":{"E1":[1.83,8.1,15.02],"E2":[3.46,5.2,-0.04],"E3":[-1.8,-0.56,-2.65],"E4":[3.33,3.72,0.05],"E5":[1.44,0.16,1.15],"E6":[-3.8,-3.91,-3.16],"E7":[-1.73,-0.66,0.91],"E8":[0.99,2.38,2.97],"E9":[1.07,0.72,11.53],"E10":[-4.7,-7.31,-5.25],"E11":[-2.87,-1.59,4.94],"E12":[0.33,3.4,null],"E13":[-0.42,null,null]},
+"SPY":{"E1":[3.74,3.26,7.1],"E2":[1.16,1.51,1.43],"E3":[-1.43,-2.18,1.97],"E4":[-0.85,-0.1,1.4],"E5":[-0.18,-0.3,3.35],"E6":[2.1,3.97,5.82],"E7":[1.16,2.92,5.68],"E8":[0.84,2.25,4.56],"E9":[-0.83,-1.13,-7.62],"E10":[3.14,6.18,11.32],"E11":[-0.22,-1.88,-0.68],"E12":[0.53,0.95,null],"E13":[0.75,null,null]}};
 function evtCell(v,spy){
  if(v==null) return `<td class="muted">—</td>`;
  const ex=(spy!=null)?` <span class="muted" style="font-size:10px">(${(v-spy)>=0?"+":""}${(v-spy).toFixed(1)} vs SPY)</span>`:"";
@@ -1244,7 +1248,8 @@ const POPS={
  striprate:`<b>Rating /10</b> — the same 0.6×absolute + 0.4×relative blend as the heat map, with all penalties applied (DuPont, peak-earnings). Click the corresponding heat-map cell for the full arithmetic.`,
  evtwin:`<b>The reaction windows.</b> Baseline = closing price the trading day BEFORE the event; t+1/t+5/t+20 = return from that baseline to 1, 5 and 20 trading days after the event's first trading day. Grey "(±x vs SPY)" = the excess over the market's own move, i.e. the event-specific part. — = window extends beyond available history (recent events).`,
  evtsens:`<b>The escalation/de-escalation split.</b> Escalations = the 9 conflict-intensifying events (invasions, attacks, strikes, ceasefire collapse); de-escalations = the 3 peace events (ceasefires + memorandum). A big positive escalation average with a negative de-escalation average = a pure war-sensitivity profile; both near zero = event-indifferent. Next-day only — the cleanest window, before other news contaminates.`,
- evtclass:`<b>The four groups.</b> Defense majors = equal-weighted average of the 10 established names (LMT→LDOS); Emerging tier = KTOS/AVAV/RKLB average (highest beta in both directions); ITA/GDX/XLE/SPY = sector, gold-miner, energy and market benchmarks. Each cell shows avg t+1 / avg t+20. Cells hold 1–3 events — read as bands, not point estimates.`};
+ evtclass:`<b>The four groups.</b> Defense majors = equal-weighted average of the 10 established names (LMT→LDOS); Emerging tier = KTOS/AVAV/RKLB average (highest beta in both directions); ITA/GDX/XLE/SPY = sector, gold-miner, energy and market benchmarks. Each cell shows avg t+1 / avg t+20. Cells hold 1–3 events — read as bands, not point estimates.`,
+ dcf:`<b>What a DCF is.</b> A company is worth its future cash, shrunk back to today's dollars — money later is worth less than money now.<br><br><b>The four steps, live below:</b> project free cash flows (Step 1), blend the cost of capital into a discount rate (Step 2 — WACC), cap everything beyond the forecast with a terminal value (Step 3 — Gordon Growth), and sum the present values (Step 4).<br><br><b>The caveat made visible:</b> watch the terminal-value share at the bottom — usually 60–80% of the whole valuation sits in the perpetuity guess, which is why the Sensitivity tab exists.`};
 const pop=document.getElementById('pop');
 document.addEventListener('click',e=>{
  const ic=e.target.closest('.info');
