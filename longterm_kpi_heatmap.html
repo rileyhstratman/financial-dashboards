@@ -4,53 +4,57 @@
 <meta charset="UTF-8">
 <title>Long-Term Sector KPI Heat Map — Sector Averages (Jul 2026)</title>
 <style>
-  :root{--bg:#0e1117;--panel:#171c25;--panel2:#1d232f;--border:#2a3140;--text:#e8ebf0;--dim:#96a0af;--accent:#5aa7ff;--pos:#3ecf6e;--neg:#ff6b5e;--gold:#d4a017;}
+  :root{--bg:#0e1117;--glow:#16202f;--panel:#171c25;--panel2:#1d232f;--border:#2a3140;--text:#e8ebf0;--dim:#96a0af;--accent:#5aa7ff;--pos:#3ecf6e;--neg:#ff6b5e;--gold:#d4a017;--code:#8fd0ff;--mono-bg:#0d1118;--na-bg:#1a1f29;--na-tx:#566072;--bann-bg:linear-gradient(90deg,#3d2b00,#332600);--bann-bd:#7a6000;--bann-tx:#ffd966;--tab-on:linear-gradient(180deg,#25406b,#1e3355);--pop-bg:#1e2634;}
+  body.light{--bg:#f4f6fa;--glow:#e6ecf6;--panel:#ffffff;--panel2:#eef1f7;--border:#dbe1ec;--text:#1c2433;--dim:#5e6b80;--accent:#2f6fdd;--pos:#189a4a;--neg:#d5442f;--code:#0d5bd0;--mono-bg:#f0f3f9;--na-bg:#edf0f6;--na-tx:#9aa6b8;--bann-bg:#fff6dd;--bann-bd:#e2c455;--bann-tx:#7a5b00;--tab-on:linear-gradient(180deg,#2f6fdd,#2558b8);--pop-bg:#ffffff;}
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
-  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;background:radial-gradient(1200px 500px at 20% -10%, #16202f 0%, var(--bg) 55%);color:var(--text);padding:0 0 60px;-webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;background:radial-gradient(1200px 500px at 20% -10%, var(--glow) 0%, var(--bg) 55%);color:var(--text);padding:0 0 60px;-webkit-font-smoothing:antialiased;transition:background .25s,color .25s}
   .wrap{max-width:1240px;margin:0 auto;padding:0 26px}
   header.site{padding:26px 0 8px}
   h1{font-size:24px;margin:0 0 3px;letter-spacing:.2px}
   h2{font-size:17px;margin:22px 0 8px}
   h3{font-size:12px;margin:14px 0 8px;color:var(--accent);text-transform:uppercase;letter-spacing:.9px;font-weight:700}
-  .banner{background:linear-gradient(90deg,#3d2b00,#332600);border:1px solid #7a6000;color:#ffd966;padding:9px 14px;border-radius:10px;margin:12px 0 6px;font-size:12.5px}
+  .banner{background:var(--bann-bg);border:1px solid var(--bann-bd);color:var(--bann-tx);padding:9px 14px;border-radius:10px;margin:12px 0 6px;font-size:12.5px}
   #scorebar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
   .chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--border);border-radius:20px;padding:5px 12px;font-size:12px;color:var(--dim)}
   .chip b{color:var(--text);font-size:12.5px}
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block}
-  .tabs{display:flex;gap:6px;margin:14px 0 18px;position:sticky;top:0;z-index:40;background:rgba(14,17,23,.88);backdrop-filter:blur(8px);padding:10px 0;border-bottom:1px solid var(--border);flex-wrap:wrap}
-  .tab{padding:7px 14px;border:1px solid var(--border);border-radius:20px;cursor:pointer;background:var(--panel);color:var(--dim);font-size:13px;transition:all .15s ease;white-space:nowrap}
+  .tabs{display:flex;gap:5px;margin:14px 0 18px;position:sticky;top:0;z-index:40;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);padding:9px 0;border-bottom:1px solid var(--border);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{padding:6px 11px;border:1px solid var(--border);border-radius:18px;cursor:pointer;background:var(--panel);color:var(--dim);font-size:12.3px;transition:all .15s ease;white-space:nowrap;flex:0 0 auto}
   .tab:hover{color:var(--text);border-color:#3d4759}
-  .tab.active{color:#fff;border-color:var(--accent);background:linear-gradient(180deg,#25406b,#1e3355)}
+  .tab.active{color:#fff;border-color:var(--accent);background:var(--tab-on)}
   .page{display:none;animation:fade .18s ease}
   .page.active{display:block}
   @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   table{border-collapse:separate;border-spacing:0;width:100%;font-size:13px}
   th,td{border-bottom:1px solid var(--border);padding:8px 10px;text-align:center}
   th{background:var(--panel2);color:var(--dim);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.4px;position:sticky}
-  tr:hover td:not(.cell):not(.na){background:rgba(90,167,255,.045)}
+  tr:hover td:not(.cell):not(.na){background:color-mix(in srgb,var(--accent) 6%,transparent)}
   td.rowhead{text-align:left;font-weight:600;background:var(--panel2)}
   td.cell{cursor:pointer;font-weight:700;color:#101318;transition:filter .12s}
   td.cell:hover{filter:brightness(1.12)}
-  td.na{background:#1a1f29;color:#566072;font-weight:400;cursor:default}
+  td.na{background:var(--na-bg);color:var(--na-tx);font-weight:400;cursor:default}
   .detail{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-top:16px;font-size:13px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
   .detail table{margin-top:8px}
   .detail td,.detail th{text-align:left}
   .muted{color:var(--dim)}
-  .formula{font-family:ui-monospace,Menlo,monospace;background:#0d1118;border:1px solid var(--border);border-radius:6px;padding:2px 6px;font-size:12px;white-space:nowrap}
+  .formula{font-family:ui-monospace,Menlo,monospace;background:var(--mono-bg);border:1px solid var(--border);border-radius:6px;padding:2px 6px;font-size:12px;white-space:nowrap}
   .block{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin:12px 0;font-size:13.5px;line-height:1.6;box-shadow:0 2px 10px rgba(0,0,0,.18)}
-  .eq{display:block;font-family:ui-monospace,Menlo,monospace;background:#0d1118;border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:12.5px;overflow-x:auto}
+  .eq{display:block;font-family:ui-monospace,Menlo,monospace;background:var(--mono-bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:12.5px;overflow-x:auto}
   .legend{display:flex;align-items:center;gap:6px;margin:10px 0;font-size:12px;color:var(--dim)}
   .swatch{width:34px;height:14px;border-radius:3px;display:inline-block}
-  code{color:#8fd0ff}
+  code{color:var(--code)}
   #dcfInputs label{font-size:12px;color:var(--dim)}
-  #dcfInputs input, input[type=number]{background:#0d1118;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:14px}
+  #dcfInputs input, input[type=number]{background:var(--mono-bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 9px;font-size:14px}
   #dcfInputs input{width:100%;margin-top:4px}
-  select{background:#0d1118;color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13.5px}
+  select{background:var(--mono-bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13.5px}
   /* ⓘ info popovers */
   .info{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;border:1px solid var(--accent);color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;margin-left:6px;vertical-align:middle;user-select:none;transition:all .12s}
-  .info:hover{background:var(--accent);color:#0e1117}
-  #pop{position:absolute;z-index:90;max-width:440px;background:#1e2634;border:1px solid var(--accent);border-radius:12px;padding:13px 16px;font-size:12.8px;line-height:1.6;box-shadow:0 12px 40px rgba(0,0,0,.55);display:none;color:var(--text)}
+  .info:hover{background:var(--accent);color:var(--bg)}
+  #themeBtn{float:right;margin-top:-34px;padding:5px 13px;border-radius:16px;border:1px solid var(--border);background:var(--panel);color:var(--dim);cursor:pointer;font-size:12px;transition:all .15s}
+  #themeBtn:hover{border-color:var(--accent);color:var(--text)}
+  #pop{position:absolute;z-index:90;max-width:440px;background:var(--pop-bg);border:1px solid var(--accent);border-radius:12px;padding:13px 16px;font-size:12.8px;line-height:1.6;box-shadow:0 12px 40px rgba(0,0,0,.55);display:none;color:var(--text)}
   #pop .muted{font-size:12px}
   /* accordions (How to Read) */
   details.acc{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin:10px 0;overflow:hidden}
@@ -66,6 +70,7 @@
 <div class="wrap">
 <header class="site">
 <h1>The Sector Terminal <span class="muted" style="font-size:14px;font-weight:400">· 2–5 year lens · Jul 2026</span></h1>
+<button id="themeBtn">◐ dark</button>
 <div class="muted" style="font-size:12.5px">Five sectors, seven scored categories, every number traceable — companion to <code>LONGTERM_SECTOR_ANALYSIS_SCOPE.md</code></div>
 <div id="scorebar"></div>
 <div class="banner">⚠ <b>Sector-average estimates from public sources — not live, not investment-grade.</b> Sources, methods and caveats: <b>How to Read</b>.</div>
@@ -110,7 +115,7 @@
   <div id="mc"></div>
   <div class="block" style="display:flex;align-items:center;gap:12px;margin-top:14px">
     <b>Explore one sector's futures:</b>
-    <select id="simSel" style="background:#10141b;color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:14px"></select>
+    <select id="simSel"></select>
     <span class="muted">One line = one possible future. Wide fan = high uncertainty. (Fan = analytic percentile bands; histogram = 2000 simulated 5-yr outcomes — merged from the old Simulation Explorer tab, Jul 15.)</span>
   </div>
   <div id="fan"></div>
@@ -263,7 +268,7 @@
   <div class="block"><h3>Expected vs deliverable growth (Jan 2026)</h3><div id="growthTable"></div></div>
   <div class="block"><h3>22 years of analyst growth expectations (2004–2025 vintages)</h3>
     <div id="growthChart"></div>
-    <div class="muted" style="font-size:12px;margin-top:6px">Expected EPS growth per Damodaran vintage, firm-count-weighted into the 5 sectors. What to notice: expectations are ALWAYS mostly positive (analysts rarely forecast decline even before 2008/2020/2022), Info Tech's line barely moves (~16–23% every single year for two decades — a house view, not analysis), and commodity-sector expectations whipsaw with the cycle. When a sector's current expectation (● marker) sits at the top of its own 22-year range, you are being sold the most optimistic story that sector has carried since 2004.</div>
+    <div class="muted" style="font-size:12px;margin-top:6px">What to notice: analysts almost never forecast decline; Tech's line barely moves for two decades (a house view, not analysis); commodity expectations whipsaw with the cycle. A ● marker at the top of its range = the most optimistic story that sector has carried since 2004.</div>
   </div>
   <div class="block" style="border-left:3px solid #b8860b"><h3>The buyback problem (read the SGR columns above)</h3>
     <div class="muted" style="font-size:12px;margin-top:6px">Sustainable growth (classic) = ROE × (1 − dividend payout). But in the buyback era dividends understate distributions: counting buybacks, three of five sectors return MORE than 100% of net income to shareholders — their cash-adjusted sustainable growth is NEGATIVE, meaning any real growth must be financed by new debt, equity issuance, or margin expansion, not retained earnings. Sources: Damodaran divfund + histgr, Jan 2026 (dollar-aggregated). Defense rows are industry-basis (79-firm aggregate), not the 10-major set.</div>
@@ -275,7 +280,7 @@
     <tr><td>— Defense emerging tier (KTOS/AVAV/RKLB)</td><td>1994</td><td>~32 yrs</td><td>AVAV 1971 / RKLB 2006</td><td>The young cohort inside an old sector — loss-making or barely profitable, 24–41% growth forecasts, i.e. actual early-lifecycle behavior. This is where the sector's "more lucrative" thesis actually lives.</td></tr>
     <tr><td><b>Information Technology</b> (6)</td><td>~1982</td><td>~45 yrs</td><td>INTC 1968 / GTLB 2014</td><td>Prime middle age: reinvesting 201% of depreciation at 26% ROIC, retaining 83% of earnings — the compounding phase, roughly half Energy's age with 12× the reinvestment intensity per payout dollar.</td></tr>
     <tr><td><b>Materials / Precious Metals</b></td><td colspan="2" class="muted">no company lists yet</td><td class="muted">—</td><td>Sector-level lifecycle reads old (Materials: 138% cash return, payout 77%); Precious behaves cyclically rather than by age — its "lifecycle" is the gold price.</td></tr></table>
-    <div class="muted" style="font-size:12px;margin-top:6px">Founding years are company-history "roots" (earliest predecessor: e.g. LMT←Lockheed 1912, RTX←Raytheon 1922, GD←Electric Boat 1899, LHX←Harris 1895, COP←Continental 1875, CVX←Pacific Coast Oil 1879, EOG←Enron O&amp;G 1985) — approximate, for lifecycle context only, never scored. Current legal entities are often young (RTX 2020, HWM 2020, LMT 1995) — that's M&amp;A, not youth. The lifecycle diagnostics (payout, cash return, reinvestment, growth) are the measured counterpart: age predicts behavior everywhere here EXCEPT Defense's multiple, which is priced two lifecycle stages younger than its cash habits.</div>
+    <div class="muted" style="font-size:12px;margin-top:6px">Roots = earliest predecessor (LMT←Lockheed 1912, GD←Electric Boat 1899…) — approximate, context only, never scored; young legal entities (RTX 2020) are M&amp;A, not youth. Age predicts behavior everywhere here EXCEPT Defense's multiple.</div>
   </div>
 </div>
 
@@ -365,6 +370,15 @@
 <div id="pop"></div>
 
 <script>
+/* Theme: LIGHT by default (Jul 16, per Riley), remembered across visits */
+(function(){
+ const saved=localStorage.getItem('term_theme')||'light';
+ if(saved==='light') document.body.classList.add('light');
+ const b=document.getElementById('themeBtn');
+ const label=()=>{b.textContent=document.body.classList.contains('light')?'◐ dark':'◑ light';};
+ label();
+ b.addEventListener('click',()=>{document.body.classList.toggle('light');localStorage.setItem('term_theme',document.body.classList.contains('light')?'light':'dark');label();});
+})();
 "use strict";
 /* ---------- seeded RNG (mulberry32) — deterministic, auditable ---------- */
 function mulberry32(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
@@ -654,7 +668,7 @@ function color(s){ // 0 red -> 10 green
 /* ---------- render heatmap ---------- */
 (function(){
  let h='<table><tr><th style="text-align:left">Sector</th>';
- CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}<br><span style="font-weight:400;font-size:10.5px">${CATDESC[c.name]}</span></th>`);
+ CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}</th>`); // desc moved to hover tooltip, Jul 16
  h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Weighted: '+CATS.map(c=>c.name.replace("Profitability","Prof").replace("Valuation","Val").replace("Efficiency","Eff").replace("Liquidity","Liq").replace("Leverage","Lev").replace("Cash Flow","CF")+" "+(CATW[c.name]*100)).join(" · ")+'%</span></th></tr>'; // dynamic from CATW (was hardcoded & went stale — fixed Jul 16)
  SECTORS.forEach(s=>{
   h+=`<tr><td class="rowhead">${s}</td>`;
@@ -676,7 +690,7 @@ function color(s){ // 0 red -> 10 green
 window.showDetail=function(sector,ci){
  const cat=CATS[ci];
  let h=`<b>${sector} — ${cat.name}</b> <span class="muted">· ${CATDESC[cat.name]}</span>`;
- h+='<table><tr><th>KPI</th><th>What it measures</th><th>Sector avg</th><th>Meaning <span style="font-weight:400">(rule of thumb)</span></th><th>Absolute score /10 <span style="font-weight:400">(60%)</span></th><th>Vs other sectors /10 <span style="font-weight:400">(40%)</span></th><th>Rating</th></tr>';
+ h+='<table><tr><th>KPI</th><th>What it measures</th><th>Sector avg</th><th>Meaning <span style="font-weight:400">(rule of thumb)</span><span class="info" data-pop="flags">i</span></th><th>Absolute /10 <span style="font-weight:400">(60%)</span></th><th>Vs sectors /10 <span style="font-weight:400">(40%)</span></th><th>Rating</th></tr>';
  const scores=[];
  cat.kpis.forEach(key=>{
   const k=KPI[key], x=D[sector][key];
@@ -685,32 +699,29 @@ window.showDetail=function(sector,ci){
   const aAnch=absScore(key,x,sector), a=blendedAbs(key,sector), r=relScore(key,sector), sc=kpiScore(key,sector);scores.push(sc);
   const hp=histPct(key,sector,x);
   let health=k.abs(x);
+  const tags=[]; // telegraphic flags (condensed Jul 16 — long conventions live in the column-header ⓘ)
   if(hp!=null&&HIST_KEYS_BLEND.includes(key)){
-   const pctTxt=HIST_KEYS_VAL.includes(key)
-    ? Math.round(hp*100)+"% of its own 2004–25 history is more expensive"
-    : "expectations sit at the "+Math.round(hp*100)+"th percentile of its own 2004–25 history of analyst expectations";
-   health+= HIST_BASIS_OK(sector)
-    ? ` — own-history check: ${pctTxt} (blended into the absolute score)`
-    : ` — own-history percentile shown for context only (${pctTxt}) but NOT scored: history is the old industry aggregate, current is the 10-major company set — bases don't mix`;
+   const lvl=Math.round(hp*100);
+   tags.push(HIST_BASIS_OK(sector)
+    ? (HIST_KEYS_VAL.includes(key)? `cheaper than ${lvl}% of own history (blended)` : `${lvl}th pct of own forecast history`)
+    : `${lvl}th pct — context only, basis mismatch`);
   }
   if(hp!=null&&HIST_KEYS_PEAK.includes(key)){
    const lvl=Math.round(hp*100);
-   health+= HIST_BASIS_OK(sector)
-    ? (hp>=0.9? ` — ⚠ near a two-decade HIGH vs its own 2004–25 history (${lvl}th pct): the backtest found peak levels mean-revert (−1.5 penalty applied)`
-              : ` — sits at the ${lvl}th percentile of its own 2004–25 history (no peak penalty below the 90th)`)
-    : ` — own-history percentile not applied (industry-aggregate history vs 10-major current — bases don't mix)`;
+   tags.push(HIST_BASIS_OK(sector)
+    ? (hp>=0.9? `⚠ ${lvl}th pct of own history → −1.5 peak penalty` : `${lvl}th pct of own history`)
+    : `history not applied — basis mismatch`);
   }
-  if(key==="pe") health+=" — caveat: all-firm sector P/Es run higher than S&P-500-only figures (unprofitable small caps inflate them)";
-  if(key==="pe"&&sector==="US Defense & Aerospace") health+="; ten-major cap-weighted basis — GE (30% of weight, 43.9×) pulls it up; consistent with ITA's 41.9×";
-  if(key==="roe"&&sector==="US Defense & Aerospace") health+="; inflated by buyback-shrunken equity (LMT 67.6%, GE 45.4%) — DuPont penalty fires by design";
-  if(key==="qk"&&sector==="US Defense & Aerospace") health+=" — REAL company data (ten-major set), not the SIC approximation used for other sectors";
-  if(key==="exp5") health+=" — analyst estimates skew optimistic; compare with the delivered 5-yr number below";
-  if(key==="exp5"&&hp!=null&&hp>=0.9&&HIST_BASIS_OK(sector)) health+="; ⚠ OPTIMISM-ERA FLAG: expectations sit above ~90% of this sector's own 22-year history of forecasts — eras of record expectations are where analyst optimism bites hardest (flag only — the backtest found no reliable growth signal to penalize)";
-  if(key==="revg"&&sector==="Materials (ex-Precious)") health+=" — ⚠ inflated by Construction Supplies' 60.8% forecast (40 of 249 firms); read with skepticism";
-  if((key==="revg"||key==="sgr"||key==="fcfm"||key==="capdep")&&sector==="US Defense & Aerospace") health+=" — industry-aggregate basis (Damodaran 79-firm Aerospace/Defense), NOT the 10-major company set used for margins/valuation here";
-  if(key==="capdep"){const q=ROIC[sector]; health+=` — ROIC-gated anchors: at ${q}% ROIC this sector is in the ${q>=15?"HIGH-return regime (heavy reinvestment = value creation, plateau to 350%)":q>=8?"mid-return regime (sweet spot 100–150%)":"LOW-return regime (heavy capex penalized)"}`;}
-  if(key==="sgr") health+=` — dividend-payout basis; counting buybacks too, cash return is ${PAYOUT[sector].cashret.toFixed(0)}% of net income → cash-adjusted SGR ${PAYOUT[sector].sgr_cash.toFixed(1)}%${PAYOUT[sector].sgr_cash<0?" (NEGATIVE: the sector distributes more than it earns — growth must be externally funded)":""}`;
-  if(key==="exp5"&&sector==="Precious Metals") health+="; the 71.8% figure is off a depressed base year — treat as unsustainable";
+  if(key==="pe"&&sector==="US Defense & Aerospace") tags.push("GE = 30% of weight at 43.9×");
+  if(key==="roe"&&sector==="US Defense & Aerospace") tags.push("buyback-inflated → DuPont penalty");
+  if(key==="qk"&&sector==="US Defense & Aerospace") tags.push("real company data (not SIC approx)");
+  if(key==="exp5"&&hp!=null&&hp>=0.9&&HIST_BASIS_OK(sector)) tags.push("⚠ optimism era (top decile of own forecasts)");
+  if(key==="exp5"&&sector==="Precious Metals") tags.push("⚠ off a depressed base — unsustainable");
+  if(key==="revg"&&sector==="Materials (ex-Precious)") tags.push("⚠ inflated by one industry's 60.8% forecast");
+  if((key==="revg"||key==="sgr"||key==="fcfm"||key==="capdep")&&sector==="US Defense & Aerospace") tags.push("industry-basis input");
+  if(key==="capdep"){const q=ROIC[sector]; tags.push(`ROIC ${q}% → ${q>=15?"HIGH regime (plateau)":q>=8?"mid regime (sweet spot)":"LOW regime (penalized)"}`);}
+  if(key==="sgr"){const p=PAYOUT[sector]; tags.push(`cash-adj (w/ buybacks): ${p.sgr_cash.toFixed(1)}%${p.sgr_cash<0?" — needs external funding":""}`);}
+  if(tags.length) health+=`<br><span class="muted" style="font-size:11px">${tags.join(" · ")}</span>`;
   // qk/ar data-quality caveats live ONCE in the KPI name/desc + How to Read (removed per-row repetition Jul 15)
   const anch=(key==="capdep"?capdepAnch(sector):ANCH[key]).map(p=>p[0]+"→"+p[1]).join(", ");
   const pen=key==="roe"?dupontPenalty(sector):0;
@@ -729,7 +740,7 @@ window.showDetail=function(sector,ci){
  }
  if(cat.name==="Leverage"&&dupontMult(sector)!=null){
   const m=dupontMult(sector);
-  h+=`<div style="margin-top:6px" class="muted">Cross-check (DuPont): ROE ${D[sector].roe}% ÷ ROA ${D[sector].roa}% = <b>${m.toFixed(1)}× leverage multiplier</b>. ${m<=2.5?"Returns are operationally earned — debt amplifies them only modestly.":m<=5?"A meaningful share of ROE comes from leverage rather than operations (penalty applied to the ROE rating).":"ROE is heavily debt-inflated — treat the headline return with suspicion (penalty applied)."}</div>`;
+  h+=`<div style="margin-top:6px" class="muted">DuPont: ROE ÷ ROA = <b>${m.toFixed(1)}× leverage</b> — ${m<=2.5?"operationally earned":m<=5?"partly leverage-driven (penalty applied)":"heavily debt-inflated (penalty applied)"}.</div>`;
  }
  if(cat.name==="Valuation"&&D[sector].pe!=null&&typeof SIM_ASSUME!=="undefined"&&SIM_ASSUME[sector]){
   const g10=100*SIM_ASSUME[sector].mu, ratio=D[sector].pe/g10;
@@ -742,7 +753,7 @@ window.showDetail=function(sector,ci){
    ?`⚠ <b>Mixed signals:</b> the ratios in this category disagree by ${sp.toFixed(1)} points — they're telling different stories, so trust the average less and read each row.`
    :`✓ <b>Signals agree</b> (spread ${sp.toFixed(1)} points): the ratios in this category tell a consistent story.`}</div>`;
  }
- h+=`<div class="muted" style="margin-top:6px;font-size:12px">Each rating = 60% absolute meaning (value scored against the rule-of-thumb anchors — hover the absolute score for them) + 40% position among the 4 sectors. 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish. Hover a KPI name for its exact formula.</div>`;
+ h+=`<div class="muted" style="margin-top:6px;font-size:12px">60% absolute + 40% cross-sector. Hover a KPI name for its formula, the absolute score for its anchors, the ⓘ for flag meanings.</div>`;
  document.getElementById('detail').innerHTML=h;
 };
 window.showComposite=function(sector){
@@ -1173,7 +1184,7 @@ function renderEvtClass(){
  h+=`</table><b style="display:block;margin-top:10px">By SIZE</b><table>${head}`;
  Object.keys(EVT_SIZENAMES).forEach(sz=>{h+=classRow(EVT_SIZENAMES[sz],EVT.filter(e=>e[4]===sz).map(e=>e[0]));});
  h+=`</table>
- <div class="muted" style="font-size:12px;margin-top:8px"><b>How to read this honestly:</b> classes narrow the DAY-ONE reaction well — within-type t+1 signs are consistent (attacks on allies and strike ops lift defense next-day; de-escalations cut it). The 20-day path is a different animal: the two SYSTEMIC onsets produced opposite defense outcomes (Ukraine 2022: ITA +10.9% — 2026 Iran war: ITA −13.5%), and the difference tracks the terminal's own valuation machinery — in Feb 2022 Defense sat cheap vs its own history; by Feb 2026 it was priced two lifecycle stages younger than its cash habits (fwd P/E ~37×). So the playbook's projection logic is: TYPE × SIZE gives you the immediate-reaction band; the STARTING VALUATION PERCENTILE decides whether the 20-day drift extends it or reverses it. Small n per cell (1–3 events) — bands, not point estimates.</div>`;
+ <div class="muted" style="font-size:12px;margin-top:8px"><b>Projection logic:</b> TYPE × SIZE gives the immediate-reaction band; the starting valuation percentile decides whether the 20-day drift extends or reverses it (the two systemic onsets went opposite ways: 2022 Defense cheap → +10.9%; 2026 Defense rich → −13.5%). 1–3 events per cell — bands, not point estimates.</div>`;
  document.getElementById('evtClass').innerHTML=h;
 }
 
@@ -1208,7 +1219,8 @@ const POPS={
  machinery:`<b>The three engines.</b><br><b>1 · GBM Monte Carlo:</b> <span class="formula">V_T = exp[(μ−σ²/2)T + σ√T·Z]</span>, 2,000 paths per sector at 3y and 5y horizons; seeded RNG so every run is identical and auditable.<br><br><b>2 · Vasicek rates:</b> <span class="formula">drₜ = a(b−rₜ)dt + σᵣdWₜ</span> (r₀=4.0%, a=0.30, b=3.5%, σᵣ=1.0%), simulated monthly for 5y — the mean terminal rate + 4% equity premium forms the discount rate.<br><br><b>3 · Growing perpetuity:</b> <span class="formula">PV per $1 = 1/(r−g)</span> — explored fully on the Sensitivity tab.`,
  sens:`<b>How to use the grid.</b> Rows = discount rate r (the return you demand for waiting and risk). Columns = growth g (your optimism, forever). Pick a row, slide right: same cash, only optimism changes — and value doesn't rise smoothly, it ACCELERATES. At r=8%, moving g from 2%→4% adds +50% of "value" from nothing real.<br><br>⚠ cells: g ≈ r, the formula divides by ~zero — if a valuation lives there, assumptions are doing all the work.<br><br><b>Why care:</b> the DCF's terminal value uses this exact formula and is usually 60–80% of any valuation. When analysts disagree wildly on a price target, the disagreement lives in this grid.`,
  growth:`<b>The four legs of the Growth rating.</b> Expected EPS growth (analyst forecasts — optimism-biased, checked against 22 years of their own forecasting history), expected REVENUE growth (top-line — buybacks can't flatter it), delivered 5-yr earnings growth (the reality check), and sustainable growth = ROE × retention (what the sector can fund from its own earnings — the "promise minus self-fundable" gap shows who needs external money).<br><br><span class="muted">Honesty note: the outcome backtest found NO reliable predictive signal in growth expectations (p=.68). Read this page as context and cross-checks, not as alpha.</span>`,
- events:`<b>Method.</b> 13 dated events (E1–E12 search-verified vs Britannica/Wikipedia/NATO.int/CRS; E13 from the live OSINT feed), each paired with measured reactions: return from the close BEFORE the event to +1/+5/+20 trading days, for 13 defense names + ITA/GDX/XLE/SPY benchmarks. Prices: Yahoo Finance adjusted closes.<br><br>Each event carries two class labels — TYPE (what kind) and SIZE (how big) — assigned ex-ante against documented criteria, and the playbook aggregates reactions per class.<br><br><span class="muted">Associations, not causal effects. Going forward the OSINT feed extends the timeline automatically — the reaction clock starts at first_seen.</span>`};
+ events:`<b>Method.</b> 13 dated events (E1–E12 search-verified vs Britannica/Wikipedia/NATO.int/CRS; E13 from the live OSINT feed), each paired with measured reactions: return from the close BEFORE the event to +1/+5/+20 trading days, for 13 defense names + ITA/GDX/XLE/SPY benchmarks. Prices: Yahoo Finance adjusted closes.<br><br>Each event carries two class labels — TYPE (what kind) and SIZE (how big) — assigned ex-ante against documented criteria, and the playbook aggregates reactions per class.<br><br><span class="muted">Associations, not causal effects. Going forward the OSINT feed extends the timeline automatically — the reaction clock starts at first_seen.</span>`,
+ flags:`<b>How to read the small grey flags under each verdict.</b><br>· <b>“cheaper than X% of own history”</b> — the ratio's position in the sector's own 2004–25 record; blended into the absolute score for valuation ratios.<br>· <b>“Xth pct of own history”</b> on margins/ROE — ≥90th triggers the −1.5 peak-earnings penalty (peaks mean-revert; the backtest's most robust finding).<br>· <b>“optimism era”</b> — analyst expectations in the top decile of their own 22-year forecasting record; flag only, never penalized.<br>· <b>“industry-basis input”</b> — Damodaran 79-firm aggregate, not the 10-major company set (Defense only).<br>· <b>“basis mismatch”</b> — history and current values come from different universes, so percentiles display but never score.<br>· <b>“ROIC → regime”</b> — reinvestment anchors switch on return-on-capital: value-creating above 15%, penalized below 8%.<br>· <b>“cash-adj SGR”</b> — sustainable growth recomputed counting buybacks; negative = the sector distributes more than it earns.<br><br>General conventions: all-firm sector P/Es run higher than S&P-500-only figures; analyst growth estimates skew optimistic; AR turnover is slightly overstated (total-sales basis).`};
 const pop=document.getElementById('pop');
 document.addEventListener('click',e=>{
  const ic=e.target.closest('.info');
