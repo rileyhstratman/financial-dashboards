@@ -125,6 +125,9 @@
   <div class="block muted" style="font-size:12.5px">
     Seeded RNG — numbers are identical every time you open this file, so anything you question can be traced. μ and σ are measured from sector-ETF history (windows per row above; backward-looking — past ≠ future); g is still an assumption bounded by the scope doc's 2–4% rule.
   </div>
+  <div class="block muted" style="font-size:12.5px;border-left:3px solid #b8860b">
+    <b>How much does the σ window choice matter? (audit, Jul 17 2026)</b> Swapping each σ for the realized 2021–26 daily vol moves P(up, 3y) by ±3–5 points: Defense 91→88 (realized vol is higher than the mixed window), Energy 60→65 and Gold miners 53→58 (their long windows include 2020/2013 crashes, so the dashboard runs MORE conservative than recent history). The published numbers keep the longer windows deliberately — rare crashes belong in σ — but no probability on this tab is sharper than this ±5-point band.
+  </div>
 </div>
 
 <!-- ============ PAGE 3: HOW TO READ ============ -->
@@ -271,7 +274,7 @@
   <div class="block"><h3>Sector age &amp; lifecycle (added Jul 15)</h3>
     <table><tr><th>Sector (company set)</th><th>Median founding year (roots)</th><th>Median age</th><th>Oldest / youngest roots</th><th>Lifecycle behavior (from the data above)</th></tr>
     <tr><td><b>Energy</b> (6)</td><td>~1903</td><td>~123 yrs</td><td>XOM 1870 (Standard Oil) / KMI 1997</td><td>Behaves its age: 121% of earnings returned to shareholders, reinvestment near maintenance, low expected growth — classic old-age harvesting.</td></tr>
-    <tr><td><b>US Defense &amp; Aerospace</b> — 10 majors</td><td>~1917</td><td>~109 yrs</td><td>HWM 1888 (Alcoa roots) / TDG 1993</td><td>THE mismatch: century-old roots and old-age cash habits (128% cash return, dividend payout 50%) but priced like a growth sector (fwd P/E 37×). Someone is wrong — the payout policy or the multiple.</td></tr>
+    <tr><td><b>US Defense &amp; Aerospace</b> — 10 majors</td><td>~1917</td><td>~109 yrs</td><td>HWM 1888 (Alcoa roots) / TDG 1993</td><td>THE mismatch: century-old roots and old-age cash habits (128% cash return, dividend payout 50%) but priced like a growth sector (fwd P/E 37×). Someone is wrong — the payout policy or the multiple. <span class="muted">(Dispersion note, Jul 17: the cap-weighted aggregate is pulled up by TDG/HEI/GE-type multiples — LMT alone trades near 25× TTM. The "growth pricing" is concentrated, not uniform across the primes.)</span></td></tr>
     <tr><td>— Defense emerging tier (KTOS/AVAV/RKLB)</td><td>1994</td><td>~32 yrs</td><td>AVAV 1971 / RKLB 2006</td><td>The young cohort inside an old sector — loss-making or barely profitable, 24–41% growth forecasts, i.e. actual early-lifecycle behavior. This is where the sector's "more lucrative" thesis actually lives.</td></tr>
     <tr><td><b>Information Technology</b> (6)</td><td>~1982</td><td>~45 yrs</td><td>INTC 1968 / GTLB 2014</td><td>Prime middle age: reinvesting 201% of depreciation at 26% ROIC, retaining 83% of earnings — the compounding phase, roughly half Energy's age with 12× the reinvestment intensity per payout dollar.</td></tr>
     <tr><td><b>Materials / Precious Metals</b></td><td colspan="2" class="muted">no company lists yet</td><td class="muted">—</td><td>Sector-level lifecycle reads old (Materials: 138% cash return, payout 77%); Precious behaves cyclically rather than by age — its "lifecycle" is the gold price.</td></tr></table>
@@ -817,8 +820,9 @@ window.showComposite=function(sector){
 /* ---------- complex layer: Vasicek + GBM Monte Carlo + perpetuity ---------- */
 (function(){
  // Vasicek: monthly, 5y
- const a=0.30,b=0.035,sr=0.010,dt=1/12;let paths=500,terms=[];
- for(let p=0;p<paths;p++){let r=0.04;for(let m=0;m<60;m++){r+=a*(b-r)*dt+sr*Math.sqrt(dt)*randn();}terms.push(r);}
+ const a=0.30,b=0.035,sr=0.010,dt=1/12,R0=0.0455;/* r0 REFRESHED Jul 17 2026: 10y UST 4.55% (was 4.0%, stale); b=3.5% stays — long-run mean assumption, not a market read */
+ let paths=500,terms=[];
+ for(let p=0;p<paths;p++){let r=R0;for(let m=0;m<60;m++){r+=a*(b-r)*dt+sr*Math.sqrt(dt)*randn();}terms.push(r);}
  const rMean=terms.reduce((x,y)=>x+y,0)/paths;
  const ERP=0.04, disc=rMean+ERP;
 
@@ -850,7 +854,7 @@ window.showComposite=function(sector){
    <td>×${m5[Math.floor(N/2)].toFixed(2)}</td></tr>`;
  });
  document.getElementById('mc').innerHTML=
-  `<div class="block"><b>Vasicek result:</b> mean simulated 5-yr rate = <b>${(rMean*100).toFixed(2)}%</b> (500 paths from r₀=4.0%) → with the 4.00% ERP that implies a <b>${(disc*100).toFixed(2)}%</b> discount rate — the r that the DCF (tab 4) and Sensitivity grid (tab 5) stress-test. Per-$1 perpetuity values live on the Sensitivity tab, not here (removed Jul 15 — it duplicated that entire tab).</div>
+  `<div class="block"><b>Vasicek result:</b> mean simulated 5-yr rate = <b>${(rMean*100).toFixed(2)}%</b> (500 paths from r₀=4.55%, the 10y Treasury on Jul 17 2026) → with the 4.00% ERP that implies a <b>${(disc*100).toFixed(2)}%</b> discount rate — the r that the DCF (tab 4) and Sensitivity grid (tab 5) stress-test. Per-$1 perpetuity values live on the Sensitivity tab, not here (removed Jul 15 — it duplicated that entire tab).</div>
   <table><tr><th style="text-align:left">Sector<br><span class="muted nt">μ/σ window</span></th><th><span class="nt">μ</span> drift<span class="info" data-pop="mu">i</span><br><span class="muted">measured ETF</span></th><th><span class="nt">σ</span> vol<span class="info" data-pop="sg">i</span><br><span class="muted">measured ETF</span></th><th>g growth<span class="info" data-pop="gg">i</span><br><span class="muted">assumed</span></th><th>P(up, 3y)<span class="info" data-pop="pup">i</span><br><span class="muted">nominal</span></th><th>P(up, 3y)<span class="info" data-pop="pupr">i</span><br><span class="muted">REAL @2.5% infl</span></th><th>P(CAGR&gt;7%, 5y)<span class="info" data-pop="pcagr">i</span></th><th>Median 5y multiple<span class="info" data-pop="med5">i</span></th></tr>${rows}</table>
   <div class="block" style="border-left:3px solid var(--accent)"><b>Inflation makes every column harder (added Jul 15).</b> "P(up, 3y) REAL" asks a stricter question: probability the sector beats <i>purchasing power</i>, i.e. ends above (1.025)³. At today's actual inflation the thresholds are stricter still (see the REAL column ⓘ for the current figure). The nominal column flatters exactly the sectors with the least real cushion — Energy loses ~6 pts of probability going real, Info Tech barely 2. CPI: BLS Dec/Dec; 2008–25 average 2.46%/yr.</div>
   <div class="block" style="border-left:3px solid #b8860b"><b>Model vs history — do these probabilities survive contact with reality?</b><span class="info" data-pop="mvh">i</span>
@@ -1286,7 +1290,7 @@ const POPS={
  sg:`<b>σ (volatility)</b> — how much yearly returns wobble around μ. Bigger σ = wider fan of outcomes AND a lower median outcome (volatility drag, σ²/2 — the reason a 44%-vol sector like gold miners can have a decent average and still be a coin flip). The GDX upgrade doubled Precious's σ vs the old proxy — that honesty is why its probabilities fell.`,
  gg:`<b>g (perpetual growth)</b> — the "forever" growth assumed beyond the forecast, used in the PV machinery. The ONE input with no measurement behind it; capped at 2–4% because nothing outgrows the economy forever.`,
  pup:`<b>P(up, 3y)</b> — share of 2,000 simulated futures ending above the starting value after 3 years. Backtested against realized history: 4 of 5 sectors within ~5–13 pts (see Model vs History below).`,
- pupr:`<b>P(up, 3y) REAL</b> — the stricter question: probability of beating PURCHASING POWER, i.e. ending above (1.025)³. Inflation costs Energy ~6 pts of probability and Tech ~2 — nominal columns flatter exactly the sectors with the least real cushion. 2008–25 actual CPI averaged 2.46%/yr; Jun-2026 is running 3.5%.`,
+ pupr:`<b>P(up, 3y) REAL</b> — the stricter question: probability of beating PURCHASING POWER, i.e. ending above (1.025)³. Inflation costs Energy ~6 pts of probability and Tech ~2 — nominal columns flatter exactly the sectors with the least real cushion. 2008–25 actual CPI averaged 2.46%/yr; Jun-2026 headline is 3.5% — but DECELERATING: core is 2.6% and June saw the biggest monthly headline drop since 2020 as post-war energy prices fell. The 2.5% g sits between headline and core deliberately.`,
  pcagr:`<b>P(CAGR&gt;7%, 5y)</b> — probability the 5-year multiple beats 1.07⁵ ≈ 1.40×, i.e. clearing a 7%/yr hurdle rate. A "would this beat a boring benchmark" test, not just "would it go up."`,
  med5:`<b>Median 5y multiple</b> — the middle simulated outcome; ×1.50 = +50% in 5 years. The median sits BELOW what μ alone implies — that gap is volatility drag, largest for high-σ sectors.`,
  mvh:`<b>How this table works.</b> "Model" = the GBM probability computed from measured μ/σ. "Realized freq" = how often that outcome actually happened across rolling windows of real ETF history (XLE back to 1999, others 2007/08+). Real-terms columns deflate by actual CPI per year.<br><br>Read it as calibration, not proof: windows overlap and it's one historical path. The one real failure it caught — the old XLB proxy claiming 79% for Precious when the truth was a coin flip — is exactly why this table exists.`,
