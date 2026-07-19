@@ -86,7 +86,8 @@
   <div class="tab" data-page="p8">6 · Growth</div>
   <div class="tab" data-page="p9">7 · Capital Preservation & Tax</div>
   <div class="tab" data-page="p10">8 · Event Timelines</div>
-  <div class="tab" data-page="p3">9 · How to Read</div>
+  <div class="tab" data-page="p11">9 · Regime Monitor</div>
+  <div class="tab" data-page="p3">10 · How to Read</div>
 </div>
 
 <!-- ============ PAGE 1: HEATMAP ============ -->
@@ -358,6 +359,47 @@
     · <b>3. The emerging tier is the high-beta end in BOTH directions.</b> KTOS +39%, AVAV +75% twenty days after Ukraine; RKLB +69%, KTOS +24% after the 12-Day War began — but KTOS −24%, AVAV −30% after the 2026 war start. Event sensitivity is where their "lucrative" story lives AND its price.<br>
     · <b>4. Gold miners were not the war hedge the label promises.</b> GDX fell 9.2% the day after the 2026 war began and was −25.9% twenty days later — after +154.7% in 2025, the hedge was already spent. Peace hurt too (E11: −13.3% at +5d). The peak-earnings penalty on Precious and this are the same lesson from two directions.<br>
     <div class="muted" style="font-size:12px;margin-top:6px">Caveats, honestly: 13 events is a small sample from one historical path; clustered events (E5–E8, E12–E13) share overlapping windows; AVAV's E7/E8 windows are contaminated by its own Jun-24-2025 earnings blowout (+40.9% next day is earnings + NATO, inseparable); +5/+20-day cells for June–July 2026 events don't exist yet (null). Full dataset + methodology: <code>04_research/event_study/event_windows.json</code>.</div>
+  </div>
+</div>
+
+<!-- ============ PAGE 11: REGIME MONITOR (walk-forward HMM, EXPERIMENTAL) ============ -->
+<div class="page" id="p11">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>Which market regime are we in?</b> A hidden Markov model reads daily defense/energy/gold behavior vs the market and names the regime — fitted <b>walk-forward</b> (each day's call uses only data available that day).<span class="info" data-pop="regime">i</span>
+    <span class="muted" style="font-size:12px">· EXPERIMENTAL · monitoring only, not a signal · data through 2026-07-16, refresh via <code>04_research/regime_hmm/run_walkforward.py</code></span>
+  </div>
+
+  <div class="block" style="border-left:3px solid #e67e22">
+    <h3>Current confirmed regime: TENSION <span class="muted" style="font-weight:400">(defense up / gold down) — since May 21, 2026</span></h3>
+    <div class="muted">The panel left the war-drawdown regime May 14 and settled back into the tension state — defense holding a bid, gold miners bleeding — through the June peace memo and July ceasefire collapse. No confirmed switch off E12/E13 yet (a switch needs 5 consecutive days; the window is open).</div>
+  </div>
+
+  <div class="block"><h3>Regime timeline — confirmed states, walk-forward<span class="info" data-pop="regwf">i</span></h3>
+    <div style="display:flex;height:26px;border-radius:4px;overflow:hidden;font-size:0">
+      <div style="width:52.4%;background:#27ae60" title="Baseline · Nov 2023 – Apr 2025"></div>
+      <div style="width:3.8%;background:#c0392b" title="Drawdown · Apr–May 2025"></div>
+      <div style="width:14.7%;background:#27ae60" title="Baseline · May–Oct 2025"></div>
+      <div style="width:2.9%;background:#e67e22" title="Tension · Oct–Nov 2025"></div>
+      <div style="width:10.0%;background:#27ae60" title="Baseline · Nov 2025 – Feb 2026"></div>
+      <div style="width:2.9%;background:#e67e22" title="Tension · Feb 11 – Mar 11 2026 (pre-war)"></div>
+      <div style="width:6.7%;background:#c0392b" title="War drawdown · Mar 11 – May 14 2026"></div>
+      <div style="width:0.7%;background:#27ae60" title="brief baseline blip · May 2026"></div>
+      <div style="width:5.8%;background:#e67e22" title="Tension · May 21 2026 – now"></div>
+    </div>
+    <div class="muted" style="font-size:12px;margin-top:5px">Nov 2023 ────────────────────────── Apr 2025 ── Oct 2025 ── <b>Feb 11 2026</b> ── Mar 11 ── May 21 ── now &nbsp;·&nbsp; hover any segment for dates</div>
+    <table style="margin-top:10px"><tr><th>Regime</th><th>Signature (annualized, vs S&P)<span class="info" data-pop="regsig">i</span></th><th>Days</th><th>Read</th></tr>
+      <tr><td><span class="swatch" style="background:#27ae60"></span> <b>Baseline</b></td><td>Defense +9% · Energy −3% · Gold miners <b>+42%</b></td><td>506</td><td>The 2023–25 normal: gold drift, everything else tracks the market</td></tr>
+      <tr><td><span class="swatch" style="background:#e67e22"></span> <b>Tension</b></td><td>Defense <b>+17%</b> · Energy +3% · Gold miners <b>−80%</b></td><td>77</td><td>Escalation positioning — defense bid, gold hedge unwinding</td></tr>
+      <tr><td><span class="swatch" style="background:#c0392b"></span> <b>Drawdown</b></td><td>Defense −25% · Energy −33% · Gold miners −73%</td><td>76</td><td>Broad risk-off vs the market (Apr 2025; the 2026 war itself)</td></tr>
+    </table>
+  </div>
+
+  <div class="block" style="border-left:3px solid #b8860b"><h3>The real-time test: 2026 war, as the model saw it</h3>
+    · <b>Feb 11, 2026 — 19 days BEFORE the war (E9):</b> confirmed switch into the tension regime. The prices shifted before the event did — same lesson as the event study ("the market buys the fear").<br>
+    · <b>Mar 11 — 9 days after the war began:</b> confirmed switch to war drawdown, well inside the 20-day reaction window our event playbook uses.<br>
+    · <b>May 14 — 34 days before the peace memo (E11):</b> confirmed exit from the drawdown regime.<br>
+    · <b>The 12-Day War (E5–E8, 2025) never registered</b> as a regime change — independently confirms the playbook's "strike-ops already priced" finding.<br>
+    <div class="muted" style="font-size:12px;margin-top:6px">Caveats, honestly: raw daily states flicker (115 switches in 659 days) — the 5-day persistence filter does real work; refit/confirm parameters were chosen a priori but not tuned against alternatives; regime signatures are measured on the days each state was assigned (descriptive, not predictive); this is one historical path containing one war. Method + reproducible scripts: <code>04_research/regime_hmm/</code>.</div>
   </div>
 </div>
 </div><!-- /wrap -->
@@ -1228,6 +1270,9 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ regime:`<b>What a hidden Markov model is.</b> Assume the market lives in a few hidden "regimes," each with its own behavior pattern, switching occasionally. You never see the regime — only daily returns. The HMM infers both the regimes and the switch dates from the returns alone (the founding technique of Renaissance Technologies).<br><br><b>Ours</b> watches three channels vs the S&P: defense (ITA), energy (XLE), gold miners (GDX) — chosen because the event study showed these carry the conflict signature. Three regimes, picked by information criterion, not by hand.<br><br><b>Walk-forward means no hindsight:</b> the state assigned to any day was computed using only data available that day (model refit monthly on an expanding window). A switch is only "confirmed" after the new state holds 5 straight days — so every date on this tab was knowable in real time.`,
+ regwf:`<b>Reading the strip.</b> Colors are the model's <i>confirmed</i> regime each day, walk-forward. Coverage starts Nov 2023 because the model requires 500 days of history before its first call.<br><br>The Apr–May 2025 red segment is a broad drawdown the model grouped with the 2026 war regime — same statistical signature (everything down vs the market), different cause. The model names behavior, not headlines.`,
+ regsig:`<b>How signatures are measured.</b> For each regime: the average daily excess return (vs SPY) of ITA / XLE / GDX across the days the model assigned to that regime, annualized (×252). Descriptive — it says how those days looked, not how future days in that regime will look. Excess-vs-market: "+42%" means beat the S&P by 42%/yr during those days, not absolute return.`,
  heat:`<b>Reading the heat map.</b> Every cell is 0–10, read like a stock call: 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.<br><br>Each rating blends <b>(1)</b> what the ratio's value means on its own, scored against published rules of thumb and the sector's own 22-year history (60%), and <b>(2)</b> how it compares with the other four sectors (40%). Ratios in the same category are cross-checked — big disagreement flags <b>"mixed signals."</b><br><br>Grey N/A = no reliable data; skipped, never counted as zero. Full methodology: How to Read tab.`,
  stoch:`<b>What the simulation table means.</b> "P(up, 3y) = 82%" = in 82% of 2,000 simulated futures, the sector was worth more after 3 years. The REAL column asks the stricter question: beating 2.5%/yr inflation, not just zero. Everything depends on the assumed drift (μ) and wobble (σ) — both measured from ETF history (windows shown per row) so you can challenge them. Backward-looking: the model's one big bet is that the future rhymes with the measured past.`,
  machinery:`<b>The three engines.</b><br><b>1 · GBM Monte Carlo:</b> <span class="formula">V_T = exp[(μ−σ²/2)T + σ√T·Z]</span>, 2,000 paths per sector at 3y and 5y horizons; seeded RNG so every run is identical and auditable.<br><br><b>2 · Vasicek rates:</b> <span class="formula">drₜ = a(b−rₜ)dt + σᵣdWₜ</span> (r₀=4.0%, a=0.30, b=3.5%, σᵣ=1.0%), simulated monthly for 5y — the mean terminal rate + 4% equity premium forms the discount rate.<br><br><b>3 · Growing perpetuity:</b> <span class="formula">PV per $1 = 1/(r−g)</span> — explored fully on the Sensitivity tab.`,
