@@ -127,10 +127,13 @@
   <a class="nav-link" data-slug="home">Overview</a>
   <div class="menu" data-group="ratings"><button aria-haspopup="true">Ratings</button><div class="dd">
     <a data-slug="heatmap">Heat Map<span class="muted">5 sectors × 7 categories, 0–10 calls</span></a>
-    <a data-slug="profiles">Sector Profiles & Company Screen<span class="muted">radar, KPI strips, top names per sector</span></a>
+    <a data-slug="profiles">Sector Profiles<span class="muted">radar, KPI strips, context layers</span></a>
+    <a data-slug="screen">Company Screen<span class="muted">top names per sector, own filings data</span></a>
+    <a data-slug="compare">Compare Sectors<span class="muted">any two, side by side with Δ</span></a>
   </div></div>
   <div class="menu" data-group="events"><button aria-haspopup="true">Events & Regime</button><div class="dd">
-    <a data-slug="regime">Regime Monitor<span class="muted">walk-forward HMM + live OSINT feed</span></a>
+    <a data-slug="regime">Regime Monitor<span class="muted">walk-forward HMM, current state</span></a>
+    <a data-slug="feed">OSINT Live Feed<span class="muted">high-signal events, attention status</span></a>
     <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
   </div></div>
   <div class="menu" data-group="portfolio"><button aria-haspopup="true">Portfolio</button><div class="dd">
@@ -159,7 +162,7 @@
     <div class="block"><h3>Latest high-signal event</h3>
       <div style="font-size:14px;font-weight:600;margin:4px 0">Tehran strike wave · Jul 18–19</div>
       <div class="muted" style="font-size:12.5px">Severity 25,405 (P99 attention) · 209 independent sources · relevance 0.99. Feed is corroboration-gated and noise-filtered (85% of chatter suppressed).</div>
-      <a class="gotoLink" data-slug="events">Event playbook →</a></div>
+      <a class="gotoLink" data-slug="feed">Live feed →</a> · <a class="gotoLink" data-slug="events">Event playbook →</a></div>
     <div class="block"><h3>My watchlist <span class="muted" style="font-weight:400;font-size:11px">★ star anything on the heat map or company screen</span></h3><div id="watchCard"></div></div>
     <div class="block"><h3>Paper fund</h3>
       <div style="font-size:16px;font-weight:700;margin:4px 0">$99,970 <span class="muted" style="font-size:12px;font-weight:400">NAV · inception Jul 21</span></div>
@@ -216,6 +219,47 @@
   </div>
   <div class="block muted" style="font-size:12.5px;border-left:3px solid #b8860b">
     <b>How much does the σ window choice matter? (audit, Jul 17 2026)</b> Swapping each σ for the realized 2021–26 daily vol moves P(up, 3y) by ±3–5 points: Defense 91→88 (realized vol is higher than the mixed window), Energy 60→65 and Gold miners 53→58 (their long windows include 2020/2013 crashes, so the dashboard runs MORE conservative than recent history). The published numbers keep the longer windows deliberately — rare crashes belong in σ — but no probability on this tab is sharper than this ±5-point band.
+  </div>
+</div>
+
+
+<!-- ============ PAGE 13: COMPARE SECTORS (split from Profiles, Jul 21) ============ -->
+<div class="page" id="p13">
+  <div class="block"><h3>Compare two sectors side by side</h3>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <select id="cmpA" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px"></select>
+      <span class="muted">vs</span>
+      <select id="cmpB" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px"></select>
+    </div>
+    <div id="cmpOut"></div>
+  </div>
+</div>
+
+<!-- ============ PAGE 14: COMPANY SCREEN (split from Profiles, Jul 21) ============ -->
+<div class="page" id="p14">
+  <div class="block" style="border-left:3px solid var(--accent)"><h3>Company screen — top names per sector, from our own filings data<span class="info" data-pop="screen">i</span> <span class="muted" style="font-weight:400;font-size:12px">· v3, Jul 21 2026 · refresh via <code>08_company_screen/run_screen.py</code></span></h3>
+    <table><tr><th>Sector</th><th>Top 3 (score /10)</th><th>Bottom</th><th>Peak-earnings flags ⚠<span class="info" data-pop="screenpeak">i</span></th></tr>
+      <tr><td><b>Energy</b></td><td>EOG 8.4 · XOM 6.2 · COP 5.9</td><td>CVX 3.9</td><td>KMI (margin P100, ROE P93)</td></tr>
+      <tr><td><b>Information Technology</b></td><td>TSM 8.6 · NVDA 7.6 · MSFT 5.8</td><td>INTC 4.4</td><td>NVDA (margin P94) · AAPL (margin P94)</td></tr>
+      <tr><td><b>US Defense & Aerospace</b></td><td>HWM 8.6 · KTOS 7.6 · HEI 7.2</td><td>RTX 3.9</td><td>HWM (margin P100, ROE P94) · GE (P94/P100) · LDOS (P100/P93)</td></tr>
+    </table>
+    <div class="muted" style="font-size:12px;margin-top:6px">Within-sector ranking only — scores are NOT comparable to the sector heat map (different inputs: 5 filing-derived ratios, no valuation/growth/analyst legs). Materials & Precious have no company coverage yet (universe = the 25 agreed tickers). AVAV partial (fiscal-year concept gaps). Every input computed from SEC XBRL by our own pipeline; 416 ticker-years of history behind the percentile grounding.</div>
+  </div>
+</div>
+
+<!-- ============ PAGE 15: OSINT LIVE FEED (split from Regime Monitor, Jul 21) ============ -->
+<div class="page" id="p15">
+  <div class="block"><h3>Live event feed — own OSINT pipeline<span class="info" data-pop="osint">i</span> <span class="muted" style="font-weight:400;font-size:12px">· data through 2026-07-19 · refreshed on redeploy via <code>06_osint/make_dashboard_embed.py</code></span></h3>
+    <div style="margin-bottom:8px"><b>Attention status:</b> z = +1.4 <span class="muted">(elevated, not spiking)</span> — with the price detector in the TENSION regime, that's <b>pattern-consistent</b>: no divergence flag active.<span class="info" data-pop="patterns">i</span></div>
+    <table><tr><th>Dates</th><th>Where</th><th>Relevance</th><th>Severity <span style="font-weight:400">(articles)</span></th><th>Attention pct</th><th>Independent sources</th></tr>
+      <tr><td>Jul 19</td><td>Tehran, Iran</td><td><b>0.99</b></td><td><b>8,683</b></td><td>P99</td><td>103 domains</td></tr>
+      <tr><td>Jul 18–19</td><td>Iran (multi-site)</td><td>0.99</td><td>5,594</td><td>P99</td><td>74</td></tr>
+      <tr><td>Jul 19</td><td>Jordan</td><td>0.99</td><td>3,802</td><td>P97</td><td>60</td></tr>
+      <tr><td>Jul 19</td><td>United States</td><td>0.99</td><td>1,547</td><td>P98</td><td>56</td></tr>
+      <tr><td>Jul 19</td><td>Israel</td><td>0.96</td><td>1,008</td><td>P96</td><td>46</td></tr>
+      <tr><td>Jul 19</td><td>Kyiv, Ukraine</td><td>0.95</td><td>4,501</td><td>P97</td><td>43</td></tr>
+    </table>
+    <div class="muted" style="font-size:12px;margin-top:6px">NOISE-FILTERED (Jul 21): only high-signal events shown — relevance ≥ 0.5 on a documented 0–1 score (coverage breadth 35% · intensity 25% · attention vs P90 25% · novelty 15%). 52 of 345 corroborated events currently clear the bar (85% of routine chatter suppressed); 566 single-source events held in quarantine. Attention pct = the event's peak day vs every country-day since 2022 (P90 = 638 · P99 = 30,956 article-units). Events are city-level since clustering v2.</div>
   </div>
 </div>
 
@@ -320,23 +364,7 @@
   </div>
   <div id="profile"></div>
 
-  <div class="block"><h3>Compare two sectors side by side</h3>
-    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
-      <select id="cmpA" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px"></select>
-      <span class="muted">vs</span>
-      <select id="cmpB" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px"></select>
-    </div>
-    <div id="cmpOut"></div>
-  </div>
 
-  <div class="block" style="border-left:3px solid var(--accent)"><h3>Company screen — top names per sector, from our own filings data<span class="info" data-pop="screen">i</span> <span class="muted" style="font-weight:400;font-size:12px">· v3, Jul 21 2026 · refresh via <code>08_company_screen/run_screen.py</code></span></h3>
-    <table><tr><th>Sector</th><th>Top 3 (score /10)</th><th>Bottom</th><th>Peak-earnings flags ⚠<span class="info" data-pop="screenpeak">i</span></th></tr>
-      <tr><td><b>Energy</b></td><td>EOG 8.4 · XOM 6.2 · COP 5.9</td><td>CVX 3.9</td><td>KMI (margin P100, ROE P93)</td></tr>
-      <tr><td><b>Information Technology</b></td><td>TSM 8.6 · NVDA 7.6 · MSFT 5.8</td><td>INTC 4.4</td><td>NVDA (margin P94) · AAPL (margin P94)</td></tr>
-      <tr><td><b>US Defense & Aerospace</b></td><td>HWM 8.6 · KTOS 7.6 · HEI 7.2</td><td>RTX 3.9</td><td>HWM (margin P100, ROE P94) · GE (P94/P100) · LDOS (P100/P93)</td></tr>
-    </table>
-    <div class="muted" style="font-size:12px;margin-top:6px">Within-sector ranking only — scores are NOT comparable to the sector heat map (different inputs: 5 filing-derived ratios, no valuation/growth/analyst legs). Materials & Precious have no company coverage yet (universe = the 25 agreed tickers). AVAV partial (fiscal-year concept gaps). Every input computed from SEC XBRL by our own pipeline; 416 ticker-years of history behind the percentile grounding.</div>
-  </div>
 </div>
 
 <!-- ============ PAGE 5: DCF EXPLORER ============ -->
@@ -504,18 +532,6 @@
     </table>
   </div>
 
-  <div class="block"><h3>Live event feed — own OSINT pipeline<span class="info" data-pop="osint">i</span> <span class="muted" style="font-weight:400;font-size:12px">· data through 2026-07-19 · refreshed on redeploy via <code>06_osint/make_dashboard_embed.py</code></span></h3>
-    <div style="margin-bottom:8px"><b>Attention status:</b> z = +1.4 <span class="muted">(elevated, not spiking)</span> — with the price detector in the TENSION regime, that's <b>pattern-consistent</b>: no divergence flag active.<span class="info" data-pop="patterns">i</span></div>
-    <table><tr><th>Dates</th><th>Where</th><th>Relevance</th><th>Severity <span style="font-weight:400">(articles)</span></th><th>Attention pct</th><th>Independent sources</th></tr>
-      <tr><td>Jul 19</td><td>Tehran, Iran</td><td><b>0.99</b></td><td><b>8,683</b></td><td>P99</td><td>103 domains</td></tr>
-      <tr><td>Jul 18–19</td><td>Iran (multi-site)</td><td>0.99</td><td>5,594</td><td>P99</td><td>74</td></tr>
-      <tr><td>Jul 19</td><td>Jordan</td><td>0.99</td><td>3,802</td><td>P97</td><td>60</td></tr>
-      <tr><td>Jul 19</td><td>United States</td><td>0.99</td><td>1,547</td><td>P98</td><td>56</td></tr>
-      <tr><td>Jul 19</td><td>Israel</td><td>0.96</td><td>1,008</td><td>P96</td><td>46</td></tr>
-      <tr><td>Jul 19</td><td>Kyiv, Ukraine</td><td>0.95</td><td>4,501</td><td>P97</td><td>43</td></tr>
-    </table>
-    <div class="muted" style="font-size:12px;margin-top:6px">NOISE-FILTERED (Jul 21): only high-signal events shown — relevance ≥ 0.5 on a documented 0–1 score (coverage breadth 35% · intensity 25% · attention vs P90 25% · novelty 15%). 52 of 345 corroborated events currently clear the bar (85% of routine chatter suppressed); 566 single-source events held in quarantine. Attention pct = the event's peak day vs every country-day since 2022 (P90 = 638 · P99 = 30,956 article-units). Events are city-level since clustering v2.</div>
-  </div>
   <div class="block" style="border-left:3px solid #b8860b"><h3>The real-time test: 2026 war, as the model saw it</h3>
     · <b>Feb 11, 2026 — 19 days BEFORE the war (E9):</b> confirmed switch into the tension regime. The prices shifted before the event did — same lesson as the event study ("the market buys the fear").<br>
     · <b>Mar 11 — 9 days after the war began:</b> confirmed switch to war drawdown, well inside the 20-day reaction window our event playbook uses.<br>
@@ -1409,8 +1425,8 @@ function renderEvtClass(){
 })();
 
 /* ---------- ROUTER + NAV (site revamp Jul 21; replaces flat tab bar) ---------- */
-const SLUGS={home:"p0",heatmap:"p1",profiles:"p4",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",horizons:"p12",howto:"p3"};
-const GROUPOF={heatmap:"ratings",profiles:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",captax:"portfolio",horizons:"portfolio"};
+const SLUGS={home:"p0",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",howto:"p3"};
+const GROUPOF={heatmap:"ratings",profiles:"ratings",screen:"ratings",compare:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",feed:"events",captax:"portfolio",horizons:"portfolio"};
 function goto(slug,push=true){
  if(!SLUGS[slug]) slug="home";
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
@@ -1448,7 +1464,10 @@ goto(location.hash.replace('#','')||'home',false);
 (function(){
  const IDX=[
   {t:"Heat Map — sector ratings",s:"heatmap",k:"heat map ratings scores sectors bullish bearish categories cells overall"},
-  {t:"Sector Profiles & Company Screen",s:"profiles",k:"profiles radar strips company screen shortlist top names peak flags nvda hwm eog tsm"},
+  {t:"Sector Profiles",s:"profiles",k:"profiles radar strips context layers business cycle analyst consensus"},
+  {t:"Company Screen — top names",s:"screen",k:"company screen shortlist top names peak flags filings nvda hwm eog tsm ratios"},
+  {t:"Compare Sectors",s:"compare",k:"compare comparison side by side delta versus two sectors"},
+  {t:"OSINT Live Feed",s:"feed",k:"osint live feed high-signal events attention quarantine relevance corroborated tehran"},
   {t:"Stochastic Lab — Monte Carlo",s:"stochastic",k:"stochastic monte carlo simulation probability p(up) real inflation gbm mu sigma fan"},
   {t:"DCF Explorer",s:"dcf",k:"dcf discounted cash flow valuation terminal value wacc"},
   {t:"Sensitivity — r−g grid",s:"sensitivity",k:"sensitivity grid perpetuity discount growth r g"},
@@ -1504,7 +1523,7 @@ goto(location.hash.replace('#','')||'home',false);
   a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));
   a.download=name+'.csv';a.click();
  }
- [["p1","sector_heatmap"],["p4","company_screen"],["p12","horizons"]].forEach(([pid,name])=>{
+ [["p1","sector_heatmap"],["p14","company_screen"],["p13","sector_comparison"],["p15","osint_feed"],["p12","horizons"]].forEach(([pid,name])=>{
   const pg=document.getElementById(pid); if(!pg) return;
   const btn=document.createElement('button');btn.className='csvBtn';btn.textContent='⬇ CSV';
   btn.title='Export the first table on this page as CSV';
@@ -1578,7 +1597,7 @@ goto(location.hash.replace('#','')||'home',false);
   td.insertBefore(st,td.firstChild);
  });
  /* inject stars: company-screen table (first data column holds "TSM 8.6 · NVDA 7.6 …" — star per sector-row top names is coarse; star the row's sector-leader set) */
- document.querySelectorAll('#p4 .block table tr').forEach(tr=>{
+ document.querySelectorAll('#p14 .block table tr').forEach(tr=>{
   const cells=tr.children; if(cells.length<2||cells[0].tagName!=='TD') return;
   const names=(cells[1].textContent.match(/[A-Z]{2,5}(?= \d)/g)||[]).slice(0,3);
   if(!names.length) return;
