@@ -126,19 +126,19 @@
     <a data-slug="heatmap">Heat Map<span class="muted">5 sectors × 7 categories, 0–10 calls</span></a>
     <a data-slug="profiles">Sector Profiles & Company Screen<span class="muted">radar, KPI strips, top names per sector</span></a>
   </div></div>
-  <div class="menu" data-group="projections"><button aria-haspopup="true">Projections</button><div class="dd">
-    <a data-slug="stochastic">Stochastic Lab<span class="muted">Monte Carlo P(up), nominal & real</span></a>
-    <a data-slug="dcf">DCF Explorer<span class="muted">interactive valuation machinery</span></a>
-    <a data-slug="sensitivity">Sensitivity<span class="muted">the r − g grid</span></a>
-    <a data-slug="growth">Growth<span class="muted">four legs of the growth rating</span></a>
-  </div></div>
   <div class="menu" data-group="events"><button aria-haspopup="true">Events & Regime</button><div class="dd">
-    <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
     <a data-slug="regime">Regime Monitor<span class="muted">walk-forward HMM + live OSINT feed</span></a>
+    <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
   </div></div>
   <div class="menu" data-group="portfolio"><button aria-haspopup="true">Portfolio</button><div class="dd">
+    <a data-slug="horizons">Horizons<span class="muted">all timeframes, one ledger, paper fund</span></a>
     <a data-slug="captax">Capital Preservation & Tax<span class="muted">real-terms survival math</span></a>
-    <a data-slug="horizons">Horizons<span class="muted">all timeframes, one ledger</span></a>
+  </div></div>
+  <div class="menu" data-group="projections"><button aria-haspopup="true">Projections</button><div class="dd">
+    <a data-slug="stochastic">Stochastic Lab<span class="muted">Monte Carlo P(up), nominal & real</span></a>
+    <a data-slug="growth">Growth<span class="muted">four legs of the growth rating</span></a>
+    <a data-slug="dcf">DCF Explorer<span class="muted">interactive sandbox — illustrative inputs</span></a>
+    <a data-slug="sensitivity">Sensitivity<span class="muted">interactive sandbox — the r − g grid</span></a>
   </div></div>
   <a class="nav-link" data-slug="howto">How to Read</a>
   <div class="nav-spacer"></div>
@@ -167,8 +167,8 @@
   <h3 style="margin-top:20px">Explore</h3>
   <div class="dir-grid">
     <div class="block" data-slug="heatmap"><b>Ratings</b><div class="muted" style="font-size:12.5px;margin-top:4px">The heat map: five sectors scored 0–10 across seven weighted categories, every cell decomposable to raw data on click. Plus per-company shortlists from our own SEC-filings pipeline.</div></div>
-    <div class="block" data-slug="stochastic"><b>Projections</b><div class="muted" style="font-size:12.5px;margin-top:4px">Monte Carlo futures (nominal and inflation-adjusted), the DCF machinery, and the sensitivity grid where valuations actually live and die.</div></div>
-    <div class="block" data-slug="events"><b>Events & Regime</b><div class="muted" style="font-size:12.5px;margin-top:4px">How defense, energy and gold actually moved around 13 verified geopolitical events — and which market regime the hidden-Markov detector says we're in now.</div></div>
+    <div class="block" data-slug="regime"><b>Events & Regime</b><div class="muted" style="font-size:12.5px;margin-top:4px">How defense, energy and gold actually moved around 13 verified geopolitical events — and which market regime the hidden-Markov detector says we're in now.</div></div>
+    <div class="block" data-slug="stochastic"><b>Projections</b><div class="muted" style="font-size:12.5px;margin-top:4px">Monte Carlo futures (nominal and inflation-adjusted), plus the interactive DCF and sensitivity sandboxes.</div></div>
     <div class="block" data-slug="horizons"><b>Portfolio & Horizons</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every timeframe from intraday to five years under one evidence standard, a 141-entry chronological ledger, and a rules-driven paper fund.</div></div>
     <div class="block" data-slug="captax"><b>Capital Preservation</b><div class="muted" style="font-size:12.5px;margin-top:4px">The stricter question: beating inflation and taxes, not just zero.</div></div>
     <div class="block" data-slug="howto"><b>How to Read</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every symbol, source, formula and caveat — the honesty layer.</div></div>
@@ -315,6 +315,15 @@
     <span class="muted">Radar = category ratings (0–10 bullish/bearish scale). Strips = where each raw KPI sits inside the 4-sector range, with its rating and verdict.</span>
   </div>
   <div id="profile"></div>
+
+  <div class="block"><h3>Compare two sectors side by side</h3>
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <select id="cmpA" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px"></select>
+      <span class="muted">vs</span>
+      <select id="cmpB" style="background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:13px"></select>
+    </div>
+    <div id="cmpOut"></div>
+  </div>
 
   <div class="block" style="border-left:3px solid var(--accent)"><h3>Company screen — top names per sector, from our own filings data<span class="info" data-pop="screen">i</span> <span class="muted" style="font-weight:400;font-size:12px">· v3, Jul 21 2026 · refresh via <code>08_company_screen/run_screen.py</code></span></h3>
     <table><tr><th>Sector</th><th>Top 3 (score /10)</th><th>Bottom</th><th>Peak-earnings flags ⚠<span class="info" data-pop="screenpeak">i</span></th></tr>
@@ -1462,7 +1471,7 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* keyboard shortcuts */
 (function(){
- const MAP={"1":"heatmap","2":"profiles","3":"stochastic","4":"dcf","5":"sensitivity","6":"growth","7":"events","8":"regime","9":"captax","0":"horizons","h":"home","r":"howto"};
+ const MAP={"1":"heatmap","2":"profiles","3":"regime","4":"events","5":"horizons","6":"captax","7":"stochastic","8":"growth","9":"dcf","0":"sensitivity","h":"home","r":"howto"}; /* order = project importance (Jul 21: Riley — core work first, self-input sandboxes last) */
  const ov=document.createElement('div');ov.id='kbdOverlay';
  ov.innerHTML='<div><b>Keyboard shortcuts</b><br>1–9, 0 — jump to sections · H — overview · R — How to Read · / — search · ? — this help · Esc — close</div>';
  document.body.appendChild(ov);
@@ -1498,6 +1507,31 @@ goto(location.hash.replace('#','')||'home',false);
   btn.addEventListener('click',()=>{const t=pg.querySelector('table');if(t)exportTable(t,name);});
   pg.insertBefore(btn,pg.firstChild);
  });
+})();
+
+/* comparison mode (Jul 21): two sectors side by side, per category + composite */
+(function(){
+ const A=document.getElementById('cmpA'),B=document.getElementById('cmpB'),out=document.getElementById('cmpOut');
+ if(!A||!B||!out) return;
+ SECTORS.forEach(s=>{A.add(new Option(s,s));B.add(new Option(s,s));});
+ A.value=localStorage.getItem('term_cmpA')||"Precious Metals";
+ B.value=localStorage.getItem('term_cmpB')||"US Defense & Aerospace";
+ function comp(s){let t=0,w=0;CATS.forEach(c=>{const sc=catScore(c,s);if(sc!=null){t+=sc*CATW[c.name];w+=CATW[c.name];}});return t/w;}
+ function cell(v){return v==null?'<td class="na">N/A</td>':`<td style="font-weight:600;color:${color(v)}">${v.toFixed(1)}</td>`;}
+ function render(){
+  const a=A.value,b=B.value;
+  localStorage.setItem('term_cmpA',a);localStorage.setItem('term_cmpB',b);
+  let h=`<table><tr><th>Category</th><th>${a}</th><th>${b}</th><th>Δ (A−B)</th></tr>`;
+  CATS.forEach(c=>{
+   const va=catScore(c,a),vb=catScore(c,b);
+   const d=(va!=null&&vb!=null)?va-vb:null;
+   h+=`<tr><td>${c.name} <span class="muted" style="font-size:11px">${(CATW[c.name]*100).toFixed(1)}%</span></td>${cell(va)}${cell(vb)}<td style="color:${d==null?'var(--dim)':d>0?'var(--pos)':d<0?'var(--neg)':'var(--dim)'};font-weight:600">${d==null?'—':(d>0?'+':'')+d.toFixed(1)}</td></tr>`;});
+  const ca=comp(a),cb=comp(b);
+  h+=`<tr style="border-top:2px solid var(--border)"><td><b>OVERALL</b></td>${cell(ca)}${cell(cb)}<td style="font-weight:700;color:${ca-cb>0?'var(--pos)':'var(--neg)'}">${(ca-cb>0?'+':'')+(ca-cb).toFixed(1)}</td></tr></table>`;
+  h+=`<div class="muted" style="font-size:12px;margin-top:6px">${a}: <b>${verdict(ca)}</b> · ${b}: <b>${verdict(cb)}</b> — same engine, same weights; Δ in category points. Click cells on the heat map for the arithmetic behind any number.</div>`;
+  out.innerHTML=h;
+ }
+ A.addEventListener('change',render);B.addEventListener('change',render);render();
 })();
 
 /* persistent selections (profile + simulation sector) */
