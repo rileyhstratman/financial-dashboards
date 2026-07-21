@@ -279,6 +279,7 @@
       <div id="tickRes" style="position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--pop-bg);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 14px 44px rgba(0,0,0,.4);display:none;z-index:70;max-height:280px;overflow-y:auto"></div>
     </div>
     <div id="quoteCard" style="margin-top:14px"></div>
+    <div id="resPanel" style="margin-top:14px"></div>
   </div>
   <div class="block"><h3>My stock watchlist <span class="muted" style="font-weight:400;font-size:11px">day % and since-added % — the anchor Fidelity doesn't give you</span></h3>
     <div id="wlOut"></div>
@@ -1707,14 +1708,80 @@ goto(location.hash.replace('#','')||'home',false);
    <div><span style="font-size:22px;font-weight:800">${t}</span> <span class="muted">${name} · ${sector}</span></div>
    <div style="font-size:20px;font-weight:700">$${last.toLocaleString()}</div>
    <div>Day: ${pct(d1)}</div><div class="muted" style="font-size:12.5px">Off 52-wk high: ${off52}% · 30d vol: ${vol}% ann.</div>
-   <button id="wlAdd" class="csvBtn" style="float:none">＋ Watchlist</button></div>${ctx}${analyticsRows(t)}
+   <button id="wlAdd" class="csvBtn" style="float:none">＋ Watchlist</button>
+   <button id="resOpen" class="csvBtn" style="float:none;border-color:var(--accent);color:var(--accent)">📊 Full research</button></div>${ctx}${analyticsRows(t)}
    <div class="muted" style="font-size:11.5px;margin-top:6px">Research context, not advice. Every number reproducible: quotes_builder.py + stock_analytics_builder.py.</div>`;
   card.querySelectorAll('[data-slug]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();goto(el.dataset.slug);}));
   document.getElementById('wlAdd').addEventListener('click',()=>{
    const w=loadWL();
    if(!w.some(x=>x.s===t)){w.push({s:t,d:new Date().toISOString().slice(0,10),p:last});saveWL(w);renderWL();}
   });
+  document.getElementById('resOpen').addEventListener('click',()=>openResearch(t));
+  document.getElementById('resPanel').innerHTML="";
  }
+
+ /* ===== FULL RESEARCH VIEW (Jul 21): brokerage-style deep dive, lazy charts.json ===== */
+ let CH=null, resTF="1Y", resT=null;
+ function tfSeries(c,tf){
+  const day=c.d[1], mon=c.m[1];
+  if(tf==="1W") return {p:day.slice(-6),unit:"d"};
+  if(tf==="1M") return {p:day.slice(-22),unit:"d"};
+  if(tf==="6M") return {p:day.slice(-127),unit:"d"};
+  if(tf==="1Y") return {p:day,unit:"d"};
+  if(tf==="2Y") return {p:mon.slice(-25),unit:"m"};
+  if(tf==="5Y") return {p:mon.slice(-61),unit:"m"};
+  return {p:mon,unit:"m"};
+ }
+ function drawChart(cv,pts,up){
+  const ctx2=cv.getContext('2d'),W=cv.width,H=cv.height,pad=6;
+  ctx2.clearRect(0,0,W,H);
+  const mn=Math.min(...pts),mx=Math.max(...pts),rng=(mx-mn)||1;
+  const X=i=>pad+(W-2*pad)*i/(pts.length-1), Y=v=>H-pad-(H-2*pad)*(v-mn)/rng;
+  const col=up?getComputedStyle(document.body).getPropertyValue('--pos'):getComputedStyle(document.body).getPropertyValue('--neg');
+  ctx2.beginPath();ctx2.moveTo(X(0),Y(pts[0]));
+  pts.forEach((v,i)=>ctx2.lineTo(X(i),Y(v)));
+  ctx2.strokeStyle=col.trim()||'#3ecf6e';ctx2.lineWidth=2;ctx2.stroke();
+  ctx2.lineTo(X(pts.length-1),H);ctx2.lineTo(X(0),H);ctx2.closePath();
+  ctx2.fillStyle=(col.trim()||'#3ecf6e')+'22';ctx2.fill();
+ }
+ function renderResearch(){
+  const t=resT,panel=document.getElementById('resPanel');
+  const c=CH&&CH.c[t];
+  if(!c){panel.innerHTML='<span class="muted">No chart data for '+t+'</span>';return;}
+  const TFS=["1W","1M","6M","1Y","2Y","5Y","MAX"];
+  const s=tfSeries(c,resTF);
+  const chg=100*(s.p[s.p.length-1]/s.p[0]-1);
+  /* per-timeframe returns strip */
+  const rets=TFS.map(tf=>{const x=tfSeries(c,tf);return [tf,100*(x.p[x.p.length-1]/x.p[0]-1)];});
+  const [rsi,ma50,ma200]=c.tech; const momp=c.momp;
+  const senti=rsi==null?"—":rsi>70?"overbought-zone":rsi<30?"oversold-zone":"neutral-zone";
+  const trend=(ma50>0&&ma200>0)?"uptrend (above both MAs)":(ma50<0&&ma200<0)?"downtrend (below both MAs)":"mixed trend";
+  let h=`<div class="block" style="border-left:3px solid var(--accent)"><h3>${t} — full research <span class="muted" style="font-weight:400;font-size:11px">· charts as of ${CH.as_of} · end-of-day pipeline data (intraday deliberately not shown — would be stale masquerading as live)</span></h3>
+   <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">${TFS.map(tf=>`<button class="csvBtn" style="float:none${tf===resTF?';border-color:var(--accent);color:var(--accent)':''}" data-tf="${tf}">${tf}</button>`).join('')}
+    <span style="margin-left:auto;font-weight:700;color:${chg>=0?'var(--pos)':'var(--neg)'}">${chg>=0?'+':''}${chg.toFixed(1)}% over ${resTF}</span></div>
+   <canvas id="resCv" width="860" height="240" style="width:100%;max-height:240px"></canvas>
+   <table style="margin-top:10px"><tr>${rets.map(([tf,r])=>`<th>${tf}</th>`).join('')}</tr><tr>${rets.map(([tf,r])=>`<td style="font-weight:600;color:${r>=0?'var(--pos)':'var(--neg)'}">${r>=0?'+':''}${r.toFixed(1)}%</td>`).join('')}</tr></table>`;
+  h+=`<div style="margin-top:10px;font-size:12.5px"><b>Technical sentiment</b> <span class="muted">(measured proxies — we don't fake news sentiment; a real news-sentiment feed needs authenticated APIs)</span>:<br>
+   RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 518 tickers</div>`;
+  const k=CH.kpi[t];
+  if(k){
+   h+=`<div style="margin-top:10px;font-size:12.5px"><b>Our KPIs</b> (from SEC filings via our pipeline, FY ${k.fy_end}):
+    net margin <b>${(+k.nm).toFixed(1)}%</b> · current <b>${(+k.cur).toFixed(2)}×</b> · quick <b>${(+k.qk).toFixed(2)}×</b> · LT-debt/assets <b>${(+k.da).toFixed(2)}</b> · ROE <b>${(+k.roe).toFixed(1)}%</b> · screen score <b style="color:${color(+k.avg_score)}">${k.avg_score}/10</b>${k.peak_flags?` · ⚠ peak flags: ${k.peak_flags}`:''}</div>`;
+  } else {
+   h+=`<div class="muted" style="margin-top:10px;font-size:12px">Filing-level KPIs cover our 25-company universe; ${t} is outside it (price analytics above still apply).</div>`;
+  }
+  h+=`<div class="muted" style="font-size:11.5px;margin-top:8px">Everything reproducible: charts_builder.py · analytics rows above the chart share the same quote card. Research, not investment advice.</div></div>`;
+  panel.innerHTML=h;
+  drawChart(document.getElementById('resCv'),s.p,chg>=0);
+  panel.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{resTF=b.dataset.tf;renderResearch();}));
+ }
+ window.openResearch=function(t){
+  resT=t;
+  if(CH){renderResearch();return;}
+  document.getElementById('resPanel').innerHTML='<span class="muted">Loading chart data…</span>';
+  fetch('charts.json').then(r=>r.json()).then(d=>{CH=d;renderResearch();})
+   .catch(()=>{document.getElementById('resPanel').innerHTML='<span class="muted">charts.json failed to load</span>';});
+ };
  function renderWL(){
   const w=loadWL();
   if(!w.length){wlOut.innerHTML='<span class="muted" style="font-size:12.5px">Empty — look a ticker up and add it. The price and date at the moment you add become your permanent anchor.</span>';return;}
@@ -1751,19 +1818,19 @@ goto(location.hash.replace('#','')||'home',false);
   const RF=4.55;
   const kel=x=>x&&x.mu!=null?Math.max(0,((x.mu-RF)/((x.sig/100)**2*10000)*100)/2):null;
   const rows=[
-   ["Price",`$${qa[0].toLocaleString()}`,`$${qb[0].toLocaleString()}`,"n"],
-   ["Day %",qa[1],qb[1],"p"],["Off 52-wk high",qa[2],qb[2],"p"],["30d vol (ann.)",qa[3]+"%",qb[3]+"%","n"],
-   ["3y return μ",aa&&aa.mu,ab&&ab.mu,"p"],["3y vol σ",aa&&aa.sig!=null?aa.sig+"%":null,ab&&ab.sig!=null?ab.sig+"%":null,"n"],
-   ["Half-Kelly size",kel(aa)!=null?(kel(aa)>100?">100 (μ suspect)":kel(aa).toFixed(0))+"%":null,kel(ab)!=null?(kel(ab)>100?">100 (μ suspect)":kel(ab).toFixed(0))+"%":null,"n"],
-   ["Baseline regime (exc.)",aa&&aa.rg&&aa.rg[0],ab&&ab.rg&&ab.rg[0],"p"],
-   ["Tension regime ←now",aa&&aa.rg&&aa.rg[1],ab&&ab.rg&&ab.rg[1],"p"],
-   ["Drawdown regime",aa&&aa.rg&&aa.rg[2],ab&&ab.rg&&ab.rg[2],"p"],
-   ["War onset E9 (+20d)",aa&&aa.e9&&aa.e9[1],ab&&ab.e9&&ab.e9[1],"p"],
-   ["Peace memo E11 (+20d)",aa&&aa.e11&&aa.e11[1],ab&&ab.e11&&ab.e11[1],"p"],
-   ["Our screen score",CTX[a]!=null?CTX[a]+"/10":null,CTX[b]!=null?CTX[b]+"/10":null,"n"]];
+   ["Price",`$${qa[0].toLocaleString()}`,`$${qb[0].toLocaleString()}`,"n","cprice"],
+   ["Day %",qa[1],qb[1],"p","cday"],["Off 52-wk high",qa[2],qb[2],"p","c52w"],["30d vol (ann.)",qa[3]+"%",qb[3]+"%","n","cvol"],
+   ["3y return μ",aa&&aa.mu,ab&&ab.mu,"p","cmu"],["3y vol σ",aa&&aa.sig!=null?aa.sig+"%":null,ab&&ab.sig!=null?ab.sig+"%":null,"n","csig"],
+   ["Half-Kelly size",kel(aa)!=null?(kel(aa)>100?">100 (μ suspect)":kel(aa).toFixed(0))+"%":null,kel(ab)!=null?(kel(ab)>100?">100 (μ suspect)":kel(ab).toFixed(0))+"%":null,"n","ckelly"],
+   ["Baseline regime (exc.)",aa&&aa.rg&&aa.rg[0],ab&&ab.rg&&ab.rg[0],"p","cregime"],
+   ["Tension regime ←now",aa&&aa.rg&&aa.rg[1],ab&&ab.rg&&ab.rg[1],"p","cregime"],
+   ["Drawdown regime",aa&&aa.rg&&aa.rg[2],ab&&ab.rg&&ab.rg[2],"p","cregime"],
+   ["War onset E9 (+20d)",aa&&aa.e9&&aa.e9[1],ab&&ab.e9&&ab.e9[1],"p","cevent"],
+   ["Peace memo E11 (+20d)",aa&&aa.e11&&aa.e11[1],ab&&ab.e11&&ab.e11[1],"p","cevent"],
+   ["Our screen score",CTX[a]!=null?CTX[a]+"/10":null,CTX[b]!=null?CTX[b]+"/10":null,"n","cscreen"]];
   let h=`<table><tr><th></th><th>${a} <span class="muted" style="font-weight:400">${Q.meta[a][0]}</span></th><th>${b} <span class="muted" style="font-weight:400">${Q.meta[b][0]}</span></th></tr>`;
-  rows.forEach(([lab,va,vb,typ])=>{
-   h+=`<tr><td>${lab}</td>`+(typ==="p"?fp(va)+fp(vb):fn(va)+fn(vb))+`</tr>`;});
+  rows.forEach(([lab,va,vb,typ,pk])=>{
+   h+=`<tr><td>${lab}<span class="info" data-pop="${pk}">i</span></td>`+(typ==="p"?fp(va)+fp(vb):fn(va)+fn(vb))+`</tr>`;});
   out.innerHTML=h+`</table><div class="muted" style="font-size:12px;margin-top:6px">Regime rows = annualized excess vs SPY during walk-forward confirmed states (Nov 2023+). Event rows from adjusted closes. Kelly is education, not sizing advice — μ estimation error dominates.</div>`;
  }
  [A,B].forEach(el=>el.addEventListener('input',render));
@@ -1787,6 +1854,16 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ cprice:`<b>Price.</b> Last daily close from our pipeline (end-of-day, refreshed each morning — not live intraday). Splits/dividends adjusted by the source.`,
+ cday:`<b>Day %.</b> Last close vs the prior close. One day of noise — σ/√252 says a typical S&P name moves ±1–2% on nothing.`,
+ c52w:`<b>Off 52-week high.</b> Distance below the trailing-year peak. Deep discounts can be value or a falling knife — this number can't tell you which; the KPIs and regime rows are the context.`,
+ cvol:`<b>30-day volatility, annualized.</b> Standard deviation of the last 30 daily log returns × √252. The denominator in every sizing formula — high vol mechanically shrinks sensible position sizes (see Half-Kelly).`,
+ cmu:`<b>3-year return μ.</b> Annualized mean daily log return over ~756 trading days. The single most estimation-error-prone number on this page — a 3y window barely constrains it. Treat as a rough prior, not a forecast.`,
+ csig:`<b>3-year volatility σ.</b> Annualized standard deviation over 3 years. Far better estimated than μ (vol clusters and persists). Drives volatility drag: long-run compounding ≈ μ − σ²/2.`,
+ ckelly:`<b>Half-Kelly size.</b> f* = (μ − rf)/σ² maximizes long-run compound growth; half of it is the practitioner norm because μ estimation error dominates. ">100%" doesn't mean lever up — it means the μ estimate is too optimistic to trust. Education, not sizing advice.`,
+ cregime:`<b>Regime rows.</b> This ticker's annualized excess return vs SPY during each market regime, using the walk-forward HMM's confirmed states (Nov 2023+). "←now" marks the current regime — the row that describes the environment you'd actually be buying into. One regime cycle of history; descriptive, not destiny.`,
+ cevent:`<b>Event rows.</b> The ticker's actual return in the 20 trading days after the 2026 war onset (E9) and the war-ending memorandum (E11), from adjusted closes. A crisis fingerprint: does this name behave like a defense stock, an energy stock, or the index?`,
+ cscreen:`<b>Our screen score.</b> The company screen's within-sector 0–10 (anchor + own-history percentile + peer-relative, peak-penalized) — only for the 25 covered names. NOT comparable to the sector heat-map ratings.`,
  horizons:`<b>Why one stack, many clocks.</b> Different horizons reward different information: intraday rewards microstructure (the bot's liquidity sweeps), weekly rewards cross-sectional factors (the ridge model), years reward valuation and mean reversion (this Terminal). The systems were built separately — the Horizons layer unifies them under one evidence standard and one chronological ledger.<br><br><b>The ledger matters most:</b> every dated result across all systems, in strict order, so any claim ("the bot was profitable before the Terminal existed", "the regime switch preceded the fund's de-risking") can be checked against timestamps rather than memory. That is the same principle as the paper fund's decision log, applied to the whole body of work.`,
  screen:`<b>How the company screen works.</b> Each of the 25 tracked companies is scored on five ratios computed from its OWN SEC filings (via our XBRL pipeline): net margin, current ratio, quick ratio, LT-debt/assets, ROE. Each ratio: the sector engine's anchor score, blended 50/50 with the company's own 15-19 year history percentile, then 60/40 with its position among sector peers — the same three-legged architecture as the heat map, at company scale.<br><br><b>What it is NOT:</b> comparable to the sector ratings (no valuation, growth, or cash-flow legs yet — those need analyst and market data per company), and not a buy list. It answers "which houses look soundest in each neighborhood," nothing more.`,
  screenpeak:`<b>The peak-earnings warning, at company level.</b> A company whose margin or ROE sits at ≥ the 90th percentile of its own 15+ year record takes the same −1.5 penalty as sectors do — because the project's most reliable backtest finding is that peak profitability mean-reverts (sectors at peak margins delivered 6.4%/yr forward vs 18.9% for depressed ones).<br><br>Read the flags accordingly: NVDA and AAPL at margin P94, HWM at P100 — these are the specific companies currently priced on profitability their own history says is usually a top. Not a prediction; a base rate.`,
