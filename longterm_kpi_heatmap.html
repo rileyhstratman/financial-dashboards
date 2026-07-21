@@ -65,6 +65,49 @@
   details.acc[open]>summary::after{content:"–"}
   details.acc>summary .muted{font-weight:400;font-size:12px;margin-left:10px}
   details.acc>.inner{padding:2px 18px 16px;font-size:13.5px;line-height:1.6;border-top:1px solid var(--border)}
+
+  /* ===== site revamp (Jul 21): navbar + dropdowns + home + search + footer ===== */
+  nav.site{display:flex;align-items:center;gap:4px;margin:12px 0 18px;position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);padding:8px 4px;border-bottom:1px solid var(--border)}
+  .nav-link,.menu>button{padding:8px 13px;border:none;border-radius:9px;cursor:pointer;background:transparent;color:var(--dim);font-size:13px;font-weight:600;font-family:inherit;transition:all .13s;white-space:nowrap}
+  .nav-link:hover,.menu>button:hover{color:var(--text);background:var(--panel2)}
+  .nav-link.on,.menu.on>button{color:#fff;background:var(--tab-on)}
+  body.light .nav-link.on,body.light .menu.on>button{color:#fff}
+  .menu{position:relative}
+  .menu>button::after{content:" ▾";font-size:9px;opacity:.7}
+  .dd{position:absolute;top:calc(100% + 6px);left:0;min-width:225px;background:var(--pop-bg);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 14px 44px rgba(0,0,0,.4);display:none;z-index:70}
+  .menu.open .dd{display:block}
+  .dd a{display:block;padding:9px 12px;border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;cursor:pointer}
+  .dd a:hover{background:var(--panel2)}
+  .dd a.on{background:var(--tab-on);color:#fff}
+  .dd a .muted{display:block;font-size:11px;margin-top:1px}
+  .nav-spacer{flex:1}
+  #navSearch{position:relative}
+  #searchBox{width:190px;padding:7px 12px;border:1px solid var(--border);border-radius:18px;background:var(--panel);color:var(--text);font-size:12.5px;font-family:inherit}
+  #searchBox:focus{border-color:var(--accent);outline:none;width:240px;transition:width .15s}
+  #searchRes{position:absolute;top:calc(100% + 6px);right:0;min-width:260px;background:var(--pop-bg);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 14px 44px rgba(0,0,0,.4);display:none;z-index:70}
+  #searchRes a{display:block;padding:8px 12px;border-radius:8px;color:var(--text);cursor:pointer;font-size:12.8px}
+  #searchRes a:hover,#searchRes a.sel{background:var(--panel2)}
+  .home-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;margin-bottom:14px}
+  .home-grid .block{margin:0}
+  .gotoLink{color:var(--accent);cursor:pointer;font-size:12.5px;font-weight:600;text-decoration:none}
+  .gotoLink:hover{text-decoration:underline}
+  .dir-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+  .dir-grid .block{margin:0;cursor:pointer;transition:border-color .13s}
+  .dir-grid .block:hover{border-color:var(--accent)}
+  .callrow{display:flex;justify-content:space-between;align-items:center;padding:6px 2px;border-bottom:1px solid var(--border);font-size:13px}
+  .callrow:last-child{border-bottom:none}
+  footer.site{margin:30px 0 16px;padding:14px 4px;border-top:1px solid var(--border);color:var(--dim);font-size:11.5px;line-height:1.7}
+  .csvBtn{float:right;padding:4px 10px;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--dim);font-size:11px;cursor:pointer;font-family:inherit}
+  .csvBtn:hover{border-color:var(--accent);color:var(--text)}
+  #kbdOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:120;display:none;align-items:center;justify-content:center}
+  #kbdOverlay>div{background:var(--pop-bg);border:1px solid var(--border);border-radius:14px;padding:22px 28px;max-width:420px;font-size:13px;line-height:2}
+  :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+  @media (max-width:860px){
+    nav.site{flex-wrap:wrap}
+    .dd{position:static;box-shadow:none;border:none;background:transparent;min-width:0;padding-left:14px}
+    #searchBox,#searchBox:focus{width:130px}
+    .home-grid,.dir-grid{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
@@ -77,22 +120,63 @@
 <div class="banner">⚠ <b>Sector-average estimates from public sources — not live, not investment-grade.</b> Sources, methods and caveats: <b>How to Read</b>.</div>
 </header>
 
-<div class="tabs">
-  <div class="tab active" data-page="p1">1 · Heat Map</div>
-  <div class="tab" data-page="p2">2 · Stochastic Lab</div>
-  <div class="tab" data-page="p4">3 · Sector Profiles</div>
-  <div class="tab" data-page="p5">4 · DCF Explorer</div>
-  <div class="tab" data-page="p7">5 · Sensitivity</div>
-  <div class="tab" data-page="p8">6 · Growth</div>
-  <div class="tab" data-page="p9">7 · Capital Preservation & Tax</div>
-  <div class="tab" data-page="p10">8 · Event Timelines</div>
-  <div class="tab" data-page="p11">9 · Regime Monitor</div>
-  <div class="tab" data-page="p12">10 · Horizons</div>
-  <div class="tab" data-page="p3">11 · How to Read</div>
+<nav class="site" aria-label="Main">
+  <a class="nav-link" data-slug="home">Overview</a>
+  <div class="menu" data-group="ratings"><button aria-haspopup="true">Ratings</button><div class="dd">
+    <a data-slug="heatmap">Heat Map<span class="muted">5 sectors × 7 categories, 0–10 calls</span></a>
+    <a data-slug="profiles">Sector Profiles & Company Screen<span class="muted">radar, KPI strips, top names per sector</span></a>
+  </div></div>
+  <div class="menu" data-group="projections"><button aria-haspopup="true">Projections</button><div class="dd">
+    <a data-slug="stochastic">Stochastic Lab<span class="muted">Monte Carlo P(up), nominal & real</span></a>
+    <a data-slug="dcf">DCF Explorer<span class="muted">interactive valuation machinery</span></a>
+    <a data-slug="sensitivity">Sensitivity<span class="muted">the r − g grid</span></a>
+    <a data-slug="growth">Growth<span class="muted">four legs of the growth rating</span></a>
+  </div></div>
+  <div class="menu" data-group="events"><button aria-haspopup="true">Events & Regime</button><div class="dd">
+    <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
+    <a data-slug="regime">Regime Monitor<span class="muted">walk-forward HMM + live OSINT feed</span></a>
+  </div></div>
+  <div class="menu" data-group="portfolio"><button aria-haspopup="true">Portfolio</button><div class="dd">
+    <a data-slug="captax">Capital Preservation & Tax<span class="muted">real-terms survival math</span></a>
+    <a data-slug="horizons">Horizons<span class="muted">all timeframes, one ledger</span></a>
+  </div></div>
+  <a class="nav-link" data-slug="howto">How to Read</a>
+  <div class="nav-spacer"></div>
+  <div id="navSearch"><input id="searchBox" type="search" placeholder="Search…  ( / )" autocomplete="off" aria-label="Search"><div id="searchRes"></div></div>
+</nav>
+
+<!-- ============ PAGE 0: HOME / OVERVIEW (revamp Jul 21) ============ -->
+<div class="page" id="p0">
+  <div class="home-grid">
+    <div class="block"><h3>Sector calls</h3><div id="homeCalls"></div><a class="gotoLink" data-slug="heatmap">Open the heat map →</a></div>
+    <div class="block"><h3>Market regime</h3>
+      <div style="font-size:16px;font-weight:700;margin:4px 0">TENSION <span class="muted" style="font-size:12px;font-weight:400">since May 21, 2026</span></div>
+      <div class="muted" style="font-size:12.5px">Defense holding a bid, gold miners bleeding. Walk-forward detector — the version that flagged the 2026 war regime 19 days early.</div>
+      <a class="gotoLink" data-slug="regime">Regime Monitor →</a></div>
+    <div class="block"><h3>Latest high-signal event</h3>
+      <div style="font-size:14px;font-weight:600;margin:4px 0">Tehran strike wave · Jul 18–19</div>
+      <div class="muted" style="font-size:12.5px">Severity 25,405 (P99 attention) · 209 independent sources · relevance 0.99. Feed is corroboration-gated and noise-filtered (85% of chatter suppressed).</div>
+      <a class="gotoLink" data-slug="events">Event playbook →</a></div>
+    <div class="block"><h3>Paper fund</h3>
+      <div style="font-size:16px;font-weight:700;margin:4px 0">$99,970 <span class="muted" style="font-size:12px;font-weight:400">NAV · inception Jul 21</span></div>
+      <div class="muted" style="font-size:12.5px">59% invested / 41% cash — rule-driven from the ratings, Kelly caps, and regime overlay. Simulation only, every decision timestamped.</div>
+      <a class="gotoLink" data-slug="horizons">Horizons & ledger →</a></div>
+  </div>
+  <div class="block" style="border-left:3px solid #b8860b"><h3>Research highlight</h3>
+    <b>The bot's edge is regime-dependent.</b> Joining the day-trading bot's 242 backtest trades to the regime detector: +0.61R per trade in the baseline regime vs −0.06R in tension (p=0.01) — and the live forward window has been all-tension. Gate pre-registered for Oct 1, not switched on. <a class="gotoLink" data-slug="horizons">The cross-wire study →</a></div>
+  <h3 style="margin-top:20px">Explore</h3>
+  <div class="dir-grid">
+    <div class="block" data-slug="heatmap"><b>Ratings</b><div class="muted" style="font-size:12.5px;margin-top:4px">The heat map: five sectors scored 0–10 across seven weighted categories, every cell decomposable to raw data on click. Plus per-company shortlists from our own SEC-filings pipeline.</div></div>
+    <div class="block" data-slug="stochastic"><b>Projections</b><div class="muted" style="font-size:12.5px;margin-top:4px">Monte Carlo futures (nominal and inflation-adjusted), the DCF machinery, and the sensitivity grid where valuations actually live and die.</div></div>
+    <div class="block" data-slug="events"><b>Events & Regime</b><div class="muted" style="font-size:12.5px;margin-top:4px">How defense, energy and gold actually moved around 13 verified geopolitical events — and which market regime the hidden-Markov detector says we're in now.</div></div>
+    <div class="block" data-slug="horizons"><b>Portfolio & Horizons</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every timeframe from intraday to five years under one evidence standard, a 141-entry chronological ledger, and a rules-driven paper fund.</div></div>
+    <div class="block" data-slug="captax"><b>Capital Preservation</b><div class="muted" style="font-size:12.5px;margin-top:4px">The stricter question: beating inflation and taxes, not just zero.</div></div>
+    <div class="block" data-slug="howto"><b>How to Read</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every symbol, source, formula and caveat — the honesty layer.</div></div>
+  </div>
 </div>
 
 <!-- ============ PAGE 1: HEATMAP ============ -->
-<div class="page active" id="p1">
+<div class="page" id="p1">
   <div class="block" style="border-left:3px solid var(--accent)">
     Every cell is a <b>0–10 rating, read like a stock call</b> — click any cell for the exact arithmetic behind it.<span class="info" data-pop="heat">i</span>
   </div>
@@ -1311,12 +1395,120 @@ function renderEvtClass(){
  renderProfile();renderDCF();renderSim();renderGrowthTab();renderCapTax();renderEvtTable();renderEvtSens();renderEvtClass();
 })();
 
-/* ---------- tabs ---------- */
-document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
- document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+/* ---------- ROUTER + NAV (site revamp Jul 21; replaces flat tab bar) ---------- */
+const SLUGS={home:"p0",heatmap:"p1",profiles:"p4",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",horizons:"p12",howto:"p3"};
+const GROUPOF={heatmap:"ratings",profiles:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",captax:"portfolio",horizons:"portfolio"};
+function goto(slug,push=true){
+ if(!SLUGS[slug]) slug="home";
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
- t.classList.add('active');document.getElementById(t.dataset.page).classList.add('active');
+ document.getElementById(SLUGS[slug]).classList.add('active');
+ document.querySelectorAll('nav.site .nav-link,.menu').forEach(x=>x.classList.remove('on'));
+ document.querySelectorAll('.dd a').forEach(x=>x.classList.toggle('on',x.dataset.slug===slug));
+ const nl=document.querySelector(`nav.site .nav-link[data-slug="${slug}"]`);
+ if(nl) nl.classList.add('on');
+ const g=GROUPOF[slug]; if(g) document.querySelector(`.menu[data-group="${g}"]`)?.classList.add('on');
+ document.querySelectorAll('.menu').forEach(m=>m.classList.remove('open'));
+ if(push) history.pushState(null,"","#"+slug);
+ window.scrollTo({top:0});
+}
+document.querySelectorAll('[data-slug]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();goto(el.dataset.slug);}));
+document.querySelectorAll('.menu>button').forEach(b=>b.addEventListener('click',e=>{
+ const m=b.parentElement; const was=m.classList.contains('open');
+ document.querySelectorAll('.menu').forEach(x=>x.classList.remove('open'));
+ if(!was) m.classList.add('open'); e.stopPropagation();
 }));
+document.addEventListener('click',()=>document.querySelectorAll('.menu').forEach(m=>m.classList.remove('open')));
+window.addEventListener('popstate',()=>goto(location.hash.replace('#','')||'home',false));
+goto(location.hash.replace('#','')||'home',false);
+
+/* home sector-call cards (computed live from the engine) */
+(function(){
+ const el=document.getElementById('homeCalls'); if(!el) return;
+ let h="";
+ SECTORS.forEach(s=>{let t=0,w=0;CATS.forEach(c=>{const sc=catScore(c,s);if(sc!=null){t+=sc*CATW[c.name];w+=CATW[c.name];}});
+  const v=t/w;
+  h+=`<div class="callrow"><span>${s.replace(" (ex-Precious)","").replace("US Defense & Aerospace","Defense & Aero").replace("Information Technology","Technology")}</span><span style="font-weight:700;color:${color(v)}">${v.toFixed(1)} · ${verdict(v)}</span></div>`;});
+ el.innerHTML=h;
+})();
+
+/* global search */
+(function(){
+ const IDX=[
+  {t:"Heat Map — sector ratings",s:"heatmap",k:"heat map ratings scores sectors bullish bearish categories cells overall"},
+  {t:"Sector Profiles & Company Screen",s:"profiles",k:"profiles radar strips company screen shortlist top names peak flags nvda hwm eog tsm"},
+  {t:"Stochastic Lab — Monte Carlo",s:"stochastic",k:"stochastic monte carlo simulation probability p(up) real inflation gbm mu sigma fan"},
+  {t:"DCF Explorer",s:"dcf",k:"dcf discounted cash flow valuation terminal value wacc"},
+  {t:"Sensitivity — r−g grid",s:"sensitivity",k:"sensitivity grid perpetuity discount growth r g"},
+  {t:"Growth",s:"growth",k:"growth eps revenue sustainable sgr buyback analyst"},
+  {t:"Capital Preservation & Tax",s:"captax",k:"capital preservation tax inflation real returns survival"},
+  {t:"Event Timelines & class playbook",s:"events",k:"events geopolitical war ukraine iran israel reactions playbook type size e9 e11"},
+  {t:"Regime Monitor + OSINT feed",s:"regime",k:"regime hmm hidden markov tension baseline drawdown osint feed attention warning patterns quarantine"},
+  {t:"Horizons — all timeframes",s:"horizons",k:"horizons timeline bot trading factor model weekly intraday paper fund ledger cross-wire kelly"},
+  {t:"How to Read — glossary & sources",s:"howto",k:"how to read glossary sources formulas caveats methodology accordion"}];
+ const box=document.getElementById('searchBox'),res=document.getElementById('searchRes');
+ let sel=-1;
+ function render(list){res.innerHTML=list.map((r,i)=>`<a class="${i===sel?'sel':''}" data-s="${r.s}">${r.t}</a>`).join('');res.style.display=list.length?'block':'none';
+  res.querySelectorAll('a').forEach(a=>a.addEventListener('mousedown',e=>{e.preventDefault();goto(a.dataset.s);box.value='';res.style.display='none';}));}
+ let cur=[];
+ box.addEventListener('input',()=>{const q=box.value.trim().toLowerCase();sel=-1;
+  cur=q?IDX.filter(r=>(r.t+" "+r.k).toLowerCase().includes(q)):[];render(cur);});
+ box.addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){sel=Math.min(sel+1,cur.length-1);render(cur);e.preventDefault();}
+  else if(e.key==='ArrowUp'){sel=Math.max(sel-1,0);render(cur);e.preventDefault();}
+  else if(e.key==='Enter'&&cur.length){goto(cur[Math.max(sel,0)].s);box.value='';res.style.display='none';box.blur();}
+  else if(e.key==='Escape'){box.value='';res.style.display='none';box.blur();}});
+ box.addEventListener('blur',()=>setTimeout(()=>res.style.display='none',150));
+})();
+
+/* keyboard shortcuts */
+(function(){
+ const MAP={"1":"heatmap","2":"profiles","3":"stochastic","4":"dcf","5":"sensitivity","6":"growth","7":"events","8":"regime","9":"captax","0":"horizons","h":"home","r":"howto"};
+ const ov=document.createElement('div');ov.id='kbdOverlay';
+ ov.innerHTML='<div><b>Keyboard shortcuts</b><br>1–9, 0 — jump to sections · H — overview · R — How to Read · / — search · ? — this help · Esc — close</div>';
+ document.body.appendChild(ov);
+ ov.addEventListener('click',()=>ov.style.display='none');
+ document.addEventListener('keydown',e=>{
+  if(e.target.matches('input,select,textarea')||e.metaKey||e.ctrlKey||e.altKey) return;
+  if(e.key==='/'){document.getElementById('searchBox').focus();e.preventDefault();}
+  else if(e.key==='?'){ov.style.display='flex';}
+  else if(e.key==='Escape'){ov.style.display='none';}
+  else if(MAP[e.key.toLowerCase()]) goto(MAP[e.key.toLowerCase()]);
+ });
+})();
+
+/* data-vintage footer */
+(function(){
+ const f=document.createElement('footer');f.className='site';
+ f.innerHTML='<b>Data vintages</b> · Damodaran industry aggregates: Jan 2026 · Defense 10-major aggregates (stockanalysis): Jul 14 2026 · Own SEC-XBRL fundamentals: Jul 21 2026 · GDELT event feed: through Jul 19 2026 (daily) · Prices: Jul 17 2026 · CPI 3.5% (Jun 2026, BLS) · 10y UST 4.55% (Jul 17 2026) · Ratings baseline 5.74 / 4.96 / 8.49 / 4.58 / 6.97 (post-audit Jul 21) · Simulation & research site — not investment advice.';
+ document.querySelector('.wrap').appendChild(f);
+})();
+
+/* CSV export on key tables */
+(function(){
+ function exportTable(tbl,name){
+  const rows=[...tbl.querySelectorAll('tr')].map(tr=>[...tr.children].map(c=>'"'+c.innerText.replace(/"/g,'""').replace(/\n/g,' ')+'"').join(','));
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([rows.join('\n')],{type:'text/csv'}));
+  a.download=name+'.csv';a.click();
+ }
+ [["p1","sector_heatmap"],["p4","company_screen"],["p12","horizons"]].forEach(([pid,name])=>{
+  const pg=document.getElementById(pid); if(!pg) return;
+  const btn=document.createElement('button');btn.className='csvBtn';btn.textContent='⬇ CSV';
+  btn.title='Export the first table on this page as CSV';
+  btn.addEventListener('click',()=>{const t=pg.querySelector('table');if(t)exportTable(t,name);});
+  pg.insertBefore(btn,pg.firstChild);
+ });
+})();
+
+/* persistent selections (profile + simulation sector) */
+(function(){
+ ["profSel","simSel"].forEach(id=>{
+  const el=document.getElementById(id); if(!el) return;
+  const saved=localStorage.getItem('term_'+id);
+  if(saved&&[...el.options].some(o=>o.value===saved)){el.value=saved;el.dispatchEvent(new Event('change'));}
+  el.addEventListener('change',()=>localStorage.setItem('term_'+id,el.value));
+ });
+})();
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
