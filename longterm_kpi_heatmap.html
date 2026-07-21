@@ -444,7 +444,11 @@ const D={ // qk = ReadyRatios SEC medians, SIC-mapped (APPROXIMATE) · mcap = S&
  // ar + ni5 still Damodaran industry (not on source pages). exp5 = 3-yr analyst EPS growth forecast. Boeing excluded (loss-making TTM).
  // Emerging tier (KTOS, AVAV, RKLB — $63.8B) deliberately EXCLUDED from this aggregate: two are loss-making and all three
  // trade on forward narratives; they are shown as a watchlist in Sector Profiles instead of distorting the fundamentals here.
- "US Defense & Aerospace": {gm:26.6,nm:13.2,em:21.2,cur:1.41,qk:0.91,inv:6.9, ar:4.2, pe:35.5,tpe:37.0,peg:2.5, exp5:14.0,ni5:19.6,revg:19.8,sgr:16.1,fcfm:20.4,capdep:95, de:0.14,bookde:1.04,da:0.25,roe:32.3,roa:6.3, mcap:1.22},
+ // cur/qk/da UPGRADED Jul 21 2026 to values COMPUTED FROM SEC XBRL FILINGS (own pipeline, 06_osint/fundamentals),
+ // dollar-aggregated across the same 10 majors (10/10 coverage): cur 1.41(sector proxy)→1.15, qk 0.91(SIC approx)→0.86, da 0.25(derived)→0.24.
+ // ar deliberately NOT swapped: filings' AccountsReceivableNetCurrent misses defense contractors' unbilled contract assets
+ // (computed 12.7× on 7/10 would overstate collection speed); Damodaran's broader 4.2 kept.
+ "US Defense & Aerospace": {gm:26.6,nm:13.2,em:21.2,cur:1.15,qk:0.86,inv:6.9, ar:4.2, pe:35.5,tpe:37.0,peg:2.5, exp5:14.0,ni5:19.6,revg:19.8,sgr:16.1,fcfm:20.4,capdep:95, de:0.14,bookde:1.04,da:0.24,roe:32.3,roa:6.3, mcap:1.22},
  "Information Technology": {gm:55.7,nm:19.4,em:27.3,cur:2.16,qk:1.4,inv:6.7, ar:5.9, pe:35.8,tpe:36.6,peg:1.7, exp5:21.3,ni5:19.8,revg:12.5,sgr:19.9,fcfm:15.4,capdep:201,de:0.08,bookde:0.56,da:0.36,roe:23.9,roa:15.3,mcap:31.66}
 };
 // Dividend payout vs TOTAL cash return (div+buybacks) as % of net income — Damodaran divfund Jan-2026,
@@ -557,8 +561,8 @@ const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the
  cur:{name:"Current ratio",f:"Current assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×",
   desc:"Can it pay bills due in the next 12 months? Assets coming in ÷ bills coming due",
   abs:v=>v>=2?"very cushioned (>2×)":v>=1.2?"healthy (1.2–2×)":v>=1?"tight (1–1.2×)":"strained (<1×)"},
- qk:{name:"Quick ratio ≈",f:"(Current assets − inventory)/Current liabilities — SEC-filing medians, SIC-industry-mapped (approximate)",dir:1,fmt:v=>v.toFixed(1)+"×",
-  desc:"Same bill-paying test but ignoring inventory — the hardest asset to sell in a hurry. ACTIVATED with approximate SIC-mapped data",
+ qk:{name:"Quick ratio ≈",f:"(Current assets − inventory)/Current liabilities — Defense: computed from SEC XBRL filings, 10/10 majors (Jul 2026, own pipeline); others: SEC-filing medians, SIC-mapped (approximate)",dir:1,fmt:v=>v.toFixed(1)+"×",
+  desc:"Same bill-paying test but ignoring inventory — the hardest asset to sell in a hurry. Defense now primary-source; other sectors still approximate SIC-mapped data",
   abs:v=>v>=1?"healthy (>1×)":v>=0.7?"adequate (0.7–1×)":"tight (<0.7×)"},
  inv:{name:"Inventory turnover",f:"COGS/Avg inventory",dir:1,fmt:v=>v+"×/yr",
   desc:"How many times a year the shelf gets emptied and restocked",
