@@ -125,7 +125,10 @@
 
 <nav class="site" aria-label="Main">
   <a class="nav-link" data-slug="home">Overview</a>
-  <a class="nav-link" data-slug="stocks">Stocks</a>
+  <div class="menu" data-group="stocks"><button aria-haspopup="true">Stocks</button><div class="dd">
+    <a data-slug="stocks">Lookup & Watchlist<span class="muted">518 tickers, anchored P/L</span></a>
+    <a data-slug="stockcompare">Compare Stocks<span class="muted">two tickers, all analytics, side by side</span></a>
+  </div></div>
   <div class="menu" data-group="ratings"><button aria-haspopup="true">Ratings</button><div class="dd">
     <a data-slug="heatmap">Heat Map<span class="muted">5 sectors × 7 categories, 0–10 calls</span></a>
     <a data-slug="profiles">Sector Profiles<span class="muted">radar, KPI strips, context layers</span></a>
@@ -279,6 +282,22 @@
   </div>
   <div class="block"><h3>My stock watchlist <span class="muted" style="font-weight:400;font-size:11px">day % and since-added % — the anchor Fidelity doesn't give you</span></h3>
     <div id="wlOut"></div>
+  </div>
+</div>
+
+<!-- ============ PAGE 17: COMPARE STOCKS (Jul 21) ============ -->
+<div class="page" id="p17">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>Two tickers, everything we know, side by side</b> — quotes, volatility, 3-yr μ/σ, half-Kelly sizing, regime behavior, event fingerprints, and our screen scores where covered.
+    <span class="muted" style="font-size:12px">· analytics as of <span id="aAsOf">…</span> · education, not advice</span>
+  </div>
+  <div class="block">
+    <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+      <input id="scA" placeholder="Ticker A…" autocomplete="off" style="width:150px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:var(--text);font-size:13px;font-family:inherit">
+      <span class="muted">vs</span>
+      <input id="scB" placeholder="Ticker B…" autocomplete="off" style="width:150px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:var(--text);font-size:13px;font-family:inherit">
+    </div>
+    <div id="scOut"><span class="muted" style="font-size:12.5px">Enter two tickers (e.g. LMT vs RTX, NVDA vs TSM).</span></div>
   </div>
 </div>
 
@@ -1444,8 +1463,8 @@ function renderEvtClass(){
 })();
 
 /* ---------- ROUTER + NAV (site revamp Jul 21; replaces flat tab bar) ---------- */
-const SLUGS={home:"p0",stocks:"p16",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",howto:"p3"};
-const GROUPOF={heatmap:"ratings",profiles:"ratings",screen:"ratings",compare:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",feed:"events",captax:"portfolio",horizons:"portfolio"};
+const SLUGS={home:"p0",stocks:"p16",stockcompare:"p17",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",howto:"p3"};
+const GROUPOF={stocks:"stocks",stockcompare:"stocks",heatmap:"ratings",profiles:"ratings",screen:"ratings",compare:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",feed:"events",captax:"portfolio",horizons:"portfolio"};
 function goto(slug,push=true){
  if(!SLUGS[slug]) slug="home";
  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
@@ -1483,7 +1502,8 @@ goto(location.hash.replace('#','')||'home',false);
 (function(){
  const IDX=[
   {t:"Heat Map — sector ratings",s:"heatmap",k:"heat map ratings scores sectors bullish bearish categories cells overall"},
-  {t:"Stocks — lookup & watchlist",s:"stocks",k:"stocks ticker lookup quote watchlist since added anchor price day change gain loss"},
+  {t:"Stocks — lookup & watchlist",s:"stocks",k:"stocks ticker lookup quote watchlist since added anchor price day change gain loss kelly earnings regime fingerprint"},
+  {t:"Compare Stocks",s:"stockcompare",k:"compare stocks tickers side by side versus delta analytics"},
   {t:"Sector Profiles",s:"profiles",k:"profiles radar strips context layers business cycle analyst consensus"},
   {t:"Company Screen — top names",s:"screen",k:"company screen shortlist top names peak flags filings nvda hwm eog tsm ratios"},
   {t:"Compare Sectors",s:"compare",k:"compare comparison side by side delta versus two sectors"},
@@ -1639,8 +1659,31 @@ goto(location.hash.replace('#','')||'home',false);
  const CTX={EOG:[8.4,""],XOM:[6.2,""],COP:[5.9,""],SLB:[5.7,""],KMI:[4.0,"margin P100, ROE P93"],CVX:[3.9,""],TSM:[8.6,""],NVDA:[7.6,"margin P94"],MSFT:[5.8,""],AAPL:[5.6,"margin P94"],GTLB:[4.9,""],INTC:[4.4,""],HWM:[8.6,"margin P100, ROE P94"],KTOS:[7.6,""],HEI:[7.2,""],AVAV:[7.1,""],LDOS:[6.4,"margin P100, ROE P93"],GE:[6.1,"margin P94, ROE P100"],RKLB:[6.0,""],GD:[5.6,""],NOC:[5.6,""],TDG:[5.6,""],LMT:[4.7,""],LHX:[4.2,""],RTX:[3.9,""]};
  const ETF_SECTOR={ITA:"US Defense & Aerospace",XLE:"Energy",XLB:"Materials (ex-Precious)",GDX:"Precious Metals",XLK:"Information Technology"};
  let Q=null;
- fetch('quotes.json').then(r=>r.json()).then(d=>{Q=d;document.getElementById('qAsOf').textContent=d.as_of;renderWL();})
+ window.__A=null; /* analytics.json shared with Compare Stocks */
+ fetch('quotes.json').then(r=>r.json()).then(d=>{Q=d;window.__Q=d;document.getElementById('qAsOf').textContent=d.as_of;renderWL();})
   .catch(()=>{document.getElementById('qAsOf').textContent='unavailable (quotes.json failed to load)';});
+ fetch('analytics.json').then(r=>r.json()).then(d=>{window.__A=d;const el=document.getElementById('aAsOf');if(el)el.textContent=d.as_of;})
+  .catch(()=>{});
+ const RF_K=4.55;
+ function kellyRow(a){
+  if(!a||a.mu==null) return "";
+  const f=(a.mu-RF_K)/((a.sig/100)**2*10000)*100; /* f* in % of capital */
+  const half=f/2;
+  const disp=f<=0?"0 (no measured edge over cash)":half>100?">100% (μ estimate too optimistic — treat as 'small')":half.toFixed(0)+"% of capital";
+  return `<div style="margin-top:6px;font-size:12.5px"><b>Sizing math</b> (3y μ ${a.mu}%, σ ${a.sig}%, rf 4.55%): half-Kelly ≈ <b>${disp}</b> <span class="muted">— estimation error in μ dominates; education only</span></div>`;
+ }
+ function analyticsRows(t){
+  const A=window.__A; if(!A||!A.a[t]) return "";
+  const a=A.a[t];
+  const f=(v)=>v==null?"—":`<span style="color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${v}%</span>`;
+  let h=`<div style="margin-top:8px;font-size:12.5px"><b>Event fingerprint</b> · 2026 war onset: ${f(a.e9[0])} next-day, ${f(a.e9[1])} at +20d · peace memo: ${f(a.e11[0])} / ${f(a.e11[1])} · onset avg (3 wars): ${f(a.on[0])} / ${f(a.on[1])} · de-escalation avg: ${f(a.de[0])} / ${f(a.de[1])}</div>`;
+  const rg=a.rg||[]; const cur=1; /* index 1 = TENSION = current */
+  const names=["Baseline","Tension","Drawdown"];
+  h+=`<div style="margin-top:6px;font-size:12.5px"><b>Regime behavior</b> (ann. excess vs SPY): `+rg.map((v,i)=>`${i===cur?'<u>':''}${names[i]} ${v==null?'—':f(v)}${i===cur?'</u> ←now':''}`).join(' · ')+`</div>`;
+  h+=kellyRow(a);
+  if(A.er[t]) h+=`<div style="margin-top:6px;font-size:12.5px"><b>Next report</b> ≈ ${A.er[t]} <span class="muted">(estimate from filing cadence — covered names only)</span></div>`;
+  return h;
+ }
  const pct=v=>`<span style="font-weight:700;color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${v.toFixed(2)}%</span>`;
  const loadWL=()=>JSON.parse(localStorage.getItem('term_stockwl')||'[]');
  const saveWL=w=>localStorage.setItem('term_stockwl',JSON.stringify(w));
@@ -1664,8 +1707,8 @@ goto(location.hash.replace('#','')||'home',false);
    <div><span style="font-size:22px;font-weight:800">${t}</span> <span class="muted">${name} · ${sector}</span></div>
    <div style="font-size:20px;font-weight:700">$${last.toLocaleString()}</div>
    <div>Day: ${pct(d1)}</div><div class="muted" style="font-size:12.5px">Off 52-wk high: ${off52}% · 30d vol: ${vol}% ann.</div>
-   <button id="wlAdd" class="csvBtn" style="float:none">＋ Watchlist</button></div>${ctx}
-   <div class="muted" style="font-size:11.5px;margin-top:6px">Research context, not advice. Every number reproducible: quotes_builder.py.</div>`;
+   <button id="wlAdd" class="csvBtn" style="float:none">＋ Watchlist</button></div>${ctx}${analyticsRows(t)}
+   <div class="muted" style="font-size:11.5px;margin-top:6px">Research context, not advice. Every number reproducible: quotes_builder.py + stock_analytics_builder.py.</div>`;
   card.querySelectorAll('[data-slug]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();goto(el.dataset.slug);}));
   document.getElementById('wlAdd').addEventListener('click',()=>{
    const w=loadWL();
@@ -1690,6 +1733,42 @@ goto(location.hash.replace('#','')||'home',false);
  box.addEventListener('keydown',e=>{if(e.key==='Enter'&&Q){const t=box.value.trim().toUpperCase();if(Q.q[t]){show(t);box.value='';res.style.display='none';}}});
  box.addEventListener('blur',()=>setTimeout(()=>res.style.display='none',150));
  renderWL();
+})();
+
+/* COMPARE STOCKS (Jul 21): two tickers side by side from quotes+analytics */
+(function(){
+ const A=document.getElementById('scA'),B=document.getElementById('scB'),out=document.getElementById('scOut');
+ if(!A||!B) return;
+ const CTX={EOG:8.4,XOM:6.2,COP:5.9,SLB:5.7,KMI:4.0,CVX:3.9,TSM:8.6,NVDA:7.6,MSFT:5.8,AAPL:5.6,GTLB:4.9,INTC:4.4,HWM:8.6,KTOS:7.6,HEI:7.2,AVAV:7.1,LDOS:6.4,GE:6.1,RKLB:6.0,GD:5.6,NOC:5.6,TDG:5.6,LMT:4.7,LHX:4.2,RTX:3.9};
+ const fp=(v,inv)=>v==null?'<td class="na">—</td>':`<td style="font-weight:600;color:${(inv?-v:v)>0?'var(--pos)':(inv?-v:v)<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${typeof v==='number'?v.toFixed(1):v}%</td>`;
+ const fn=v=>v==null?'<td class="na">—</td>':`<td style="font-weight:600">${v}</td>`;
+ function render(){
+  const Q=window.__Q,AN=window.__A;
+  const a=A.value.trim().toUpperCase(),b=B.value.trim().toUpperCase();
+  if(!Q||!Q.q[a]||!Q.q[b]){if(a.length>=2&&b.length>=2)out.innerHTML='<span class="muted" style="font-size:12.5px">Both tickers must be in the 518-ticker universe.</span>';return;}
+  localStorage.setItem('term_scA',a);localStorage.setItem('term_scB',b);
+  const qa=Q.q[a],qb=Q.q[b],aa=AN&&AN.a[a],ab=AN&&AN.a[b];
+  const RF=4.55;
+  const kel=x=>x&&x.mu!=null?Math.max(0,((x.mu-RF)/((x.sig/100)**2*10000)*100)/2):null;
+  const rows=[
+   ["Price",`$${qa[0].toLocaleString()}`,`$${qb[0].toLocaleString()}`,"n"],
+   ["Day %",qa[1],qb[1],"p"],["Off 52-wk high",qa[2],qb[2],"p"],["30d vol (ann.)",qa[3]+"%",qb[3]+"%","n"],
+   ["3y return μ",aa&&aa.mu,ab&&ab.mu,"p"],["3y vol σ",aa&&aa.sig!=null?aa.sig+"%":null,ab&&ab.sig!=null?ab.sig+"%":null,"n"],
+   ["Half-Kelly size",kel(aa)!=null?(kel(aa)>100?">100 (μ suspect)":kel(aa).toFixed(0))+"%":null,kel(ab)!=null?(kel(ab)>100?">100 (μ suspect)":kel(ab).toFixed(0))+"%":null,"n"],
+   ["Baseline regime (exc.)",aa&&aa.rg&&aa.rg[0],ab&&ab.rg&&ab.rg[0],"p"],
+   ["Tension regime ←now",aa&&aa.rg&&aa.rg[1],ab&&ab.rg&&ab.rg[1],"p"],
+   ["Drawdown regime",aa&&aa.rg&&aa.rg[2],ab&&ab.rg&&ab.rg[2],"p"],
+   ["War onset E9 (+20d)",aa&&aa.e9&&aa.e9[1],ab&&ab.e9&&ab.e9[1],"p"],
+   ["Peace memo E11 (+20d)",aa&&aa.e11&&aa.e11[1],ab&&ab.e11&&ab.e11[1],"p"],
+   ["Our screen score",CTX[a]!=null?CTX[a]+"/10":null,CTX[b]!=null?CTX[b]+"/10":null,"n"]];
+  let h=`<table><tr><th></th><th>${a} <span class="muted" style="font-weight:400">${Q.meta[a][0]}</span></th><th>${b} <span class="muted" style="font-weight:400">${Q.meta[b][0]}</span></th></tr>`;
+  rows.forEach(([lab,va,vb,typ])=>{
+   h+=`<tr><td>${lab}</td>`+(typ==="p"?fp(va)+fp(vb):fn(va)+fn(vb))+`</tr>`;});
+  out.innerHTML=h+`</table><div class="muted" style="font-size:12px;margin-top:6px">Regime rows = annualized excess vs SPY during walk-forward confirmed states (Nov 2023+). Event rows from adjusted closes. Kelly is education, not sizing advice — μ estimation error dominates.</div>`;
+ }
+ [A,B].forEach(el=>el.addEventListener('input',render));
+ A.value=localStorage.getItem('term_scA')||'LMT';B.value=localStorage.getItem('term_scB')||'RTX';
+ setTimeout(render,1500); /* wait for jsons */
 })();
 
 /* deeper persistence (Jul 21): DCF inputs + last-page restore */
