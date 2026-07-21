@@ -125,6 +125,7 @@
 
 <nav class="site" aria-label="Main">
   <a class="nav-link" data-slug="home">Overview</a>
+  <a class="nav-link" data-slug="stocks">Stocks</a>
   <div class="menu" data-group="ratings"><button aria-haspopup="true">Ratings</button><div class="dd">
     <a data-slug="heatmap">Heat Map<span class="muted">5 sectors × 7 categories, 0–10 calls</span></a>
     <a data-slug="profiles">Sector Profiles<span class="muted">radar, KPI strips, context layers</span></a>
@@ -260,6 +261,24 @@
       <tr><td>Jul 19</td><td>Kyiv, Ukraine</td><td>0.95</td><td>4,501</td><td>P97</td><td>43</td></tr>
     </table>
     <div class="muted" style="font-size:12px;margin-top:6px">NOISE-FILTERED (Jul 21): only high-signal events shown — relevance ≥ 0.5 on a documented 0–1 score (coverage breadth 35% · intensity 25% · attention vs P90 25% · novelty 15%). 52 of 345 corroborated events currently clear the bar (85% of routine chatter suppressed); 566 single-source events held in quarantine. Attention pct = the event's peak day vs every country-day since 2022 (P90 = 638 · P99 = 30,956 article-units). Events are city-level since clustering v2.</div>
+  </div>
+</div>
+
+<!-- ============ PAGE 16: STOCKS — lookup + anchored watchlist (Jul 21) ============ -->
+<div class="page" id="p16">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>Look up any of 518 tickers</b> — S&P 500, our 25-company universe, and key ETFs — and build a watchlist that remembers <b>when you added each name and at what price</b>: day-to-day moves AND gain/loss since YOUR add date, side by side.
+    <span class="muted" style="font-size:12px">· quotes as of <span id="qAsOf">…</span> · refreshed with the daily pipeline · not live intraday</span>
+  </div>
+  <div class="block">
+    <div style="position:relative;max-width:420px">
+      <input id="tickBox" type="search" placeholder="Ticker or company name…" autocomplete="off" aria-label="Ticker search" style="width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:var(--text);font-size:14px;font-family:inherit">
+      <div id="tickRes" style="position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--pop-bg);border:1px solid var(--border);border-radius:12px;padding:6px;box-shadow:0 14px 44px rgba(0,0,0,.4);display:none;z-index:70;max-height:280px;overflow-y:auto"></div>
+    </div>
+    <div id="quoteCard" style="margin-top:14px"></div>
+  </div>
+  <div class="block"><h3>My stock watchlist <span class="muted" style="font-weight:400;font-size:11px">day % and since-added % — the anchor Fidelity doesn't give you</span></h3>
+    <div id="wlOut"></div>
   </div>
 </div>
 
@@ -1425,7 +1444,7 @@ function renderEvtClass(){
 })();
 
 /* ---------- ROUTER + NAV (site revamp Jul 21; replaces flat tab bar) ---------- */
-const SLUGS={home:"p0",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",howto:"p3"};
+const SLUGS={home:"p0",stocks:"p16",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",howto:"p3"};
 const GROUPOF={heatmap:"ratings",profiles:"ratings",screen:"ratings",compare:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",feed:"events",captax:"portfolio",horizons:"portfolio"};
 function goto(slug,push=true){
  if(!SLUGS[slug]) slug="home";
@@ -1464,6 +1483,7 @@ goto(location.hash.replace('#','')||'home',false);
 (function(){
  const IDX=[
   {t:"Heat Map — sector ratings",s:"heatmap",k:"heat map ratings scores sectors bullish bearish categories cells overall"},
+  {t:"Stocks — lookup & watchlist",s:"stocks",k:"stocks ticker lookup quote watchlist since added anchor price day change gain loss"},
   {t:"Sector Profiles",s:"profiles",k:"profiles radar strips context layers business cycle analyst consensus"},
   {t:"Company Screen — top names",s:"screen",k:"company screen shortlist top names peak flags filings nvda hwm eog tsm ratios"},
   {t:"Compare Sectors",s:"compare",k:"compare comparison side by side delta versus two sectors"},
@@ -1609,6 +1629,67 @@ goto(location.hash.replace('#','')||'home',false);
   });
  });
  paint();
+})();
+
+/* STOCKS PAGE (Jul 21): quotes.json lookup + anchored watchlist */
+(function(){
+ const box=document.getElementById('tickBox'); if(!box) return;
+ const res=document.getElementById('tickRes'),card=document.getElementById('quoteCard'),wlOut=document.getElementById('wlOut');
+ /* research context for covered names (screen v3, Jul 21) + sector ETF map */
+ const CTX={EOG:[8.4,""],XOM:[6.2,""],COP:[5.9,""],SLB:[5.7,""],KMI:[4.0,"margin P100, ROE P93"],CVX:[3.9,""],TSM:[8.6,""],NVDA:[7.6,"margin P94"],MSFT:[5.8,""],AAPL:[5.6,"margin P94"],GTLB:[4.9,""],INTC:[4.4,""],HWM:[8.6,"margin P100, ROE P94"],KTOS:[7.6,""],HEI:[7.2,""],AVAV:[7.1,""],LDOS:[6.4,"margin P100, ROE P93"],GE:[6.1,"margin P94, ROE P100"],RKLB:[6.0,""],GD:[5.6,""],NOC:[5.6,""],TDG:[5.6,""],LMT:[4.7,""],LHX:[4.2,""],RTX:[3.9,""]};
+ const ETF_SECTOR={ITA:"US Defense & Aerospace",XLE:"Energy",XLB:"Materials (ex-Precious)",GDX:"Precious Metals",XLK:"Information Technology"};
+ let Q=null;
+ fetch('quotes.json').then(r=>r.json()).then(d=>{Q=d;document.getElementById('qAsOf').textContent=d.as_of;renderWL();})
+  .catch(()=>{document.getElementById('qAsOf').textContent='unavailable (quotes.json failed to load)';});
+ const pct=v=>`<span style="font-weight:700;color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${v.toFixed(2)}%</span>`;
+ const loadWL=()=>JSON.parse(localStorage.getItem('term_stockwl')||'[]');
+ const saveWL=w=>localStorage.setItem('term_stockwl',JSON.stringify(w));
+ function suggest(){
+  if(!Q) return; const q=box.value.trim().toUpperCase();
+  if(!q){res.style.display='none';return;}
+  const hits=Object.keys(Q.q).filter(t=>t.startsWith(q)||Q.meta[t][0].toUpperCase().includes(q)).slice(0,12);
+  res.innerHTML=hits.map(t=>`<a style="display:block;padding:8px 12px;border-radius:8px;color:var(--text);cursor:pointer;font-size:13px" data-t="${t}"><b>${t}</b> <span class="muted">${Q.meta[t][0]} · ${Q.meta[t][1]}</span></a>`).join('');
+  res.style.display=hits.length?'block':'none';
+  res.querySelectorAll('a').forEach(a=>{a.addEventListener('mouseenter',()=>a.style.background='var(--panel2)');a.addEventListener('mouseleave',()=>a.style.background='');
+   a.addEventListener('mousedown',e=>{e.preventDefault();show(a.dataset.t);box.value='';res.style.display='none';});});
+ }
+ function show(t){
+  const q=Q.q[t]; if(!q){card.innerHTML='<span class="muted">No data for '+t+'</span>';return;}
+  const [last,d1,off52,vol]=q; const [name,sector]=Q.meta[t];
+  let ctx="";
+  if(CTX[t]){const [sc,fl]=CTX[t];ctx=`<div style="margin-top:8px;font-size:12.5px">Our company screen: <b style="color:${color(sc)}">${sc}/10</b> within-sector${fl?` · ⚠ peak-earnings flag: ${fl}`:''} <a class="gotoLink" data-slug="screen">screen →</a></div>`;}
+  else if(ETF_SECTOR[t]){const s=ETF_SECTOR[t];let tt=0,ww=0;CATS.forEach(c=>{const sc=catScore(c,s);if(sc!=null){tt+=sc*CATW[c.name];ww+=CATW[c.name];}});const v=tt/ww;
+   ctx=`<div style="margin-top:8px;font-size:12.5px">Tracks our <b>${s}</b> rating: <b style="color:${color(v)}">${v.toFixed(1)}/10 · ${verdict(v)}</b> <a class="gotoLink" data-slug="heatmap">heat map →</a></div>`;}
+  card.innerHTML=`<div style="display:flex;gap:24px;align-items:baseline;flex-wrap:wrap">
+   <div><span style="font-size:22px;font-weight:800">${t}</span> <span class="muted">${name} · ${sector}</span></div>
+   <div style="font-size:20px;font-weight:700">$${last.toLocaleString()}</div>
+   <div>Day: ${pct(d1)}</div><div class="muted" style="font-size:12.5px">Off 52-wk high: ${off52}% · 30d vol: ${vol}% ann.</div>
+   <button id="wlAdd" class="csvBtn" style="float:none">＋ Watchlist</button></div>${ctx}
+   <div class="muted" style="font-size:11.5px;margin-top:6px">Research context, not advice. Every number reproducible: quotes_builder.py.</div>`;
+  card.querySelectorAll('[data-slug]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();goto(el.dataset.slug);}));
+  document.getElementById('wlAdd').addEventListener('click',()=>{
+   const w=loadWL();
+   if(!w.some(x=>x.s===t)){w.push({s:t,d:new Date().toISOString().slice(0,10),p:last});saveWL(w);renderWL();}
+  });
+ }
+ function renderWL(){
+  const w=loadWL();
+  if(!w.length){wlOut.innerHTML='<span class="muted" style="font-size:12.5px">Empty — look a ticker up and add it. The price and date at the moment you add become your permanent anchor.</span>';return;}
+  let h='<table><tr><th>Ticker</th><th>Name</th><th>Price</th><th>Day</th><th>Since added</th><th>Added</th><th></th></tr>';
+  w.forEach((x,i)=>{
+   const q=Q&&Q.q[x.s];
+   const days=Math.round((Date.now()-new Date(x.d))/864e5);
+   if(q){const [last,d1]=q;const sa=100*(last/x.p-1);
+    h+=`<tr><td><b>${x.s}</b></td><td class="muted" style="font-size:12px">${Q.meta[x.s][0]}</td><td>$${last.toLocaleString()}</td><td>${pct(d1)}</td><td>${pct(sa)} <span class="muted" style="font-size:11px">vs $${x.p}</span></td><td class="muted" style="font-size:12px">${x.d} · ${days}d</td><td><span style="cursor:pointer;color:var(--dim)" data-rm="${i}" title="Remove">✕</span></td></tr>`;}
+   else h+=`<tr><td><b>${x.s}</b></td><td colspan="5" class="muted">quote pending</td><td><span style="cursor:pointer;color:var(--dim)" data-rm="${i}">✕</span></td></tr>`;
+  });
+  wlOut.innerHTML=h+'</table>';
+  wlOut.querySelectorAll('[data-rm]').forEach(el=>el.addEventListener('click',()=>{const w2=loadWL();w2.splice(+el.dataset.rm,1);saveWL(w2);renderWL();}));
+ }
+ box.addEventListener('input',suggest);
+ box.addEventListener('keydown',e=>{if(e.key==='Enter'&&Q){const t=box.value.trim().toUpperCase();if(Q.q[t]){show(t);box.value='';res.style.display='none';}}});
+ box.addEventListener('blur',()=>setTimeout(()=>res.style.display='none',150));
+ renderWL();
 })();
 
 /* deeper persistence (Jul 21): DCF inputs + last-page restore */
