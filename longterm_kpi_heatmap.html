@@ -436,15 +436,15 @@
   </div>
   <div class="block"><table>
     <tr><th>Horizon</th><th>System</th><th>Signal · cadence</th><th>Evidence</th></tr>
-    <tr><td><b>Intraday</b></td><td>AI day-trading bot (SPY/QQQ)</td><td>Liquidity sweep → 5-min BOS reversal → 2R · scheduled daily</td><td>3yr 1-min backtest ~+0.63R, ~55% win, positive every year 2023–26, null tests passed; in forward paper</td></tr>
+    <tr><td><b>Intraday</b></td><td>AI day-trading bot (SPY/QQQ)</td><td>Liquidity sweep → 5-min BOS reversal → 2R · scheduled daily</td><td>3yr backtest ~+0.63R/55% win; <b>LIVE forward paper: +7.4R over 28 trades</b> (43% win — below backtest, profitable via 2R winners)</td></tr>
     <tr><td><b>Daily</b></td><td>OSINT feed · Regime Monitor · paper fund</td><td>High-signal events, attention z, regime state, NAV mark · daily task</td><td>Regime detector walk-forward validated (war flagged 19d early); ledger timestamped</td></tr>
-    <tr><td><b>Weekly</b></td><td>Factor stock model (S&P 500)</td><td>9-factor ridge → buy list (decile 1 + P(up)&gt;55% + ≥4 factors) · weekly</td><td>Rolling IC tracked; survivorship limits documented; paper forward test vs SPY</td></tr>
+    <tr><td><b>Weekly</b></td><td>Factor stock model (S&P 500)</td><td>9-factor ridge → buy list (decile 1 + P(up)&gt;55% + ≥4 factors) · weekly</td><td>LIVE forward test: <b>BUYLIST −0.9% vs SPY +3.3%</b> since Jun 11 (TOPDECILE +1.8%); early ICs negative — published because the forward test exists to catch what backtests can't</td></tr>
     <tr><td><b>Monthly</b></td><td>HMM refit · macro refresh</td><td>Expanding-window refit /21 trading days; CPI + rates</td><td>Cadence a priori; macro audited vs BLS/UST Jul 2026</td></tr>
     <tr><td><b>Quarterly</b></td><td>XBRL fundamentals · company screen</td><td>Filing-keyed ratios, screen v3, peak flags</td><td>Point-in-time by filing date; LMT revenue verified vs company release</td></tr>
     <tr><td><b>Yearly</b></td><td>Damodaran vintages · company history</td><td>22-yr sector + 416 ticker-year distributions; annual re-grounding</td><td>Powers the peak-margin signal (6.4 vs 18.9%/yr forward split)</td></tr>
     <tr><td><b>2–5 years</b></td><td>The Sector Terminal (this site)</td><td>Heat map · stochastic projections · event playbook</td><td>Engine independently verified (0/100 divergences); calibration published incl. failures</td></tr>
   </table>
-  <div class="muted" style="font-size:12px;margin-top:6px">Honest v1 limits: bot and factor-model rows reflect Jun-30 snapshots (live systems run outside this workspace); horizons are mapped, not yet cross-wired (regime does not gate the bot; each cross-wire needs its own backtest first). Framework + ledger: <code>10_horizons/</code>.</div>
+  <div class="muted" style="font-size:12px;margin-top:6px">Bot + factor-model rows are LIVE as of Jul 21 2026 (source folders wired into the timeline; 141 chronological entries). Remaining v1 limit: horizons are mapped, not cross-wired (regime does not gate the bot; each cross-wire needs its own backtest first). Framework + ledger: <code>10_horizons/</code>.</div>
   </div>
 </div>
 </div><!-- /wrap -->
