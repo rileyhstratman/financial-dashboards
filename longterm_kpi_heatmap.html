@@ -98,6 +98,9 @@
   .callrow:last-child{border-bottom:none}
   footer.site{margin:30px 0 16px;padding:14px 4px;border-top:1px solid var(--border);color:var(--dim);font-size:11.5px;line-height:1.7}
   .csvBtn{float:right;padding:4px 10px;border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--dim);font-size:11px;cursor:pointer;font-family:inherit}
+  .star{cursor:pointer;color:var(--dim);font-size:13px;margin-right:5px;user-select:none;transition:color .12s}
+  .star:hover{color:var(--gold)}
+  .star.on{color:var(--gold)}
   .csvBtn:hover{border-color:var(--accent);color:var(--text)}
   #kbdOverlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:120;display:none;align-items:center;justify-content:center}
   #kbdOverlay>div{background:var(--pop-bg);border:1px solid var(--border);border-radius:14px;padding:22px 28px;max-width:420px;font-size:13px;line-height:2}
@@ -157,6 +160,7 @@
       <div style="font-size:14px;font-weight:600;margin:4px 0">Tehran strike wave · Jul 18–19</div>
       <div class="muted" style="font-size:12.5px">Severity 25,405 (P99 attention) · 209 independent sources · relevance 0.99. Feed is corroboration-gated and noise-filtered (85% of chatter suppressed).</div>
       <a class="gotoLink" data-slug="events">Event playbook →</a></div>
+    <div class="block"><h3>My watchlist <span class="muted" style="font-weight:400;font-size:11px">★ star anything on the heat map or company screen</span></h3><div id="watchCard"></div></div>
     <div class="block"><h3>Paper fund</h3>
       <div style="font-size:16px;font-weight:700;margin:4px 0">$99,970 <span class="muted" style="font-size:12px;font-weight:400">NAV · inception Jul 21</span></div>
       <div class="muted" style="font-size:12.5px">59% invested / 41% cash — rule-driven from the ratings, Kelly caps, and regime overlay. Simulation only, every decision timestamped.</div>
@@ -1542,6 +1546,64 @@ goto(location.hash.replace('#','')||'home',false);
   if(saved&&[...el.options].some(o=>o.value===saved)){el.value=saved;el.dispatchEvent(new Event('change'));}
   el.addEventListener('change',()=>localStorage.setItem('term_'+id,el.value));
  });
+})();
+
+/* WATCHLIST (Jul 21): star sectors on the heat map + companies on the screen */
+(function(){
+ const load=()=>JSON.parse(localStorage.getItem('term_watch')||'{"sectors":[],"companies":[]}');
+ const save=w=>localStorage.setItem('term_watch',JSON.stringify(w));
+ function toggle(kind,name){
+  const w=load(); const i=w[kind].indexOf(name);
+  if(i>=0)w[kind].splice(i,1); else w[kind].push(name);
+  save(w); paint();
+ }
+ function paint(){
+  const w=load();
+  document.querySelectorAll('.star').forEach(s=>s.classList.toggle('on',w[s.dataset.kind].includes(s.dataset.name)));
+  const card=document.getElementById('watchCard');
+  if(card){
+   let h="";
+   w.sectors.forEach(s=>{let t=0,ww=0;CATS.forEach(c=>{const sc=catScore(c,s);if(sc!=null){t+=sc*CATW[c.name];ww+=CATW[c.name];}});const v=t/ww;
+    h+=`<div class="callrow"><span>★ ${s.replace(" (ex-Precious)","").replace("US Defense & Aerospace","Defense & Aero").replace("Information Technology","Technology")}</span><span style="font-weight:700;color:${color(v)}">${v.toFixed(1)} · ${verdict(v)}</span></div>`;});
+   w.companies.forEach(c=>{h+=`<div class="callrow"><span>★ ${c}</span><a class="gotoLink" data-slug="profiles">screen →</a></div>`;});
+   card.innerHTML=h||'<span class="muted" style="font-size:12.5px">Nothing starred yet.</span>';
+   card.querySelectorAll('[data-slug]').forEach(el=>el.addEventListener('click',e=>{e.preventDefault();goto(el.dataset.slug);}));
+  }
+ }
+ /* inject stars: heat-map sector row heads (dynamic table) */
+ document.querySelectorAll('#heatmap td.rowhead').forEach(td=>{
+  const name=td.textContent.trim();
+  const st=document.createElement('span');st.className='star';st.textContent='★';st.dataset.kind='sectors';st.dataset.name=name;
+  st.title='Add to watchlist';st.addEventListener('click',e=>{e.stopPropagation();toggle('sectors',name);});
+  td.insertBefore(st,td.firstChild);
+ });
+ /* inject stars: company-screen table (first data column holds "TSM 8.6 · NVDA 7.6 …" — star per sector-row top names is coarse; star the row's sector-leader set) */
+ document.querySelectorAll('#p4 .block table tr').forEach(tr=>{
+  const cells=tr.children; if(cells.length<2||cells[0].tagName!=='TD') return;
+  const names=(cells[1].textContent.match(/[A-Z]{2,5}(?= \d)/g)||[]).slice(0,3);
+  if(!names.length) return;
+  names.forEach(n=>{
+   const st=document.createElement('span');st.className='star';st.textContent='★';st.dataset.kind='companies';st.dataset.name=n;
+   st.title='Watch '+n;st.style.fontSize='11px';
+   st.addEventListener('click',e=>{e.stopPropagation();toggle('companies',n);});
+   cells[1].appendChild(document.createTextNode(' '));cells[1].appendChild(st);
+  });
+ });
+ paint();
+})();
+
+/* deeper persistence (Jul 21): DCF inputs + last-page restore */
+(function(){
+ document.querySelectorAll('#p5 input').forEach(inp=>{
+  const k='term_dcf_'+inp.id;
+  const saved=localStorage.getItem(k);
+  if(saved!==null){inp.value=saved;inp.dispatchEvent(new Event('input'));inp.dispatchEvent(new Event('change'));}
+  inp.addEventListener('change',()=>localStorage.setItem(k,inp.value));
+ });
+ /* remember last page; restore only when arriving without a hash */
+ const orig=goto; window.goto=goto;
+ document.addEventListener('click',()=>localStorage.setItem('term_lastpage',location.hash.replace('#','')||'home'));
+ if(!location.hash){const last=localStorage.getItem('term_lastpage');if(last&&last!=='home'&&SLUGS[last])goto(last,false);}
 })();
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
