@@ -87,7 +87,8 @@
   <div class="tab" data-page="p9">7 · Capital Preservation & Tax</div>
   <div class="tab" data-page="p10">8 · Event Timelines</div>
   <div class="tab" data-page="p11">9 · Regime Monitor</div>
-  <div class="tab" data-page="p3">10 · How to Read</div>
+  <div class="tab" data-page="p12">10 · Horizons</div>
+  <div class="tab" data-page="p3">11 · How to Read</div>
 </div>
 
 <!-- ============ PAGE 1: HEATMAP ============ -->
@@ -424,6 +425,26 @@
     · <b>May 14 — 34 days before the peace memo (E11):</b> confirmed exit from the drawdown regime.<br>
     · <b>The 12-Day War (E5–E8, 2025) never registered</b> as a regime change — independently confirms the playbook's "strike-ops already priced" finding.<br>
     <div class="muted" style="font-size:12px;margin-top:6px">Caveats, honestly: raw daily states flicker (115 switches in 659 days) — the 5-day persistence filter does real work; refit/confirm parameters were chosen a priori but not tuned against alternatives; regime signatures are measured on the days each state was assigned (descriptive, not predictive); this is one historical path containing one war. Method + reproducible scripts: <code>04_research/regime_hmm/</code>.</div>
+  </div>
+</div>
+
+<!-- ============ PAGE 12: HORIZONS (all timeframes, one stack) ============ -->
+<div class="page" id="p12">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <b>Every timeframe, one discipline.</b> The 2–5 year Terminal is one layer of a stack that already trades and scores at every horizon — unified here, with the same rules at every speed: point-in-time inputs, walk-forward evaluation, costs charged, failures published.<span class="info" data-pop="horizons">i</span>
+    <span class="muted" style="font-size:12px">· master chronological ledger: <code>10_horizons/timeline.csv</code> (67 entries, 2022 → today)</span>
+  </div>
+  <div class="block"><table>
+    <tr><th>Horizon</th><th>System</th><th>Signal · cadence</th><th>Evidence</th></tr>
+    <tr><td><b>Intraday</b></td><td>AI day-trading bot (SPY/QQQ)</td><td>Liquidity sweep → 5-min BOS reversal → 2R · scheduled daily</td><td>3yr 1-min backtest ~+0.63R, ~55% win, positive every year 2023–26, null tests passed; in forward paper</td></tr>
+    <tr><td><b>Daily</b></td><td>OSINT feed · Regime Monitor · paper fund</td><td>High-signal events, attention z, regime state, NAV mark · daily task</td><td>Regime detector walk-forward validated (war flagged 19d early); ledger timestamped</td></tr>
+    <tr><td><b>Weekly</b></td><td>Factor stock model (S&P 500)</td><td>9-factor ridge → buy list (decile 1 + P(up)&gt;55% + ≥4 factors) · weekly</td><td>Rolling IC tracked; survivorship limits documented; paper forward test vs SPY</td></tr>
+    <tr><td><b>Monthly</b></td><td>HMM refit · macro refresh</td><td>Expanding-window refit /21 trading days; CPI + rates</td><td>Cadence a priori; macro audited vs BLS/UST Jul 2026</td></tr>
+    <tr><td><b>Quarterly</b></td><td>XBRL fundamentals · company screen</td><td>Filing-keyed ratios, screen v3, peak flags</td><td>Point-in-time by filing date; LMT revenue verified vs company release</td></tr>
+    <tr><td><b>Yearly</b></td><td>Damodaran vintages · company history</td><td>22-yr sector + 416 ticker-year distributions; annual re-grounding</td><td>Powers the peak-margin signal (6.4 vs 18.9%/yr forward split)</td></tr>
+    <tr><td><b>2–5 years</b></td><td>The Sector Terminal (this site)</td><td>Heat map · stochastic projections · event playbook</td><td>Engine independently verified (0/100 divergences); calibration published incl. failures</td></tr>
+  </table>
+  <div class="muted" style="font-size:12px;margin-top:6px">Honest v1 limits: bot and factor-model rows reflect Jun-30 snapshots (live systems run outside this workspace); horizons are mapped, not yet cross-wired (regime does not gate the bot; each cross-wire needs its own backtest first). Framework + ledger: <code>10_horizons/</code>.</div>
   </div>
 </div>
 </div><!-- /wrap -->
@@ -1299,6 +1320,7 @@ document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ horizons:`<b>Why one stack, many clocks.</b> Different horizons reward different information: intraday rewards microstructure (the bot's liquidity sweeps), weekly rewards cross-sectional factors (the ridge model), years reward valuation and mean reversion (this Terminal). The systems were built separately — the Horizons layer unifies them under one evidence standard and one chronological ledger.<br><br><b>The ledger matters most:</b> every dated result across all systems, in strict order, so any claim ("the bot was profitable before the Terminal existed", "the regime switch preceded the fund's de-risking") can be checked against timestamps rather than memory. That is the same principle as the paper fund's decision log, applied to the whole body of work.`,
  screen:`<b>How the company screen works.</b> Each of the 25 tracked companies is scored on five ratios computed from its OWN SEC filings (via our XBRL pipeline): net margin, current ratio, quick ratio, LT-debt/assets, ROE. Each ratio: the sector engine's anchor score, blended 50/50 with the company's own 15-19 year history percentile, then 60/40 with its position among sector peers — the same three-legged architecture as the heat map, at company scale.<br><br><b>What it is NOT:</b> comparable to the sector ratings (no valuation, growth, or cash-flow legs yet — those need analyst and market data per company), and not a buy list. It answers "which houses look soundest in each neighborhood," nothing more.`,
  screenpeak:`<b>The peak-earnings warning, at company level.</b> A company whose margin or ROE sits at ≥ the 90th percentile of its own 15+ year record takes the same −1.5 penalty as sectors do — because the project's most reliable backtest finding is that peak profitability mean-reverts (sectors at peak margins delivered 6.4%/yr forward vs 18.9% for depressed ones).<br><br>Read the flags accordingly: NVDA and AAPL at margin P94, HWM at P100 — these are the specific companies currently priced on profitability their own history says is usually a top. Not a prediction; a base rate.`,
  osint:`<b>Where this feed comes from.</b> Our own collection pipeline (built Jul 2026, replacing the partner dependency): GDELT global event data filtered to a conflict net (violence + de-escalation/policy codes, MidEast/Russia-Ukraine/US), clustered into events by place × type × contiguous days.<br><br><b>The corroboration gate:</b> an event only appears here with ≥2 independent source domains (or strong multi-source counts). Single-source reports go to quarantine — held, never deleted, promoted only if corroboration arrives. Severity = article count: it measures ATTENTION, not casualties.<br><br>Backfilled to 2022 around our 13 studied events; collected daily by an automated task. Fundamentals side of the same pipeline (SEC XBRL) now feeds the Defense liquidity/debt cells on the heat map.`,
