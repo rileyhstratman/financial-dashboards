@@ -442,7 +442,7 @@ function randn(){let u=0,v=0;while(u===0)u=rand();while(v===0)v=rand();return Ma
    US Defense & Aerospace = 10 cap-weighted majors, company-level (see comment at its row).
    null = N/A: no reliable sector-level source. */
 const SECTORS=["Energy","Materials (ex-Precious)","Precious Metals","US Defense & Aerospace","Information Technology"];
-const D={ // qk = ReadyRatios SEC medians, SIC-mapped (APPROXIMATE) · mcap = S&P 500 sector market cap $T (Fidelity Jul 10 2026; null = not separately published)
+const D={ // qk = ReadyRatios SEC medians, SIC-mapped (APPROXIMATE) · mcap = US sector total market cap $T (Fidelity Jul 10 2026 — BROADER than S&P-500-only: audit Jul 21 found S&P500 IT alone = ~$23.8T vs Fidelity 31.66T; relabeled, null = not separately published)
  // fcfm/capdep/revg/sgr added Jul 14 (Damodaran Jan-2026 capex/divfund/histgr, firm-count-weighted;
  // payout/cash-return dollar-aggregated). fcfm = EBITDA margin − Net CapEx/Sales (cash-generation PROXY,
  // not textbook FCF: ignores taxes & working capital; NetCapEx includes acquisitions + R&D adj).
@@ -457,10 +457,10 @@ const D={ // qk = ReadyRatios SEC medians, SIC-mapped (APPROXIMATE) · mcap = S&
  // Emerging tier (KTOS, AVAV, RKLB — $63.8B) deliberately EXCLUDED from this aggregate: two are loss-making and all three
  // trade on forward narratives; they are shown as a watchlist in Sector Profiles instead of distorting the fundamentals here.
  // cur/qk/da UPGRADED Jul 21 2026 to values COMPUTED FROM SEC XBRL FILINGS (own pipeline, 06_osint/fundamentals),
- // dollar-aggregated across the same 10 majors (10/10 coverage): cur 1.41(sector proxy)→1.15, qk 0.91(SIC approx)→0.86, da 0.25(derived)→0.24.
+ // dollar-aggregated across the same 10 majors (10/10 coverage): cur 1.41(sector proxy)→1.15, qk 0.91(SIC approx)→0.86; da stays 0.25 (Jul-21 audit: corrected stale lt_debt concepts — the real figure matches the old derivation).
  // ar deliberately NOT swapped: filings' AccountsReceivableNetCurrent misses defense contractors' unbilled contract assets
  // (computed 12.7× on 7/10 would overstate collection speed); Damodaran's broader 4.2 kept.
- "US Defense & Aerospace": {gm:26.6,nm:13.2,em:21.2,cur:1.15,qk:0.86,inv:6.9, ar:4.2, pe:35.5,tpe:37.0,peg:2.5, exp5:14.0,ni5:19.6,revg:19.8,sgr:16.1,fcfm:20.4,capdep:95, de:0.14,bookde:1.04,da:0.24,roe:32.3,roa:6.3, mcap:1.22},
+ "US Defense & Aerospace": {gm:26.6,nm:13.2,em:21.2,cur:1.15,qk:0.86,inv:6.9, ar:4.2, pe:35.5,tpe:37.0,peg:2.5, exp5:14.0,ni5:19.6,revg:19.8,sgr:16.1,fcfm:20.4,capdep:95, de:0.14,bookde:1.04,da:0.25,roe:32.3,roa:6.3, mcap:1.22}, /* da corrected 0.24→0.25 in Jul-21 audit: first XBRL pull had stale lt_debt concepts (HEI 2011!) — concept selection now most-recent-wins */
  "Information Technology": {gm:55.7,nm:19.4,em:27.3,cur:2.16,qk:1.4,inv:6.7, ar:5.9, pe:35.8,tpe:36.6,peg:1.7, exp5:21.3,ni5:19.8,revg:12.5,sgr:19.9,fcfm:15.4,capdep:201,de:0.08,bookde:0.56,da:0.36,roe:23.9,roa:15.3,mcap:31.66}
 };
 // Dividend payout vs TOTAL cash return (div+buybacks) as % of net income — Damodaran divfund Jan-2026,
@@ -568,7 +568,7 @@ const KPI={ // desc = plain-English meaning · abs(v) = verbal health check (the
  capdep:{name:"CapEx / Depreciation",f:"Capital expenditures ÷ Depreciation & amortization (Damodaran capex)",dir:1,fmt:v=>v+"%",
   desc:"Is the sector rebuilding its asset base faster than it wears out? ~100–150% = replacing + growing; <60% = harvesting; >250% = heavy build (growth investment or capital hunger — read with the growth tab)",
   abs:v=>v>=250?"heavy build (>250%)":v>=100?"replacing + growing (100–250%)":v>=60?"maintenance-ish (60–100%)":"harvesting (<60%)"},
- mcap:{name:"Sector market cap (display)",f:"S&P 500 sector aggregate market cap (Fidelity, Jul 10 2026)",dir:0,fmt:v=>"$"+v.toFixed(2)+"T",
+ mcap:{name:"Sector market cap (display)",f:"US sector total market cap (Fidelity, Jul 10 2026) — broader than S&P-500-members-only",dir:0,fmt:v=>"$"+v.toFixed(2)+"T",
   desc:"Size context, not a ratio: S&P-500-only basis. Defense sits inside Industrials ($9.67T); Precious Metals not separately published",abs:v=>""},
  cur:{name:"Current ratio",f:"Current assets/Current liabilities",dir:1,fmt:v=>v.toFixed(1)+"×",
   desc:"Can it pay bills due in the next 12 months? Assets coming in ÷ bills coming due",
