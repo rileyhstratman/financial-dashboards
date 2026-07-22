@@ -1564,7 +1564,9 @@ goto(location.hash.replace('#','')||'home',false);
   {t:"Event Timelines & class playbook",s:"events",k:"events geopolitical war ukraine iran israel reactions playbook type size e9 e11"},
   {t:"Regime Monitor + OSINT feed",s:"regime",k:"regime hmm hidden markov tension baseline drawdown osint feed attention warning patterns quarantine"},
   {t:"Horizons — all timeframes",s:"horizons",k:"horizons timeline bot trading factor model weekly intraday paper fund ledger cross-wire kelly"},
-  {t:"How to Read — glossary & sources",s:"howto",k:"how to read glossary sources formulas caveats methodology accordion"}];
+  {t:"How to Read — glossary & sources",s:"howto",k:"how to read glossary sources formulas caveats methodology accordion"},
+  {t:"Fund Dashboard — paper fund",s:"fund",k:"fund dashboard nav allocations weights holdings decisions ledger simulation paper etf kelly caps regime overlay spy benchmark"},
+  {t:"Event Library — all channels",s:"library",k:"event library timeline channels conflict macro fomc cpi nfp attention supply 8-k filings insider 13d 13g form 4 dated events"}];
  const box=document.getElementById('searchBox'),res=document.getElementById('searchRes');
  let sel=-1;
  function render(list){res.innerHTML=list.map((r,i)=>`<a class="${i===sel?'sel':''}" data-s="${r.s}">${r.t}</a>`).join('');res.style.display=list.length?'block':'none';
@@ -1599,8 +1601,39 @@ goto(location.hash.replace('#','')||'home',false);
 /* data-vintage footer */
 (function(){
  const f=document.createElement('footer');f.className='site';
- f.innerHTML='<b>Data vintages</b> · Damodaran industry aggregates: Jan 2026 · Defense 10-major aggregates (stockanalysis): Jul 14 2026 · Own SEC-XBRL fundamentals: Jul 21 2026 · GDELT event feed: through Jul 19 2026 (daily) · Prices: Jul 17 2026 · CPI 3.5% (Jun 2026, BLS) · 10y UST 4.55% (Jul 17 2026) · Ratings baseline 5.74 / 4.96 / 8.49 / 4.58 / 6.97 (post-audit Jul 21) · Simulation & research site — not investment advice.';
+ f.innerHTML='<b>Data vintages</b> · Damodaran industry aggregates: Jan 2026 · Defense 10-major aggregates (stockanalysis): Jul 14 2026 · Own SEC-XBRL fundamentals: Jul 21 2026 · CPI 3.5% (Jun 2026, BLS) · 10y UST 4.55% (Jul 17 2026) · Ratings baseline 5.74 / 4.96 / 8.49 / 4.58 / 6.97 (post-audit Jul 21) · Simulation & research site — not investment advice.<div id="feedHealth" style="margin-top:4px"></div>';
  document.querySelector('.wrap').appendChild(f);
+ /* live feed-health line (improvement #10): as-of ages for the daily feeds, color-coded */
+ function age(asOf){
+  if(!asOf)return null;
+  const m=asOf.match(/(\d{4}-\d{2}-\d{2})[ T]?(\d{2}:\d{2})?/);
+  if(!m)return null;
+  const t=new Date(m[1]+'T'+(m[2]||'12:00')+':00Z');
+  return (Date.now()-t.getTime())/36e5;
+ }
+ function chip(name,asOf){
+  const h=age(asOf);
+  if(h==null)return `<span class="muted">${name}: —</span>`;
+  const col=h>90?'var(--neg)':h>36?'#b8860b':'var(--pos)';
+  const lbl=h<24?Math.round(h)+'h':Math.round(h/24)+'d';
+  return `<span style="color:${col}">● </span>${name} ${lbl}`;
+ }
+ function renderHealth(){
+  const el=document.getElementById('feedHealth'); if(!el)return;
+  const parts=[];
+  if(window.__Q)parts.push(chip('quotes',window.__Q.as_of));
+  if(window.__A)parts.push(chip('analytics',window.__A.as_of));
+  Promise.allSettled([
+   fetch('fund.json?cb='+Date.now()).then(r=>r.json()),
+   fetch('feed.json?cb='+Date.now()).then(r=>r.json()),
+   fetch('supply.json?cb='+Date.now()).then(r=>r.json()),
+  ]).then(rs=>{
+   const names=['fund','conflict feed','supply'];
+   rs.forEach((r,i)=>{if(r.status==='fulfilled')parts.push(chip(names[i],r.value.as_of));});
+   el.innerHTML='<b>Feed health</b> · '+parts.join(' · ')+' <span class="muted">(green &lt;36h · amber &lt;90h · red older — daily feeds refresh each morning, weekends excepted)</span>';
+  });
+ }
+ setTimeout(renderHealth,2500);
 })();
 
 /* CSV export on key tables */
@@ -1909,19 +1942,30 @@ goto(location.hash.replace('#','')||'home',false);
  })();
  /* EXTENDED COMPANY SCREEN (v4, Jul 22) — 128 names scored from our XBRL pipeline */
  (function(){
-  let SC=null;
+  let SC=null, scSort={k:'avg',asc:false};
   function render(){
    const el=document.getElementById('scTable'); if(!el||!SC) return;
    const f=(document.getElementById('scFilter').value||'').toLowerCase();
    const rows=SC.rows.filter(r=>!f||r.t.toLowerCase().includes(f)||r.sec.toLowerCase().includes(f));
    const col=v=>v==null?'—':v;
-   let h='<table><tr><th>Ticker</th><th>Bucket</th><th>Score /10</th><th>Net margin</th><th>Current</th><th>Quick</th><th>LT debt/assets</th><th>ROE</th><th>Ratios</th><th>H</th><th>Flags</th></tr>';
-   rows.sort((a,b)=>(b.avg||0)-(a.avg||0)).forEach(r=>{
+   const SK=[['t','Ticker'],['sec','Bucket'],['avg','Score /10'],['nm','Net margin'],['cur','Current'],['qk','Quick'],['da','LT debt/assets'],['roe','ROE'],['n','Ratios']];
+   let h='<table><tr>'+SK.map(([k,l])=>`<th style="cursor:pointer" data-scs="${k}" title="Click to sort">${l}${scSort.k===k?(scSort.asc?' ▲':' ▼'):''}</th>`).join('')+'<th>H</th><th>Flags</th></tr>';
+   const key=scSort.k;
+   rows.sort((a,b)=>{
+    let va=a[key],vb=b[key];
+    if(typeof va==='string'||typeof vb==='string'){va=va||'';vb=vb||'';return scSort.asc?va.localeCompare(vb):vb.localeCompare(va);}
+    va=va==null?-1e9:va;vb=vb==null?-1e9:vb;
+    return scSort.asc?va-vb:vb-va;
+   }).forEach(r=>{
     const sc=r.avg==null?'—':r.avg.toFixed(2);
     const cls=r.avg>=7?'var(--pos)':r.avg<4?'var(--neg)':'var(--ink)';
     h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-scl="${r.t}">${r.t}</b></td><td class="muted" style="font-size:11.5px">${r.sec}</td><td style="font-weight:700;color:${cls}">${sc}</td><td>${r.nm==null?'—':r.nm+'%'}</td><td>${col(r.cur)}</td><td>${col(r.qk)}</td><td>${col(r.da)}</td><td>${r.roe==null?'—':r.roe+'%'}</td><td>${r.n}${r.n<4?' ⚠':''}</td><td>${r.h?'✓':'—'}</td><td class="muted" style="font-size:11px">${r.fl||''}</td></tr>`;});
    el.innerHTML=h+'</table>';
    el.querySelectorAll('[data-scl]').forEach(x=>x.addEventListener('click',()=>{location.hash='stocks';setTimeout(()=>{if(window.show)show(x.dataset.scl);if(window.openResearch)openResearch(x.dataset.scl);},300);}));
+   el.querySelectorAll('[data-scs]').forEach(x=>x.addEventListener('click',()=>{
+    const k=x.dataset.scs;
+    if(scSort.k===k) scSort.asc=!scSort.asc; else scSort={k,asc:(k==='t'||k==='sec')};
+    render();}));
   }
   function boot(){
    if(SC){render();return;}
@@ -2063,13 +2107,23 @@ goto(location.hash.replace('#','')||'home',false);
   const ctx2=cv.getContext('2d'); ctx2.setTransform(dpr,0,0,dpr,0,0);
   return {W:w,H:h};
  }
- function drawChart(cv,pts,up){
+ function drawChart(cv,pts,up,ov){
+  /* ov (Jul 22, improvement #8): optional overlay series (SPY indexed to the stock's
+     starting price) drawn dashed-dim on the SAME scale — divergence = relative strength. */
   const {W,H}=fitCanvas(cv);
   const ctx2=cv.getContext('2d'),pad=6;
   ctx2.clearRect(0,0,W,H);
-  const mn=Math.min(...pts),mx=Math.max(...pts),rng=(mx-mn)||1;
+  const all=ov?pts.concat(ov):pts;
+  const mn=Math.min(...all),mx=Math.max(...all),rng=(mx-mn)||1;
   const X=i=>pad+(W-2*pad)*i/(pts.length-1), Y=v=>H-pad-(H-2*pad)*(v-mn)/rng;
   const col=(up?getComputedStyle(document.body).getPropertyValue('--pos'):getComputedStyle(document.body).getPropertyValue('--neg')).trim()||'#3ecf6e';
+  if(ov&&ov.length>1){
+   const Xo=i=>pad+(W-2*pad)*i/(ov.length-1);
+   ctx2.setLineDash([4,3]);ctx2.beginPath();ctx2.moveTo(Xo(0),Y(ov[0]));
+   ov.forEach((v,i)=>ctx2.lineTo(Xo(i),Y(v)));
+   ctx2.strokeStyle=getComputedStyle(document.body).getPropertyValue('--dim').trim()||'#888';
+   ctx2.lineWidth=1;ctx2.stroke();ctx2.setLineDash([]);
+  }
   ctx2.beginPath();ctx2.moveTo(X(0),Y(pts[0]));
   pts.forEach((v,i)=>ctx2.lineTo(X(i),Y(v)));
   ctx2.strokeStyle=col;ctx2.lineWidth=1.5;ctx2.lineJoin='round';ctx2.stroke();
@@ -2143,6 +2197,7 @@ goto(location.hash.replace('#','')||'home',false);
    const senti=rsi==null?"—":rsi>70?"overbought-zone":rsi<30?"oversold-zone":"neutral-zone";
    const trend=(ma50>0&&ma200>0)?"uptrend (above both MAs)":(ma50<0&&ma200<0)?"downtrend (below both MAs)":"mixed trend";
    body.innerHTML=`<div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">${TFS.map(tf=>`<button class="csvBtn" style="float:none${tf===resTF?';border-color:var(--accent);color:var(--accent)':''}" data-tf="${tf}">${tf}</button>`).join('')}
+     <button class="csvBtn" style="float:none${window.__resSPY?';border-color:var(--accent);color:var(--accent);font-weight:700':''}" id="spyTgl" title="Overlay SPY, indexed to the same starting price — divergence = relative strength">vs SPY</button>
      <span style="margin-left:auto;font-weight:700;color:${chg>=0?'var(--pos)':'var(--neg)'}">${chg>=0?'+':''}${chg.toFixed(1)}% over ${resTF}</span></div>
     <div style="position:relative"><canvas id="resCv" width="860" height="240" style="width:100%;max-height:240px;cursor:crosshair"></canvas>
      <div id="resTip" style="display:none;position:absolute;top:6px;left:10px;background:var(--pop-bg);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;pointer-events:none"></div></div>
@@ -2152,9 +2207,15 @@ goto(location.hash.replace('#','')||'home',false);
      RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 1605${c.dow?`<br><b>Dow swing structure</b>: <b>${c.dow[0]==='UP'?'uptrend (HH+HL)':c.dow[0]==='DOWN'?'downtrend (LH+LL)':'mixed'}</b> · breakout watch above <b>$${c.dow[1]}</b> · breakdown watch below <b>$${c.dow[2]}</b> <span class="muted">— reference levels only: our 8-yr backtest of mechanical Dow trading LOST to buy-and-hold on every fund instrument (09_paper_fund/dow_study.py)</span>`:''}</div>`;
    curPts=s.p;curOffs=s.o;curStart=s.start;curUp=chg>=0;curDow=c.dow||null;
    const cv=document.getElementById('resCv');
-   drawChart(cv,curPts,curUp);
+   let ov=null;
+   if(window.__resSPY&&CH.c.SPY&&t!=='SPY'){
+    const sp=tfSeries(CH.c.SPY,resTF).p;
+    if(sp&&sp.length>1){const k=curPts[0]/sp[0];ov=sp.map(v=>v*k);}
+   }
+   drawChart(cv,curPts,curUp,ov);
    wireScrub(cv,document.getElementById('resTip'));
    body.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{resTF=b.dataset.tf;renderResearch();}));
+   const st=document.getElementById('spyTgl'); if(st)st.addEventListener('click',()=>{window.__resSPY=!window.__resSPY;renderResearch();});
   } else if(resSub==="Peers & Industry"){
    /* Peers & Industry (Jul 22): the stock in the context of its own industry, from OUR feeds —
       quotes (day/52w/vol), charts (momentum pct), analytics (regime excess), screen.json (scored ratios). */
