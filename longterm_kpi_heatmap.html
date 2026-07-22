@@ -2039,7 +2039,19 @@ goto(location.hash.replace('#','')||'home',false);
    const sec=Q&&Q.meta[t]?Q.meta[t][1]:null;
    if(!sec){body.innerHTML='<span class="muted">No sector tag for '+t+'.</span>';}
    else{
-    const peers=Object.keys(Q.meta).filter(x=>Q.meta[x][1]===sec);
+    /* peer set, best available grouping: (1) scored-screen bucket, (2) theme family
+       (text before "/"), (3) exact tag — niche theme tags would otherwise leave a
+       stock comparing against itself. */
+    const SCJx=window.__SCJ, mineX=SCJx&&SCJx.rows.find(r=>r.t===t);
+    let peers=null, glabel=sec;
+    if(mineX){peers=SCJx.rows.filter(r=>r.sec===mineX.sec).map(r=>r.t).filter(x=>Q.meta[x]);glabel=mineX.sec+' (scored bucket)';}
+    if(!peers||peers.length<4){
+     const fam=sec.split('/')[0].trim().toLowerCase();
+     const famPeers=Object.keys(Q.meta).filter(x=>(Q.meta[x][1]||'').split('/')[0].trim().toLowerCase()===fam);
+     if(famPeers.length>=4){peers=famPeers;glabel=sec.split('/')[0].trim()+' family';}
+    }
+    if(!peers||peers.length<2){peers=Object.keys(Q.meta).filter(x=>Q.meta[x][1]===sec);glabel=sec;}
+    if(!peers.includes(t))peers.push(t);
     const met=x=>{const q=Q.q[x]||[null,null,null,null];const ch=CH.c[x]||{};const a=(window.__A&&window.__A.a[x])||{};
      return {t:x,day:q[1],off:q[2],vol:q[3],momp:ch.momp==null?null:ch.momp,rgT:a.rg?a.rg[1]:null};};
     const rowsAll=peers.map(met);
@@ -2048,7 +2060,7 @@ goto(location.hash.replace('#','')||'home',false);
     const me=met(t);
     const med=arr=>{const xs=arr.filter(x=>x!=null).sort((a,b)=>a-b);return xs.length?xs[Math.floor(xs.length/2)]:null;};
     const mDay=med(rowsAll.map(r=>r.day)),mOff=med(rowsAll.map(r=>r.off)),mVol=med(rowsAll.map(r=>r.vol)),mMom=med(rowsAll.map(r=>r.momp));
-    let h2=`<div style="font-size:12.5px;margin-bottom:8px"><b>${t} within "${sec}"</b> — ${peers.length} names in our universe share this tag.<br>
+    let h2=`<div style="font-size:12.5px;margin-bottom:8px"><b>${t} within "${glabel}"</b> — ${peers.length} names in this peer set.<br>
      Day move <b>${me.day==null?'—':(me.day>0?'+':'')+me.day+'%'}</b> vs sector median ${mDay==null?'—':(mDay>0?'+':'')+mDay+'%'} ·
      Off 52-wk high <b>${me.off==null?'—':me.off+'%'}</b> vs median ${mOff==null?'—':mOff+'%'} (P${pctIn(rowsAll.map(r=>r.off),me.off,true)??'—'} in sector — higher percentile = closer to its high) ·
      30-d vol <b>${me.vol==null?'—':me.vol+'%'}</b> vs median ${mVol==null?'—':mVol+'%'} ·
