@@ -2096,16 +2096,26 @@ goto(location.hash.replace('#','')||'home',false);
   } else if(resSub==="KPIs & Screen"){
    const k=CH.kpi[t];
    if(k){
-    body.innerHTML=`<table><tr><th>KPI</th><th>Value</th><th>Read</th></tr>
-     <tr><td>Net margin</td><td><b>${(+k.nm).toFixed(1)}%</b></td><td class="muted">of each $1 of sales kept after all costs</td></tr>
-     <tr><td>Current ratio</td><td><b>${(+k.cur).toFixed(2)}×</b></td><td class="muted">near-term bills coverage</td></tr>
-     <tr><td>Quick ratio</td><td><b>${(+k.qk).toFixed(2)}×</b></td><td class="muted">same test, inventory excluded</td></tr>
-     <tr><td>LT-debt / assets</td><td><b>${(+k.da).toFixed(2)}</b></td><td class="muted">asset base financed by long-term debt</td></tr>
-     <tr><td>ROE</td><td><b>${(+k.roe).toFixed(1)}%</b></td><td class="muted">return on shareholder equity (buyback-flattered when equity shrinks)</td></tr>
-     <tr><td><b>Screen score</b></td><td><b style="color:${color(+k.avg_score)}">${k.avg_score}/10</b></td><td class="muted">anchor + own-history percentile + peer-relative, within ${k.sector}</td></tr></table>
+    /* sector medians across the covered KPI universe (Jul 22: Riley — compare to sector
+       averages + ideal-range ⓘ popovers per KPI) */
+    const secPeers=Object.keys(CH.kpi).filter(x=>CH.kpi[x].sector===k.sector);
+    const smed=key=>{const xs=secPeers.map(x=>+CH.kpi[x][key]).filter(v=>!isNaN(v)).sort((a,b)=>a-b);
+     return xs.length?xs[Math.floor(xs.length/2)]:null;};
+    const vs=(v,m,hiBetter)=>{if(m==null||isNaN(v))return '';
+     const better=hiBetter?v>m:v<m;
+     return ` <span style="font-size:11px;font-weight:700;color:${better?'var(--pos)':'var(--neg)'}">${better?'▲ above':'▼ below'}</span>`;};
+    const nmed=smed('nm'),cmed=smed('cur'),qmed=smed('qk'),dmed=smed('da'),rmed=smed('roe'),scmed=smed('avg_score');
+    body.innerHTML=`<table><tr><th>KPI</th><th>${t}</th><th>${k.sector} median <span class="muted" style="font-weight:400">(${secPeers.length} names)</span></th><th>Read</th></tr>
+     <tr><td>Net margin<span class="info" data-pop="kpnm">i</span></td><td><b>${(+k.nm).toFixed(1)}%</b>${vs(+k.nm,nmed,true)}</td><td>${nmed==null?'—':nmed.toFixed(1)+'%'}</td><td class="muted">of each $1 of sales kept after all costs</td></tr>
+     <tr><td>Current ratio<span class="info" data-pop="kpcur">i</span></td><td><b>${(+k.cur).toFixed(2)}×</b>${vs(+k.cur,cmed,true)}</td><td>${cmed==null?'—':cmed.toFixed(2)+'×'}</td><td class="muted">near-term bills coverage · ideal ≈ 1.5–2.5</td></tr>
+     <tr><td>Quick ratio<span class="info" data-pop="kpqk">i</span></td><td><b>${(+k.qk).toFixed(2)}×</b>${vs(+k.qk,qmed,true)}</td><td>${qmed==null?'—':qmed.toFixed(2)+'×'}</td><td class="muted">inventory excluded · ≥ 1.0 is the classic pass</td></tr>
+     <tr><td>LT-debt / assets<span class="info" data-pop="kpda">i</span></td><td><b>${(+k.da).toFixed(2)}</b>${vs(+k.da,dmed,false)}</td><td>${dmed==null?'—':dmed.toFixed(2)}</td><td class="muted">lower generally better · &lt; 0.2 conservative</td></tr>
+     <tr><td>ROE<span class="info" data-pop="kproe">i</span></td><td><b>${(+k.roe).toFixed(1)}%</b>${vs(+k.roe,rmed,true)}</td><td>${rmed==null?'—':rmed.toFixed(1)+'%'}</td><td class="muted">15–25% strong · 40%+ often buyback-flattered</td></tr>
+     <tr><td><b>Screen score</b><span class="info" data-pop="kpscore">i</span></td><td><b style="color:${color(+k.avg_score)}">${k.avg_score}/10</b>${vs(+k.avg_score,scmed,true)}</td><td>${scmed==null?'—':scmed+'/10'}</td><td class="muted">anchor + own-history percentile + peer-relative</td></tr></table>
+     <div class="muted" style="font-size:11.5px;margin-top:6px">▲/▼ = vs the ${k.sector} median in our covered-KPI universe. Tap any ⓘ for what an ideal value looks like — and where "ideal" flips into a warning.</div>
      ${k.peak_flags?`<div style="margin-top:8px;font-size:12.5px">⚠ <b>Peak-earnings flags:</b> ${k.peak_flags} — profitability at the top of this company's own 15+ year record; the project's most reliable finding is that peak margins mean-revert.</div>`:''}
      <div class="muted" style="font-size:12px;margin-top:8px">From SEC filings via our XBRL pipeline · FY ${k.fy_end} · basis and formulas: How to Read.</div>`;
-   } else body.innerHTML=`<div class="muted" style="font-size:12.5px">Filing-level KPIs cover our 25-company universe; ${t} is outside it. Price analytics on the other sub-tabs still apply.</div>`;
+   } else body.innerHTML=`<div class="muted" style="font-size:12.5px">Filing-level KPIs cover our 25-company universe; ${t} is outside it. Price analytics on the other sub-tabs still apply — and if ${t} is one of the 128 scored names, the Peers & Industry tab has its ratio-vs-bucket table.</div>`;
   } else {
    body.innerHTML=analyticsRows(t)||'<span class="muted">No analytics for this ticker.</span>';
   }
@@ -2190,6 +2200,12 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ kpnm:`<b>Net margin — higher is better, to a point.</b><br>Negative = losing money on every sale · under ~5% = thin (one bad quarter from red) · <b>10–20% = solid</b> · 25%+ = excellent, usually a moat.<br><br><b>The catch:</b> when a company's margin sits at the top of its OWN 15-year record (peak flag ⚠), history says it mean-reverts — chips and commodities especially. A spectacular margin can be a warning dressed as a compliment.`,
+ kpcur:`<b>Current ratio — sweet spot ≈ 1.5–2.5.</b><br>Under 1.0 = current bills exceed current assets (strain) · 1.0–1.5 = adequate · <b>1.5–2.5 = healthy</b> · over ~3 = often "lazy" cash earning nothing — common right after big capital raises (frontier names run 10–60× for exactly that reason).<br><br>Retailers and fast-turn businesses run structurally lower and are fine.`,
+ kpqk:`<b>Quick ratio — same test, inventory stripped out. ≥ 1.0 is the classic pass.</b><br>0.5–1.0 = watch it · <b>1.0–1.5 = comfortable</b> · far above that = same lazy-cash caveat as the current ratio.<br><br>Inventory-heavy businesses (retail, autos) naturally sit lower; software naturally sits near its current ratio since it holds no inventory.`,
+ kpda:`<b>LT-debt / assets — lower is generally better.</b><br><b>Under 0.2 = conservative</b> · 0.2–0.4 = moderate, normal for capital-intensive sectors (energy, telecom, utilities) · over 0.5 = leveraged; fine while cash flows hold, punishing when they don't.<br><br>Zero isn't automatically ideal — cheap debt left unused can mean an inefficient balance sheet. Judge against the sector column.`,
+ kproe:`<b>ROE — how hard shareholder equity is working.</b><br>Under 8% = weak · 8–15% = decent · <b>15–25% = strong</b> · above ~40% = read the fine print: heavy buybacks shrink equity and inflate the ratio (HD runs 100%+ this way), and near-zero equity makes it meaningless.<br><br>Peak-flag logic applies here too — a company at its own all-time ROE high tends to revert.`,
+ kpscore:`<b>Screen score, 0–10 — higher is better.</b><br>Built from three legs: <b>anchor</b> (the ratio scored against fixed good/bad thresholds), <b>own-history percentile</b> (same number vs the company's own 15-year record — only for names with 8+ years collected), and <b>peer-relative</b> (0.6·blended + 0.4·position between best and worst in the bucket).<br><br>Rough read: <b>7+ = strong</b> · 5–7 = middling · under 4 = weak on these five ratios. NOT comparable to the sector heat-map composite (different inputs), and a cash-rich pre-revenue name can score 7 on balance-sheet strength alone — always read the flags column.`,
  cprice:`<b>Price.</b> Last daily close from our pipeline (end-of-day, refreshed each morning — not live intraday). Splits/dividends adjusted by the source.`,
  cday:`<b>Day %.</b> Last close vs the prior close. One day of noise — σ/√252 says a typical S&P name moves ±1–2% on nothing.`,
  c52w:`<b>Off 52-week high.</b> Distance below the trailing-year peak. Deep discounts can be value or a falling knife — this number can't tell you which; the KPIs and regime rows are the context.`,
