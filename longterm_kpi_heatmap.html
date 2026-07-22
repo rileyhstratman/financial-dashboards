@@ -249,6 +249,11 @@
     </table>
     <div class="muted" style="font-size:12px;margin-top:6px">Within-sector ranking only — scores are NOT comparable to the sector heat map (different inputs: 5 filing-derived ratios, no valuation/growth/analyst legs). Materials & Precious have no company coverage yet (universe = the 25 agreed tickers). AVAV partial (fiscal-year concept gaps). Every input computed from SEC XBRL by our own pipeline; 416 ticker-years of history behind the percentile grounding.</div>
   </div>
+  <div class="block" style="border-left:3px solid var(--accent)"><h3>Extended screen — 128 companies, 12 buckets <span class="muted" style="font-weight:400;font-size:12px">· v4, Jul 22 2026 · SEC XBRL via our own pipeline · <span id="scAsOf"></span></span></h3>
+    <div class="muted" style="font-size:12px;margin-bottom:8px">Same engine, wider net: anchors + 0.6/0.4 within-bucket relative leg. <b>Read the caveats:</b> new names have no 8-yr history yet, so no percentile grounding or peak penalty (H column = history-grounded). Banks/insurers lack current-ratio concepts (fewer ratios, flagged n&lt;4). <b>Pre-revenue frontier names</b> (flag "pre-rev") exclude net margin — below $50M FY revenue that ratio is noise — so their scores lean on cash-rich balance sheets from capital raises, NOT profitability. A 7 for D-Wave is not a 7 for Google.</div>
+    <input id="scFilter" placeholder="Filter by ticker, name fragment, or bucket…" style="width:100%;max-width:420px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;margin-bottom:8px">
+    <div id="scTable"><span class="muted" style="font-size:12px">Loading screen.json…</span></div>
+  </div>
 </div>
 
 <!-- ============ PAGE 15: OSINT LIVE FEED (split from Regime Monitor, Jul 21) ============ -->
@@ -1692,6 +1697,33 @@ goto(location.hash.replace('#','')||'home',false);
   el.querySelectorAll('[data-lk]').forEach(x=>x.addEventListener('click',()=>{show(x.dataset.lk);el.scrollIntoView({behavior:'smooth',block:'start'});}));
   if(name==='Quantum Computing') renderQuantumOsint();
  }
+ /* EXTENDED COMPANY SCREEN (v4, Jul 22) — 128 names scored from our XBRL pipeline */
+ (function(){
+  let SC=null;
+  function render(){
+   const el=document.getElementById('scTable'); if(!el||!SC) return;
+   const f=(document.getElementById('scFilter').value||'').toLowerCase();
+   const rows=SC.rows.filter(r=>!f||r.t.toLowerCase().includes(f)||r.sec.toLowerCase().includes(f));
+   const col=v=>v==null?'—':v;
+   let h='<table><tr><th>Ticker</th><th>Bucket</th><th>Score /10</th><th>Net margin</th><th>Current</th><th>Quick</th><th>LT debt/assets</th><th>ROE</th><th>Ratios</th><th>H</th><th>Flags</th></tr>';
+   rows.sort((a,b)=>(b.avg||0)-(a.avg||0)).forEach(r=>{
+    const sc=r.avg==null?'—':r.avg.toFixed(2);
+    const cls=r.avg>=7?'var(--pos)':r.avg<4?'var(--neg)':'var(--ink)';
+    h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-scl="${r.t}">${r.t}</b></td><td class="muted" style="font-size:11.5px">${r.sec}</td><td style="font-weight:700;color:${cls}">${sc}</td><td>${r.nm==null?'—':r.nm+'%'}</td><td>${col(r.cur)}</td><td>${col(r.qk)}</td><td>${col(r.da)}</td><td>${r.roe==null?'—':r.roe+'%'}</td><td>${r.n}${r.n<4?' ⚠':''}</td><td>${r.h?'✓':'—'}</td><td class="muted" style="font-size:11px">${r.fl||''}</td></tr>`;});
+   el.innerHTML=h+'</table>';
+   el.querySelectorAll('[data-scl]').forEach(x=>x.addEventListener('click',()=>{location.hash='stocks';setTimeout(()=>{if(window.show)show(x.dataset.scl);if(window.openResearch)openResearch(x.dataset.scl);},300);}));
+  }
+  function boot(){
+   if(SC){render();return;}
+   fetch('screen.json').then(r=>r.json()).then(d=>{SC=d;const a=document.getElementById('scAsOf');if(a)a.textContent=d.as_of;render();})
+    .catch(()=>{const el=document.getElementById('scTable');if(el)el.innerHTML='<span class="muted" style="font-size:12px">screen.json unavailable.</span>';});
+  }
+  document.addEventListener('DOMContentLoaded',()=>{
+   const f=document.getElementById('scFilter');
+   if(f) f.addEventListener('input',render);
+   boot();
+  });
+ })();
  /* QUANTUM OSINT PANEL (Jul 22) — narrative monitor for the quantum basket.
     Sources: Wikipedia pageviews (attention), Google News RSS (news-flow + headlines),
     arXiv quant-ph (research momentum). Point-in-time ledger: 06_osint/quantum_attention.csv.
