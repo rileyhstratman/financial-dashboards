@@ -264,7 +264,7 @@
     <div class="muted" style="font-size:12px;margin-top:6px">Within-sector ranking only — scores are NOT comparable to the sector heat map (different inputs: 5 filing-derived ratios, no valuation/growth/analyst legs). Materials & Precious have no company coverage yet (universe = the 25 agreed tickers). AVAV partial (fiscal-year concept gaps). Every input computed from SEC XBRL by our own pipeline; 416 ticker-years of history behind the percentile grounding.</div>
   </div>
   <div class="block" style="border-left:3px solid var(--accent)"><h3>Extended screen — 128 companies, 12 buckets <span class="muted" style="font-weight:400;font-size:12px">· v4, Jul 22 2026 · SEC XBRL via our own pipeline · <span id="scAsOf"></span></span></h3>
-    <div class="muted" style="font-size:12px;margin-bottom:8px">Same engine, wider net: anchors + 0.6/0.4 within-bucket relative leg. <b>Read the caveats:</b> new names have no 8-yr history yet, so no percentile grounding or peak penalty (H column = history-grounded). Banks/insurers lack current-ratio concepts (fewer ratios, flagged n&lt;4). <b>Pre-revenue frontier names</b> (flag "pre-rev") exclude net margin — below $50M FY revenue that ratio is noise — so their scores lean on cash-rich balance sheets from capital raises, NOT profitability. A 7 for D-Wave is not a 7 for Google.</div>
+    <div class="muted" style="font-size:12px;margin-bottom:8px">Same engine, wider net: anchors + 0.6/0.4 within-bucket relative leg. <b>Read the caveats:</b> new names have no 8-yr history yet, so no percentile grounding or peak penalty (H column = history-grounded). Banks/insurers lack current-ratio concepts (fewer ratios, flagged n&lt;4). <b>Pre-revenue frontier names</b> (flag "pre-rev") exclude net margin — below $50M FY revenue that ratio is noise — so their scores lean on cash-rich balance sheets from capital raises, NOT profitability. A 7 for D-Wave is not a 7 for Google. <b>Valuation columns (new):</b> P/E = price ÷ latest-<i>fiscal-year</i> EPS and P/S = market cap ÷ latest-FY revenue, both from our own filings × live quotes — they LAG for companies deep into a fiscal year, and cyclicals at turns (e.g. memory) read distorted until the new 10-K lands. Display-only: not yet blended into the score (that re-pricing gets its own decision).</div>
     <input id="scFilter" placeholder="Filter by ticker, name fragment, or bucket…" style="width:100%;max-width:420px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;margin-bottom:8px">
     <div id="scTable"><span class="muted" style="font-size:12px">Loading screen.json…</span></div>
   </div>
@@ -1936,6 +1936,7 @@ goto(location.hash.replace('#','')||'home',false);
     stat('Invested',s.invested_pct+'%')+stat('Cash',s.cash_pct+'%')+
     stat('Max drawdown',s.max_dd+'%',null,'fddd')+
     stat('Regime',d.regime.state,d.regime.state==='BASELINE'?'var(--pos)':'var(--neg)','fdreg')+
+    (s.port_vol!=null?stat('Est. vol (1y)',s.port_vol+'% / '+s.vol_target+'%',s.vol_ok?'var(--pos)':'var(--neg)','fdvol'):'')+
     stat('Daily marks',s.n_marks);
    // NAV vs SPY indexed chart
    const cv=document.getElementById('fdCv');
@@ -2012,7 +2013,7 @@ goto(location.hash.replace('#','')||'home',false);
    const f=(document.getElementById('scFilter').value||'').toLowerCase();
    const rows=SC.rows.filter(r=>!f||r.t.toLowerCase().includes(f)||r.sec.toLowerCase().includes(f));
    const col=v=>v==null?'—':v;
-   const SK=[['t','Ticker'],['sec','Bucket'],['avg','Score /10'],['nm','Net margin'],['cur','Current'],['qk','Quick'],['da','LT debt/assets'],['roe','ROE'],['n','Ratios']];
+   const SK=[['t','Ticker'],['sec','Bucket'],['avg','Score /10'],['pe','P/E'],['ps','P/S'],['nm','Net margin'],['cur','Current'],['qk','Quick'],['da','LT debt/assets'],['roe','ROE'],['n','Ratios']];
    let h='<table><tr>'+SK.map(([k,l])=>`<th style="cursor:pointer" data-scs="${k}" title="Click to sort">${l}${scSort.k===k?(scSort.asc?' ▲':' ▼'):''}</th>`).join('')+'<th>H</th><th>Flags</th></tr>';
    const key=scSort.k;
    rows.sort((a,b)=>{
@@ -2023,7 +2024,7 @@ goto(location.hash.replace('#','')||'home',false);
    }).forEach(r=>{
     const sc=r.avg==null?'—':r.avg.toFixed(2);
     const cls=r.avg>=7?'var(--pos)':r.avg<4?'var(--neg)':'var(--ink)';
-    h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-scl="${r.t}">${r.t}</b></td><td class="muted" style="font-size:11.5px">${r.sec}</td><td style="font-weight:700;color:${cls}">${sc}</td><td>${r.nm==null?'—':r.nm+'%'}</td><td>${col(r.cur)}</td><td>${col(r.qk)}</td><td>${col(r.da)}</td><td>${r.roe==null?'—':r.roe+'%'}</td><td>${r.n}${r.n<4?' ⚠':''}</td><td>${r.h?'✓':'—'}</td><td class="muted" style="font-size:11px">${r.fl||''}</td></tr>`;});
+    h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-scl="${r.t}">${r.t}</b></td><td class="muted" style="font-size:11.5px">${r.sec}</td><td style="font-weight:700;color:${cls}">${sc}</td><td>${col(r.pe)}</td><td>${col(r.ps)}</td><td>${r.nm==null?'—':r.nm+'%'}</td><td>${col(r.cur)}</td><td>${col(r.qk)}</td><td>${col(r.da)}</td><td>${r.roe==null?'—':r.roe+'%'}</td><td>${r.n}${r.n<4?' ⚠':''}</td><td>${r.h?'✓':'—'}</td><td class="muted" style="font-size:11px">${r.fl||''}</td></tr>`;});
    el.innerHTML=h+'</table>';
    el.querySelectorAll('[data-scl]').forEach(x=>x.addEventListener('click',()=>{location.hash='stocks';setTimeout(()=>{if(window.show)show(x.dataset.scl);if(window.openResearch)openResearch(x.dataset.scl);},300);}));
    el.querySelectorAll('[data-scs]').forEach(x=>x.addEventListener('click',()=>{
@@ -2522,6 +2523,7 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ fdvol:`<b>Estimated portfolio volatility vs the 15% target.</b><br>Computed from 1 year of daily returns using the MEASURED correlation matrix of the five instruments (amendment 10 — measurement replaced the old assumed 0.5; the real average pairwise correlation is ~0.23, meaning the book is better diversified than the rules originally credited). If estimated vol exceeds 15% annualized, all weights scale DOWN proportionally — the target never levers up. GDX alone runs ~49% vol, which is exactly why the Kelly cap and TENSION overlay keep it small.`,
  fdnav:`<b>NAV — net asset value.</b> Everything the fund owns, priced right now: cash + (shares held × latest close) across the five sector ETFs. Simulated capital started at $100,000 on Jul 21 2026; every mark is logged to an append-only ledger before outcomes are known. 5bp one-way costs are charged on every simulated trade, so NAV is net of frictions.`,
  fdspy:`<b>SPY — the benchmark, and the bar to clear.</b> The S&P 500 ETF: what you'd own if you skipped all of this and bought "the market" in one click. Every strategy must justify itself against it — beating SPY after costs is the entire game; matching it means the research added nothing; trailing it means the research subtracted value. The dashed line keeps the fund honest.`,
  fdidx:`<b>Indexed to 100 — why both lines start at the same point.</b> NAV is ~$100k and SPY is ~$748/share — raw prices can't share a chart. Both series are divided by their own starting value and ×100, so each line reads as "growth of the same dollar". At any hover point: fund 101.2 vs SPY 100.4 = the fund is 0.8% ahead cumulatively. The GAP between the lines is the whole story; the level of either alone is not.`,
