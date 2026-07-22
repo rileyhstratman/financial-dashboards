@@ -278,7 +278,7 @@
     <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV vs SPY</b> — both indexed to 100 at inception (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
     <div style="position:relative"><canvas id="fdCv" style="width:100%;height:200px"></canvas></div>
     <div id="fdChartNote" class="muted" style="font-size:11.5px"></div>
-    <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve</b> — NAV marked every 30 minutes through market hours (chronological, append-only ledger: <code>09_paper_fund/intraday_nav.csv</code>). Solid = fund, dashed = SPY, both indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
+    <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve</b> — NAV marked every <b>15 minutes</b> through market hours (chronological, append-only ledger: <code>09_paper_fund/intraday_nav.csv</code>; self-healing — missed slots reconstruct from real 5-min bars, labeled). Solid = fund, dashed = SPY, both indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
     <canvas id="fdIntra" style="width:100%;height:150px"></canvas>
     <div id="fdIntraNote" class="muted" style="font-size:11.5px"></div></div>
   </div>
@@ -1879,6 +1879,51 @@ goto(location.hash.replace('#','')||'home',false);
  (function(){
   let FD=null;
   function money(x){return '$'+x.toLocaleString(undefined,{maximumFractionDigits:0});}
+  /* iline (Jul 22): interactive indexed line chart — crosshair (vertical + horizontal),
+     hover dot, tooltip — same interaction language as the research charts. */
+  function cssv(n){return getComputedStyle(document.body).getPropertyValue(n).trim()||'#888';}
+  function iline(cv,cfg){
+   cv._cfg=cfg;
+   const wrap=cv.parentElement; wrap.style.position='relative';
+   let tip=wrap.querySelector('.ctip');
+   if(!tip){tip=document.createElement('div');tip.className='ctip';
+    tip.style.cssText='display:none;position:absolute;top:6px;left:10px;background:var(--pop-bg);border:1px solid var(--border);border-radius:8px;padding:5px 10px;font-size:12px;pointer-events:none;z-index:5';
+    wrap.appendChild(tip);}
+   function draw(hi){
+    const g=cv._cfg;
+    const dpr=window.devicePixelRatio||1,W=cv.clientWidth||900,H=cv.clientHeight||150;
+    cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+    const c=cv.getContext('2d');c.setTransform(dpr,0,0,dpr,0,0);
+    const all=g.main.concat((g.sec||[]).filter(x=>x!=null));
+    const mn=Math.min(...all)-g.padY,mx=Math.max(...all)+g.padY;
+    const X=i=>10+(W-20)*i/Math.max(1,g.main.length-1), Y=v=>H-16-(H-32)*(v-mn)/((mx-mn)||1);
+    if(g.sec&&g.sec.length>1){c.setLineDash([4,3]);c.strokeStyle=cssv('--dim');c.lineWidth=1;c.beginPath();
+     let started=false;
+     g.sec.forEach((v,i)=>{if(v==null){started=false;return;}started?c.lineTo(X(i),Y(v)):c.moveTo(X(i),Y(v));started=true;});
+     c.stroke();c.setLineDash([]);}
+    c.strokeStyle=cssv('--accent');c.lineWidth=1.75;c.lineJoin='round';c.beginPath();
+    g.main.forEach((v,i)=>{i?c.lineTo(X(i),Y(v)):c.moveTo(X(i),Y(v));});c.stroke();
+    c.fillStyle=cssv('--dim');c.font='10px system-ui';
+    c.fillText(g.x0,10,H-2);c.fillText(g.x1,W-64,H-2);
+    if(hi!=null){
+     const hx=X(hi),hy=Y(g.main[hi]);
+     c.setLineDash([3,3]);c.strokeStyle=cssv('--dim');c.lineWidth=0.75;
+     c.beginPath();c.moveTo(hx+.5,0);c.lineTo(hx+.5,H-14);c.stroke();
+     c.beginPath();c.moveTo(10,hy+.5);c.lineTo(W-10,hy+.5);c.stroke();c.setLineDash([]);
+     c.fillStyle=cssv('--accent');c.beginPath();c.arc(hx,hy,3,0,7);c.fill();
+    }
+   }
+   draw(null);
+   if(!cv.dataset.wired){cv.dataset.wired=1;cv.style.cursor='crosshair';
+    cv.addEventListener('mousemove',e=>{const g=cv._cfg;if(!g)return;
+     const r=cv.getBoundingClientRect();
+     const i=Math.round((e.clientX-r.left-10)/Math.max(1,cv.clientWidth-20)*(g.main.length-1));
+     const hi=Math.max(0,Math.min(g.main.length-1,i));
+     draw(hi);tip.innerHTML=g.fmt(hi);tip.style.display='block';
+     const w=tip.offsetWidth;tip.style.left=Math.max(4,Math.min(e.clientX-r.left-w/2,cv.clientWidth-w-4))+'px';});
+    cv.addEventListener('mouseleave',()=>{draw(null);tip.style.display='none';});
+   }
+  }
   function stat(label,val,color){return `<div><div class="muted" style="font-size:11px">${label}</div><div style="font-size:20px;font-weight:800${color?';color:'+color:''}">${val}</div></div>`;}
   function render(){
    const d=FD, s=d.stats;
@@ -1902,15 +1947,12 @@ goto(location.hash.replace('#','')||'home',false);
     ctx.fillStyle='var(--dim)';ctx.font='12px system-ui';ctx.fillText('Accumulating history — '+s.n_marks+' mark(s) so far.',12,H/2);}
    else{
     const n0=nav[0][1],s0=spy.length?spy[0][1]:null;
-    const nx=nav.map(x=>100*x[1]/n0), sx=s0?spy.map(x=>100*x[1]/s0):[];
-    const all=nx.concat(sx), mn=Math.min(...all)-0.5, mx=Math.max(...all)+0.5;
-    const X=(i,len)=>10+(W-20)*i/Math.max(1,len-1), Y=v=>H-16-(H-32)*(v-mn)/((mx-mn)||1);
-    if(sx.length>1){ctx.strokeStyle='var(--dim)';ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.beginPath();sx.forEach((v,i)=>{i?ctx.lineTo(X(i,sx.length),Y(v)):ctx.moveTo(X(i,sx.length),Y(v));});ctx.stroke();ctx.setLineDash([]);}
-    ctx.strokeStyle='var(--accent)';ctx.lineWidth=1.75;ctx.lineJoin='round';ctx.beginPath();
-    nx.forEach((v,i)=>{i?ctx.lineTo(X(i,nx.length),Y(v)):ctx.moveTo(X(i,nx.length),Y(v));});ctx.stroke();
-    ctx.fillStyle='var(--dim)';ctx.font='10px system-ui';
-    ctx.fillText(nav[0][0],10,H-2);ctx.fillText(nav[nav.length-1][0],W-72,H-2);
-    document.getElementById('fdChartNote').innerHTML='<span style="color:var(--accent)">━ fund</span> · <span>╌ SPY</span> · '+nav.length+' marks';
+    const nx=nav.map(x=>100*x[1]/n0);
+    const sxRaw=s0?spy.map(x=>100*x[1]/s0):[];
+    const sx=sxRaw.length>1?nx.map((_,i)=>sxRaw[Math.round(i*(sxRaw.length-1)/Math.max(1,nx.length-1))]):null;
+    iline(cv,{main:nx,sec:sx,padY:0.5,x0:nav[0][0],x1:nav[nav.length-1][0],
+     fmt:i=>`<b>${nav[i][0]}</b> · NAV $${nav[i][1].toLocaleString()} · fund <b>${(nx[i]-100)>=0?'+':''}${(nx[i]-100).toFixed(2)}%</b>${sx?` · SPY ${(sx[i]-100)>=0?'+':''}${(sx[i]-100).toFixed(2)}%`:''} <span class="muted">since inception</span>`});
+    document.getElementById('fdChartNote').innerHTML='<span style="color:var(--accent)">━ fund</span> · <span>╌ SPY</span> · '+nav.length+' marks · hover for exact values';
    }
    // intraday curve (Jul 22: Riley — chronological log through market hours, graphed)
    fetch('intraday.json?cb='+Date.now()).then(r=>r.json()).then(idj=>{
@@ -1921,21 +1963,15 @@ goto(location.hash.replace('#','')||'home',false);
     cv2.width=Math.round(W2*dpr2);cv2.height=Math.round(H2*dpr2);
     const c2=cv2.getContext('2d');c2.setTransform(dpr2,0,0,dpr2,0,0);
     if(mk.length<2){c2.fillStyle='var(--dim)';c2.font='12px system-ui';
-     c2.fillText(idj.date+': '+mk.length+' mark(s) so far — the curve draws itself as the session runs (every 30 min, market hours).',12,H2/2);
+     c2.fillText(idj.date+': '+mk.length+' mark(s) so far — the curve draws itself as the session runs (every 15 min, market hours).',12,H2/2);
      if(note)note.textContent='';return;}
     const nv=mk.map(m=>100*m.nav/mk[0].nav);
-    const sp=mk[0].spy?mk.map(m=>m.spy?100*m.spy/mk[0].spy:null):[];
-    const all=nv.concat(sp.filter(x=>x!=null));
-    const mn2=Math.min(...all)-0.03,mx2=Math.max(...all)+0.03;
-    const X2=i=>10+(W2-20)*i/(mk.length-1), Y2=v=>H2-14-(H2-28)*(v-mn2)/((mx2-mn2)||1);
-    if(sp.length>1){c2.setLineDash([4,3]);c2.strokeStyle='var(--dim)';c2.lineWidth=1;c2.beginPath();
-     sp.forEach((v,i)=>{if(v==null)return;i&&sp[i-1]!=null?c2.lineTo(X2(i),Y2(v)):c2.moveTo(X2(i),Y2(v));});c2.stroke();c2.setLineDash([]);}
-    c2.strokeStyle='var(--accent)';c2.lineWidth=1.75;c2.lineJoin='round';c2.beginPath();
-    nv.forEach((v,i)=>{i?c2.lineTo(X2(i),Y2(v)):c2.moveTo(X2(i),Y2(v));});c2.stroke();
-    c2.fillStyle='var(--dim)';c2.font='10px system-ui';
-    c2.fillText(mk[0].t+' UTC',10,H2-2);c2.fillText(mk[mk.length-1].t+' UTC',W2-58,H2-2);
+    const sp=mk[0].spy?mk.map(m=>m.spy?100*m.spy/mk[0].spy:null):null;
+    const et=t=>{const [h,m]=t.split(':').map(Number);const eh=(h-4+24)%24;return (eh%12||12)+':'+String(m).padStart(2,'0')+(eh<12?'am':'pm');};
+    iline(cv2,{main:nv,sec:sp,padY:0.03,x0:et(mk[0].t)+' ET',x1:et(mk[mk.length-1].t)+' ET',
+     fmt:i=>`<b>${et(mk[i].t)} ET</b> · NAV $${mk[i].nav.toLocaleString()} · <b>${(nv[i]-100)>=0?'+':''}${(nv[i]-100).toFixed(2)}%</b>${sp&&sp[i]!=null?` · SPY ${(sp[i]-100)>=0?'+':''}${(sp[i]-100).toFixed(2)}%`:''} <span class="muted">vs first mark</span>`});
     const chg=100*(mk[mk.length-1].nav/mk[0].nav-1);
-    if(note)note.innerHTML=`${idj.date} · ${mk.length} marks · fund <b style="color:${chg>=0?'var(--pos)':'var(--neg)'}">${chg>=0?'+':''}${chg.toFixed(2)}%</b> since first mark · latest NAV $${mk[mk.length-1].nav.toLocaleString()}`;
+    if(note)note.innerHTML=`${idj.date} · ${mk.length} marks (15-min) · fund <b style="color:${chg>=0?'var(--pos)':'var(--neg)'}">${chg>=0?'+':''}${chg.toFixed(2)}%</b> since first mark · latest NAV $${mk[mk.length-1].nav.toLocaleString()} · hover for exact values`;
    }).catch(()=>{const note=document.getElementById('fdIntraNote');if(note)note.textContent='intraday.json not yet published — appears after the first market session of logging.';});
    // allocation bars
    const hs=d.holdings;
