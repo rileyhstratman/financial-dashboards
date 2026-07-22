@@ -111,6 +111,18 @@
     #searchBox,#searchBox:focus{width:130px}
     .home-grid,.dir-grid{grid-template-columns:1fr}
   }
+/* MOBILE PASS (improvement #6, Jul 22): tables scroll horizontally instead of
+   overflowing; stat rows and chips wrap; nav tightens. Desktop untouched. */
+@media (max-width: 760px){
+  .block{overflow-x:auto}
+  .block table{display:block;overflow-x:auto;white-space:nowrap;max-width:100%}
+  #fdStats{gap:12px}
+  #fdStats > div{min-width:90px}
+  .menu button, .nav-link{padding:6px 8px;font-size:13px}
+  #themeChips button, #elChips button{margin-bottom:4px}
+  h3{font-size:15px}
+  input#scFilter, input#elFilter{max-width:100%}
+}
 </style>
 </head>
 <body>
@@ -294,17 +306,9 @@
     <div id="supTable"><span class="muted" style="font-size:12px">Loading supply.json…</span></div>
     <div class="muted" style="font-size:11.5px;margin-top:6px">Five buckets watched daily (ports, chokepoints, semiconductors, energy infrastructure, logistics labor). A <b>FLAG</b> fires when 48h coverage ≥ 2× the bucket's own 14-run baseline — each flag becomes a dated entry in the event library. The detector needs 5 runs of history before it may flag anything: it earns its baseline, it doesn't pretend one.</div>
   </div>
-  <div class="block"><h3>Live event feed — own OSINT pipeline<span class="info" data-pop="osint">i</span> <span class="muted" style="font-weight:400;font-size:12px">· data through 2026-07-19 · refreshed on redeploy via <code>06_osint/make_dashboard_embed.py</code></span></h3>
-    <div style="margin-bottom:8px"><b>Attention status:</b> z = +1.4 <span class="muted">(elevated, not spiking)</span> — with the price detector in the TENSION regime, that's <b>pattern-consistent</b>: no divergence flag active.<span class="info" data-pop="patterns">i</span></div>
-    <table><tr><th>Dates</th><th>Where</th><th>Relevance</th><th>Severity <span style="font-weight:400">(articles)</span></th><th>Attention pct</th><th>Independent sources</th></tr>
-      <tr><td>Jul 19</td><td>Tehran, Iran</td><td><b>0.99</b></td><td><b>8,683</b></td><td>P99</td><td>103 domains</td></tr>
-      <tr><td>Jul 18–19</td><td>Iran (multi-site)</td><td>0.99</td><td>5,594</td><td>P99</td><td>74</td></tr>
-      <tr><td>Jul 19</td><td>Jordan</td><td>0.99</td><td>3,802</td><td>P97</td><td>60</td></tr>
-      <tr><td>Jul 19</td><td>United States</td><td>0.99</td><td>1,547</td><td>P98</td><td>56</td></tr>
-      <tr><td>Jul 19</td><td>Israel</td><td>0.96</td><td>1,008</td><td>P96</td><td>46</td></tr>
-      <tr><td>Jul 19</td><td>Kyiv, Ukraine</td><td>0.95</td><td>4,501</td><td>P97</td><td>43</td></tr>
-    </table>
-    <div class="muted" style="font-size:12px;margin-top:6px">NOISE-FILTERED (Jul 21): only high-signal events shown — relevance ≥ 0.5 on a documented 0–1 score (coverage breadth 35% · intensity 25% · attention vs P90 25% · novelty 15%). 52 of 345 corroborated events currently clear the bar (85% of routine chatter suppressed); 566 single-source events held in quarantine. Attention pct = the event's peak day vs every country-day since 2022 (P90 = 638 · P99 = 30,956 article-units). Events are city-level since clustering v2.</div>
+  <div class="block"><h3>Live event feed — own OSINT pipeline<span class="info" data-pop="osint">i</span> <span class="muted" style="font-weight:400;font-size:12px">· refreshed daily via <code>06_osint/make_feed_json.py</code> · <span id="lfAsOf"></span></span></h3>
+    <div id="liveFeed"><span class="muted" style="font-size:12px">Loading feed.json…</span></div>
+    <div class="muted" style="font-size:12px;margin-top:6px">NOISE-FILTERED: only high-signal events shown — relevance ≥ 0.5 on a documented 0–1 score (coverage breadth 35% · intensity 25% · attention vs P90 25% · novelty 15%). Single-source events held in quarantine. Attention pct = the event's peak day vs every country-day since 2022. Events are city-level since clustering v2.</div>
   </div>
 </div>
 
@@ -1771,6 +1775,25 @@ goto(location.hash.replace('#','')||'home',false);
   document.addEventListener('DOMContentLoaded',boot);
   window.addEventListener('hashchange',()=>{if(location.hash.includes('library'))boot();});
  })();
+ /* LIVE FEED (improvement #5, Jul 22) — daily feed.json replaces the weekly static embed */
+ (function(){
+  function boot(){
+   const el=document.getElementById('liveFeed'); if(!el||el.dataset.done)return;
+   fetch('feed.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+    el.dataset.done=1;
+    const a=document.getElementById('lfAsOf'); if(a)a.textContent='data '+d.as_of;
+    const MON=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const fd=s=>{const p=s.split('-');return MON[+p[1]]+' '+(+p[2]);};
+    let h=`<div style="margin-bottom:8px"><b>Attention status:</b> z = ${d.z>0?'+':''}${d.z} <span class="muted">(${d.zlabel})</span> · as of ${d.zdate}<span class="info" data-pop="patterns">i</span></div>`;
+    h+='<table><tr><th>Dates</th><th>Where</th><th>Class</th><th>Relevance</th><th>Severity</th><th>Attention pct</th><th>Sources</th></tr>';
+    d.events.forEach(e=>{h+=`<tr><td style="white-space:nowrap">${fd(e.d0)}${e.d1!==e.d0?'–'+fd(e.d1):''}</td><td>${e.place}${e.mar?' ⚓':''}</td><td class="muted" style="font-size:11.5px">${e.cat}</td><td><b>${e.rel.toFixed(2)}</b></td><td>${e.sev.toLocaleString()}</td><td>${e.attp==null?'—':'P'+e.attp}</td><td>${e.doms}</td></tr>`;});
+    h+=`</table><div class="muted" style="font-size:11.5px;margin-top:4px">${d.events.length} shown of ${d.n_pass} passing the bar · ${d.quarantined} single-source events quarantined.</div>`;
+    el.innerHTML=h;
+   }).catch(()=>{el.innerHTML='<span class="muted" style="font-size:12px">feed.json unavailable — see 06_osint/make_feed_json.py.</span>';});
+  }
+  document.addEventListener('DOMContentLoaded',boot);
+  window.addEventListener('hashchange',()=>{if(location.hash.includes('feed'))boot();});
+ })();
  /* SUPPLY-CHAIN MONITOR (Phase B, Jul 22) — feed page block */
  (function(){
   function boot(){
@@ -2252,16 +2275,39 @@ goto(location.hash.replace('#','')||'home',false);
   fetch('charts.json').then(r=>r.json()).then(d=>{CH=d;renderResearch();})
    .catch(()=>{document.getElementById('resPanel').innerHTML='<span class="muted">charts.json failed to load</span>';});
  };
+ /* Watchlist alerts (improvement #4): OSINT badges per row — insider buy/13D, recent 8-K,
+    attention spike. Data from insiders.json + company_attention.json (7-day windows). */
+ function wlAlerts(t){
+  const out=[];
+  const ins=window.__INSJ&&window.__INSJ.i&&window.__INSJ.i[t];
+  const cutoff=new Date(Date.now()-7*864e5).toISOString().slice(0,10);
+  if(ins) ins.forEach(e=>{const [d,form,net]=e;
+   if(d>=cutoff){
+    if(form.startsWith('SC')||form.startsWith('SCHEDULE')) out.push(`<span title="Activist/major-holder filing ${d}" style="font-size:10.5px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:5px;padding:0 4px">13D/G</span>`);
+    else if(net!=null&&net>=250000) out.push(`<span title="Insider net open-market buy $${net.toLocaleString()} on ${d}" style="font-size:10.5px;font-weight:700;color:var(--pos);border:1px solid var(--pos);border-radius:5px;padding:0 4px">INSIDER BUY</span>`);
+   }});
+  const f=window.__INSJ&&window.__INSJ.f&&window.__INSJ.f[t];
+  if(f&&f[0]>=cutoff) out.push(`<span title="8-K ${f[0]}: ${f[1]}" style="font-size:10.5px;font-weight:700;color:var(--dim);border:1px solid var(--line);border-radius:5px;padding:0 4px">8-K</span>`);
+  const ca=window.__CAJ&&window.__CAJ.a&&window.__CAJ.a[t];
+  if(ca&&ca.spike) out.push(`<span title="Attention spike: ${ca.w.toLocaleString()} views/wk ≥3× median" style="font-size:10.5px;font-weight:700;color:var(--neg);border:1px solid var(--neg);border-radius:5px;padding:0 4px">⚑ ATTN</span>`);
+  return out.length?' '+out.join(' '):'';
+ }
+ function wlEnsureAlertData(){
+  if(!window.__INSJ) fetch('insiders.json?cb='+Date.now()).then(r=>r.json()).then(d=>{window.__INSJ=d;renderWL();}).catch(()=>{window.__INSJ={};});
+  if(!window.__CAJ) fetch('company_attention.json?cb='+Date.now()).then(r=>r.json()).then(d=>{window.__CAJ=d;renderWL();}).catch(()=>{window.__CAJ={};});
+ }
  function renderWL(){
   const w=loadWL();
   if(!w.length){wlOut.innerHTML='<span class="muted" style="font-size:12.5px">Empty — look a ticker up and add it. The price and date at the moment you add become your permanent anchor.</span>';return;}
-  let h='<table><tr><th>Ticker</th><th>Name</th><th>Price</th><th>Day</th><th>Since added</th><th>Added</th><th></th></tr>';
+  wlEnsureAlertData();
+  let h='<table><tr><th>Ticker</th><th>Name</th><th>Price</th><th>Day</th><th>Since added</th><th>Alerts <span class="muted" style="font-weight:400;font-size:10px">(7d)</span></th><th>Added</th><th></th></tr>';
   w.forEach((x,i)=>{
    const q=Q&&Q.q[x.s];
    const days=Math.round((Date.now()-new Date(x.d))/864e5);
    if(q){const [last,d1]=q;const sa=100*(last/x.p-1);
-    h+=`<tr><td><b>${x.s}</b></td><td class="muted" style="font-size:12px">${Q.meta[x.s][0]}</td><td>$${last.toLocaleString()}</td><td>${pct(d1)}</td><td>${pct(sa)} <span class="muted" style="font-size:11px">vs $${x.p}</span></td><td class="muted" style="font-size:12px">${x.d} · ${days}d</td><td><span style="cursor:pointer" data-res="${x.s}" title="Full research">📊</span> <span style="cursor:pointer;color:var(--dim)" data-rm="${i}" title="Remove">✕</span></td></tr>`;}
-   else h+=`<tr><td><b>${x.s}</b></td><td colspan="5" class="muted">quote pending</td><td><span style="cursor:pointer;color:var(--dim)" data-rm="${i}">✕</span></td></tr>`;
+    const al=wlAlerts(x.s);
+    h+=`<tr><td><b>${x.s}</b></td><td class="muted" style="font-size:12px">${Q.meta[x.s][0]}</td><td>$${last.toLocaleString()}</td><td>${pct(d1)}</td><td>${pct(sa)} <span class="muted" style="font-size:11px">vs $${x.p}</span></td><td>${al||'<span class="muted" style="font-size:11px">—</span>'}</td><td class="muted" style="font-size:12px">${x.d} · ${days}d</td><td><span style="cursor:pointer" data-res="${x.s}" title="Full research">📊</span> <span style="cursor:pointer;color:var(--dim)" data-rm="${i}" title="Remove">✕</span></td></tr>`;}
+   else h+=`<tr><td><b>${x.s}</b></td><td colspan="6" class="muted">quote pending</td><td><span style="cursor:pointer;color:var(--dim)" data-rm="${i}">✕</span></td></tr>`;
   });
   wlOut.innerHTML=h+'</table>';
   wlOut.querySelectorAll('[data-rm]').forEach(el=>el.addEventListener('click',()=>{const w2=loadWL();w2.splice(+el.dataset.rm,1);saveWL(w2);renderWL();}));
