@@ -2244,7 +2244,7 @@ goto(location.hash.replace('#','')||'home',false);
   const t=resT,panel=document.getElementById('resPanel');
   const c=CH&&CH.c[t];
   if(!c){panel.innerHTML='<span class="muted">No chart data for '+t+'</span>';return;}
-  const SUBS=["Chart","Peers & Industry","KPIs & Screen","Events, Regime & Sizing"];
+  const SUBS=["Chart","Conviction Stack","Peers & Industry","KPIs & Screen","Events, Regime & Sizing"];
   let h=`<div class="block" style="border-left:3px solid var(--accent)"><h3>${t} — full research <span class="muted" style="font-weight:400;font-size:11px">· as of ${CH.as_of} · end-of-day pipeline (intraday deliberately not shown)</span></h3>
    <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px">${SUBS.map(sb=>`<button class="csvBtn" style="float:none${sb===resSub?';border-color:var(--accent);color:var(--accent);font-weight:700':''}" data-sub="${sb}">${sb}</button>`).join('')}</div>
    <div id="resSubBody"></div>
@@ -2280,6 +2280,32 @@ goto(location.hash.replace('#','')||'home',false);
    wireScrub(cv,document.getElementById('resTip'));
    body.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{resTF=b.dataset.tf;renderResearch();}));
    const st=document.getElementById('spyTgl'); if(st)st.addEventListener('click',()=>{window.__resSPY=!window.__resSPY;renderResearch();});
+  } else if(resSub==="Conviction Stack"){
+   /* CONVICTION STACK (Jul 22, Riley's directive): every layer of the project's analysis
+      on THIS stock, with provenance — doctrine in 05_roadmap/CONVICTION_STACK.md. */
+   const go=cvj=>{
+    const e=cvj.c&&cvj.c[t];
+    if(!e){body.innerHTML='<span class="muted" style="font-size:12.5px">No conviction data for '+t+'.</span>';return;}
+    const S=e.scores||{};
+    const wRow=(k,name,val,src)=>{
+     const s=S[k];
+     return `<tr><td><b>${name}</b> <span class="muted" style="font-size:10.5px">w=${cvj.weights[k]??'—'}</span></td><td>${val}</td><td>${s==null?'<span class="muted">absent</span>':`<b style="color:${color?color(s):'var(--ink)'}">${s.toFixed(1)}</b>`}</td><td class="muted" style="font-size:11px">${src}</td></tr>`;};
+    let h=`<div style="font-size:12.5px;margin-bottom:8px"><b>Research conviction: <span style="font-size:18px;color:${color?color(e.blend):'var(--ink)'}">${e.blend}/10</span></b> <span class="muted">· ${e.n_layers} of 6 layers available · current regime ${cvj.regime} · ${cvj.as_of}</span></div>
+    <table><tr><th>Layer</th><th>Evidence</th><th>Score /10</th><th>Source pipeline</th></tr>`;
+    h+=wRow('l1','L1 Sector context', e.l1!=null?`${e.sec}: <b>${e.l1}</b>/10 composite`:`${e.sec||'—'} <span class="muted">(outside the 5 rated sectors)</span>`, 'sector engine (heat map)');
+    h+=wRow('l2','L2 Company fundamentals', e.l2!=null?`screen <b>${e.l2}</b>/10${e.l3_grounded?' · history-grounded':' · anchor-only'}`:'not in 128-name screen', 'own SEC-XBRL screen');
+    h+=`<tr><td><b>L3 History check</b> <span class="muted" style="font-size:10.5px">penalty</span></td><td>${e.l3_flags?`⚠ <b>${e.l3_flags}</b> → −0.75 on blend`:(e.l2!=null?'no peak flags':'—')}</td><td>${e.l3_flags?'<b style="color:var(--neg)">−0.75</b>':'—'}</td><td class="muted" style="font-size:11px">1,784 ticker-year history</td></tr>`;
+    h+=wRow('l4','L4 Momentum & technicals', e.l4_momp!=null?`momentum P${e.l4_momp} · RSI ${e.l4_rsi??'—'}`:'—', 'charts pipeline');
+    h+=wRow('l5','L5 Regime fit', e.l5_excess!=null?`<b>${e.l5_excess>0?'+':''}${e.l5_excess}%</b>/yr excess in ${cvj.regime}`:'no regime coverage', 'walk-forward HMM + analytics');
+    h+=wRow('l6','L6 Event evidence', (e.l6_basket?`deesc basket <b>${e.l6_basket}</b> · `:'')+(e.l6_de1!=null?`deesc t+1 ${e.l6_de1>0?'+':''}${e.l6_de1}%`:'—'), 'event studies + frozen basket');
+    h+=wRow('l7','L7 Flow & narrative', e.l7_notes?e.l7_notes:'no insider/attention activity (7d)', 'insider stream + attention layer');
+    h+='</table>';
+    h+=`<div class="muted" style="font-size:11.5px;margin-top:8px"><b>Read the layers, not just the blend.</b> A high blend with a rotten layer (peak flag, negative regime fit, insider selling) is a warning wearing a good number. And the standing rule: this is a RESEARCH LENS — nothing trades off it until the blend itself passes backtest + pre-registration (amendment 9), the same gate every signal faces. Doctrine: CONVICTION_STACK.md.</div>`;
+    body.innerHTML=h;};
+   if(window.__CVJ){go(window.__CVJ);}
+   else{body.innerHTML='<span class="muted" style="font-size:12px">Loading conviction.json…</span>';
+    fetch('conviction.json?cb='+Date.now()).then(r=>r.json()).then(d=>{window.__CVJ=d;if(resSub==="Conviction Stack")go(d);})
+     .catch(()=>{body.innerHTML='<span class="muted" style="font-size:12px">conviction.json unavailable.</span>';});}
   } else if(resSub==="Peers & Industry"){
    /* Peers & Industry (Jul 22): the stock in the context of its own industry, from OUR feeds —
       quotes (day/52w/vol), charts (momentum pct), analytics (regime excess), screen.json (scored ratios). */
