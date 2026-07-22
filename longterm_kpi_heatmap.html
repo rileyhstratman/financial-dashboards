@@ -278,6 +278,9 @@
     <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV vs SPY</b> — both indexed to 100 at inception (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
     <div style="position:relative"><canvas id="fdCv" style="width:100%;height:200px"></canvas></div>
     <div id="fdChartNote" class="muted" style="font-size:11.5px"></div>
+    <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve</b> — NAV marked every 30 minutes through market hours (chronological, append-only ledger: <code>09_paper_fund/intraday_nav.csv</code>). Solid = fund, dashed = SPY, both indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
+    <canvas id="fdIntra" style="width:100%;height:150px"></canvas>
+    <div id="fdIntraNote" class="muted" style="font-size:11.5px"></div></div>
   </div>
   <div class="block"><h3>Allocations & instruments <span class="muted" style="font-weight:400;font-size:12px">· weights vs half-Kelly caps · regime overlay applied</span></h3>
     <div id="fdAlloc"></div>
@@ -1909,6 +1912,31 @@ goto(location.hash.replace('#','')||'home',false);
     ctx.fillText(nav[0][0],10,H-2);ctx.fillText(nav[nav.length-1][0],W-72,H-2);
     document.getElementById('fdChartNote').innerHTML='<span style="color:var(--accent)">━ fund</span> · <span>╌ SPY</span> · '+nav.length+' marks';
    }
+   // intraday curve (Jul 22: Riley — chronological log through market hours, graphed)
+   fetch('intraday.json?cb='+Date.now()).then(r=>r.json()).then(idj=>{
+    const cv2=document.getElementById('fdIntra'), note=document.getElementById('fdIntraNote');
+    if(!cv2)return;
+    const mk=idj.marks||[];
+    const dpr2=window.devicePixelRatio||1,W2=cv2.clientWidth||900,H2=150;
+    cv2.width=Math.round(W2*dpr2);cv2.height=Math.round(H2*dpr2);
+    const c2=cv2.getContext('2d');c2.setTransform(dpr2,0,0,dpr2,0,0);
+    if(mk.length<2){c2.fillStyle='var(--dim)';c2.font='12px system-ui';
+     c2.fillText(idj.date+': '+mk.length+' mark(s) so far — the curve draws itself as the session runs (every 30 min, market hours).',12,H2/2);
+     if(note)note.textContent='';return;}
+    const nv=mk.map(m=>100*m.nav/mk[0].nav);
+    const sp=mk[0].spy?mk.map(m=>m.spy?100*m.spy/mk[0].spy:null):[];
+    const all=nv.concat(sp.filter(x=>x!=null));
+    const mn2=Math.min(...all)-0.03,mx2=Math.max(...all)+0.03;
+    const X2=i=>10+(W2-20)*i/(mk.length-1), Y2=v=>H2-14-(H2-28)*(v-mn2)/((mx2-mn2)||1);
+    if(sp.length>1){c2.setLineDash([4,3]);c2.strokeStyle='var(--dim)';c2.lineWidth=1;c2.beginPath();
+     sp.forEach((v,i)=>{if(v==null)return;i&&sp[i-1]!=null?c2.lineTo(X2(i),Y2(v)):c2.moveTo(X2(i),Y2(v));});c2.stroke();c2.setLineDash([]);}
+    c2.strokeStyle='var(--accent)';c2.lineWidth=1.75;c2.lineJoin='round';c2.beginPath();
+    nv.forEach((v,i)=>{i?c2.lineTo(X2(i),Y2(v)):c2.moveTo(X2(i),Y2(v));});c2.stroke();
+    c2.fillStyle='var(--dim)';c2.font='10px system-ui';
+    c2.fillText(mk[0].t+' UTC',10,H2-2);c2.fillText(mk[mk.length-1].t+' UTC',W2-58,H2-2);
+    const chg=100*(mk[mk.length-1].nav/mk[0].nav-1);
+    if(note)note.innerHTML=`${idj.date} · ${mk.length} marks · fund <b style="color:${chg>=0?'var(--pos)':'var(--neg)'}">${chg>=0?'+':''}${chg.toFixed(2)}%</b> since first mark · latest NAV $${mk[mk.length-1].nav.toLocaleString()}`;
+   }).catch(()=>{const note=document.getElementById('fdIntraNote');if(note)note.textContent='intraday.json not yet published — appears after the first market session of logging.';});
    // allocation bars
    const hs=d.holdings;
    let ah='';
