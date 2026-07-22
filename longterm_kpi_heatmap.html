@@ -126,7 +126,7 @@
 <nav class="site" aria-label="Main">
   <a class="nav-link" data-slug="home">Overview</a>
   <div class="menu" data-group="stocks"><button aria-haspopup="true">Stocks</button><div class="dd">
-    <a data-slug="stocks">Lookup & Watchlist<span class="muted">623 tickers, anchored P/L</span></a>
+    <a data-slug="stocks">Lookup & Watchlist<span class="muted">1,605 tickers, anchored P/L</span></a>
     <a data-slug="stockcompare">Compare Stocks<span class="muted">two tickers, all analytics, side by side</span></a>
   </div></div>
   <div class="menu" data-group="ratings"><button aria-haspopup="true">Ratings</button><div class="dd">
@@ -270,7 +270,7 @@
 <!-- ============ PAGE 16: STOCKS — lookup + anchored watchlist (Jul 21) ============ -->
 <div class="page" id="p16">
   <div class="block" style="border-left:3px solid var(--accent)">
-    <b>Look up any of 623 tickers</b> — S&P 500, our 25-company universe, key ETFs, plus curated frontier themes (quantum, AI infra, space, nuclear, robotics, biotech) — and build a watchlist that remembers <b>when you added each name and at what price</b>: day-to-day moves AND gain/loss since YOUR add date, side by side.
+    <b>Look up any of 1,605 tickers</b> — the full S&P 1500 (large + mid + small cap), our 25-company universe, key ETFs, international ADRs, and curated frontier themes (quantum, AI infra, space, nuclear, robotics, biotech) — and build a watchlist that remembers <b>when you added each name and at what price</b>: day-to-day moves AND gain/loss since YOUR add date, side by side.
     <span class="muted" style="font-size:12px">· quotes as of <span id="qAsOf">…</span> · refreshed with the daily pipeline · not live intraday</span>
   </div>
   <div class="block">
@@ -1907,7 +1907,7 @@ goto(location.hash.replace('#','')||'home',false);
     <div class="muted" style="font-size:11px;margin-top:2px">Hover or drag across the chart to read the exact date and price at any point.</div>
     <table style="margin-top:10px"><tr>${rets.map(([tf])=>`<th>${tf}</th>`).join('')}</tr><tr>${rets.map(([tf,r])=>`<td style="font-weight:600;color:${r>=0?'var(--pos)':'var(--neg)'}">${r>=0?'+':''}${r.toFixed(1)}%</td>`).join('')}</tr></table>
     <div style="margin-top:10px;font-size:12.5px"><b>Technical sentiment</b> <span class="muted">(measured proxies — real news sentiment needs authenticated APIs)</span>:<br>
-     RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 623${c.dow?`<br><b>Dow swing structure</b>: <b>${c.dow[0]==='UP'?'uptrend (HH+HL)':c.dow[0]==='DOWN'?'downtrend (LH+LL)':'mixed'}</b> · breakout watch above <b>$${c.dow[1]}</b> · breakdown watch below <b>$${c.dow[2]}</b> <span class="muted">— reference levels only: our 8-yr backtest of mechanical Dow trading LOST to buy-and-hold on every fund instrument (09_paper_fund/dow_study.py)</span>`:''}</div>`;
+     RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 1605${c.dow?`<br><b>Dow swing structure</b>: <b>${c.dow[0]==='UP'?'uptrend (HH+HL)':c.dow[0]==='DOWN'?'downtrend (LH+LL)':'mixed'}</b> · breakout watch above <b>$${c.dow[1]}</b> · breakdown watch below <b>$${c.dow[2]}</b> <span class="muted">— reference levels only: our 8-yr backtest of mechanical Dow trading LOST to buy-and-hold on every fund instrument (09_paper_fund/dow_study.py)</span>`:''}</div>`;
    curPts=s.p;curOffs=s.o;curStart=s.start;curUp=chg>=0;curDow=c.dow||null;
    const cv=document.getElementById('resCv');
    drawChart(cv,curPts,curUp);
@@ -1968,7 +1968,7 @@ goto(location.hash.replace('#','')||'home',false);
  function render(){
   const Q=window.__Q,AN=window.__A;
   const a=A.value.trim().toUpperCase(),b=B.value.trim().toUpperCase();
-  if(!Q||!Q.q[a]||!Q.q[b]){if(a.length>=2&&b.length>=2)out.innerHTML='<span class="muted" style="font-size:12.5px">Both tickers must be in the 623-ticker universe.</span>';return;}
+  if(!Q||!Q.q[a]||!Q.q[b]){if(a.length>=2&&b.length>=2)out.innerHTML='<span class="muted" style="font-size:12.5px">Both tickers must be in the 1,605-ticker universe.</span>';return;}
   localStorage.setItem('term_scA',a);localStorage.setItem('term_scB',b);
   const qa=Q.q[a],qb=Q.q[b],aa=AN&&AN.a[a],ab=AN&&AN.a[b];
   const RF=4.55;
