@@ -126,7 +126,7 @@
 <nav class="site" aria-label="Main">
   <a class="nav-link" data-slug="home">Overview</a>
   <div class="menu" data-group="stocks"><button aria-haspopup="true">Stocks</button><div class="dd">
-    <a data-slug="stocks">Lookup & Watchlist<span class="muted">565 tickers, anchored P/L</span></a>
+    <a data-slug="stocks">Lookup & Watchlist<span class="muted">623 tickers, anchored P/L</span></a>
     <a data-slug="stockcompare">Compare Stocks<span class="muted">two tickers, all analytics, side by side</span></a>
   </div></div>
   <div class="menu" data-group="ratings"><button aria-haspopup="true">Ratings</button><div class="dd">
@@ -270,7 +270,7 @@
 <!-- ============ PAGE 16: STOCKS — lookup + anchored watchlist (Jul 21) ============ -->
 <div class="page" id="p16">
   <div class="block" style="border-left:3px solid var(--accent)">
-    <b>Look up any of 565 tickers</b> — S&P 500, our 25-company universe, key ETFs, plus curated frontier themes (quantum, AI infra, space, nuclear, robotics, biotech) — and build a watchlist that remembers <b>when you added each name and at what price</b>: day-to-day moves AND gain/loss since YOUR add date, side by side.
+    <b>Look up any of 623 tickers</b> — S&P 500, our 25-company universe, key ETFs, plus curated frontier themes (quantum, AI infra, space, nuclear, robotics, biotech) — and build a watchlist that remembers <b>when you added each name and at what price</b>: day-to-day moves AND gain/loss since YOUR add date, side by side.
     <span class="muted" style="font-size:12px">· quotes as of <span id="qAsOf">…</span> · refreshed with the daily pipeline · not live intraday</span>
   </div>
   <div class="block">
@@ -1686,8 +1686,61 @@ goto(location.hash.replace('#','')||'home',false);
    <div class="muted" style="font-size:11.5px;margin-bottom:6px">These are high-volatility thematic names — many trade on narrative and sentiment more than fundamentals. Off-52w-high and vol columns show how violent the swings are. Click any ticker for full research.</div>
    <table><tr><th>Ticker</th><th>Name</th><th>Price</th><th>Day</th><th>Off 52w hi</th><th>30d vol</th></tr>`;
   rows.forEach(r=>{h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-lk="${r.t}">${r.t}</b></td><td class="muted" style="font-size:12px">${r.name}</td><td>$${r.last.toLocaleString()}</td><td>${pc(r.day)}</td><td>${r.off52}%</td><td>${r.vol}%</td></tr>`;});
-  el.innerHTML=h+'</table></div>';
+  h+='</table>';
+  if(name==='Quantum Computing') h+='<div id="qOsint" style="margin-top:14px"><span class="muted" style="font-size:12px">Loading quantum OSINT…</span></div>';
+  el.innerHTML=h+'</div>';
   el.querySelectorAll('[data-lk]').forEach(x=>x.addEventListener('click',()=>{show(x.dataset.lk);el.scrollIntoView({behavior:'smooth',block:'start'});}));
+  if(name==='Quantum Computing') renderQuantumOsint();
+ }
+ /* QUANTUM OSINT PANEL (Jul 22) — narrative monitor for the quantum basket.
+    Sources: Wikipedia pageviews (attention), Google News RSS (news-flow + headlines),
+    arXiv quant-ph (research momentum). Point-in-time ledger: 06_osint/quantum_attention.csv.
+    NOT a trading signal — RULES.md amendment 9 gates anything actionable. */
+ let QN=null;
+ function renderQuantumOsint(){
+  const go=d=>{QN=d;const el=document.getElementById('qOsint');if(!el)return;
+   const wiki=d.wiki||{}, main=wiki['Quantum computing'];
+   let h=`<h3 style="margin-top:4px">Quantum OSINT <span class="muted" style="font-weight:400;font-size:11px">· narrative monitor · as of ${d.as_of} · point-in-time ledger in 06_osint</span></h3>`;
+   // attention sparkline (12mo weekly wikipedia views, topic page)
+   if(main&&main.length>3){
+    h+=`<div class="muted" style="font-size:11.5px;margin:2px 0 4px"><b>Attention</b> — weekly Wikipedia views, "Quantum computing" (12mo). The classic attention proxy: spikes mark narrative waves (announcements, breakthroughs, crash headlines).</div><canvas id="qSpark" style="width:100%;height:90px"></canvas>`;
+   }
+   // per-page attention table with 4wk delta
+   const rows=Object.keys(wiki).filter(k=>wiki[k]&&k!=='Quantum computing').map(k=>{
+    const s=wiki[k], last=s[s.length-1][1];
+    const prior=s.slice(-5,-1).map(x=>x[1]); const avg=prior.length?prior.reduce((a,b)=>a+b,0)/prior.length:null;
+    return {k,last,d4:avg?Math.round(100*(last/avg-1)):null};});
+   h+='<table style="margin-top:8px"><tr><th>Page attention</th><th>Views/wk</th><th>vs 4-wk avg</th><th>News articles (7d)</th></tr>';
+   rows.forEach(r=>{const n=(d.comps||{})[r.k.split(' ')[0]]??(d.comps||{})[r.k]??'—';
+    h+=`<tr><td>${r.k}</td><td>${r.last.toLocaleString()}</td><td style="color:${r.d4>25?'var(--pos)':r.d4<-25?'var(--neg)':'var(--dim)'}">${r.d4==null?'—':(r.d4>0?'+':'')+r.d4+'%'}</td><td>${n}</td></tr>`;});
+   h+='</table>';
+   // research momentum
+   if(d.arxiv_today!=null) h+=`<div class="muted" style="font-size:12px;margin-top:8px"><b>Research flow</b>: ${d.arxiv_today} new quant-ph papers on arXiv today${(d.arxiv_hist||[]).length>7?` (tracked daily since ${d.arxiv_hist[0][0]})`:''} — the slow variable behind the news cycle. Narrative can run hot while research plods, and vice versa.</div>`;
+   // headlines
+   if((d.heads||[]).length){
+    h+='<div style="margin-top:10px"><b style="font-size:12.5px">Latest headlines</b><ul style="margin:4px 0 0;padding-left:18px;font-size:12.5px">';
+    d.heads.slice(0,8).forEach(x=>{h+=`<li style="margin:3px 0"><a href="${x.u}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">${x.t}</a> <span class="muted" style="font-size:11px">${x.dom?'· '+x.dom:''}${x.d?' · '+x.d:''}</span></li>`;});
+    h+='</ul></div>';
+   }
+   h+='<div class="muted" style="font-size:11px;margin-top:8px">Sources: Wikimedia pageviews API, Google News RSS, arXiv. Measures the narrative — is not itself a buy/sell signal (standing policy: backtest + pre-registration before anything acts on it).</div>';
+   el.innerHTML=h;
+   // draw sparkline
+   if(main&&main.length>3){
+    const cv=document.getElementById('qSpark'); if(!cv) return;
+    const dpr=window.devicePixelRatio||1, W=cv.clientWidth||800, H=90;
+    cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+    const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+    const vs=main.map(x=>x[1]), mn=Math.min(...vs), mx=Math.max(...vs);
+    const X=i=>8+(W-16)*i/(vs.length-1), Y=v=>H-12-(H-24)*(v-mn)/((mx-mn)||1);
+    ctx.strokeStyle='var(--accent)'; ctx.lineWidth=1.5; ctx.lineJoin='round'; ctx.beginPath();
+    vs.forEach((v,i)=>{i?ctx.lineTo(X(i),Y(v)):ctx.moveTo(X(i),Y(v));}); ctx.stroke();
+    ctx.fillStyle='var(--dim)'; ctx.font='10px system-ui';
+    ctx.fillText(main[0][0],8,H-1); ctx.fillText(main[main.length-1][0],W-70,H-1);
+    ctx.fillText(mx.toLocaleString(),8,10);
+   }};
+  if(QN){go(QN);return;}
+  fetch('quantum.json').then(r=>r.json()).then(go)
+   .catch(()=>{const el=document.getElementById('qOsint');if(el)el.innerHTML='<span class="muted" style="font-size:12px">quantum.json unavailable.</span>';});
  }
  fetch('analytics.json').then(r=>r.json()).then(d=>{window.__A=d;const el=document.getElementById('aAsOf');if(el)el.textContent=d.as_of;})
   .catch(()=>{});
@@ -1854,7 +1907,7 @@ goto(location.hash.replace('#','')||'home',false);
     <div class="muted" style="font-size:11px;margin-top:2px">Hover or drag across the chart to read the exact date and price at any point.</div>
     <table style="margin-top:10px"><tr>${rets.map(([tf])=>`<th>${tf}</th>`).join('')}</tr><tr>${rets.map(([tf,r])=>`<td style="font-weight:600;color:${r>=0?'var(--pos)':'var(--neg)'}">${r>=0?'+':''}${r.toFixed(1)}%</td>`).join('')}</tr></table>
     <div style="margin-top:10px;font-size:12.5px"><b>Technical sentiment</b> <span class="muted">(measured proxies — real news sentiment needs authenticated APIs)</span>:<br>
-     RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 565${c.dow?`<br><b>Dow swing structure</b>: <b>${c.dow[0]==='UP'?'uptrend (HH+HL)':c.dow[0]==='DOWN'?'downtrend (LH+LL)':'mixed'}</b> · breakout watch above <b>$${c.dow[1]}</b> · breakdown watch below <b>$${c.dow[2]}</b> <span class="muted">— reference levels only: our 8-yr backtest of mechanical Dow trading LOST to buy-and-hold on every fund instrument (09_paper_fund/dow_study.py)</span>`:''}</div>`;
+     RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 623${c.dow?`<br><b>Dow swing structure</b>: <b>${c.dow[0]==='UP'?'uptrend (HH+HL)':c.dow[0]==='DOWN'?'downtrend (LH+LL)':'mixed'}</b> · breakout watch above <b>$${c.dow[1]}</b> · breakdown watch below <b>$${c.dow[2]}</b> <span class="muted">— reference levels only: our 8-yr backtest of mechanical Dow trading LOST to buy-and-hold on every fund instrument (09_paper_fund/dow_study.py)</span>`:''}</div>`;
    curPts=s.p;curOffs=s.o;curStart=s.start;curUp=chg>=0;curDow=c.dow||null;
    const cv=document.getElementById('resCv');
    drawChart(cv,curPts,curUp);
@@ -1915,7 +1968,7 @@ goto(location.hash.replace('#','')||'home',false);
  function render(){
   const Q=window.__Q,AN=window.__A;
   const a=A.value.trim().toUpperCase(),b=B.value.trim().toUpperCase();
-  if(!Q||!Q.q[a]||!Q.q[b]){if(a.length>=2&&b.length>=2)out.innerHTML='<span class="muted" style="font-size:12.5px">Both tickers must be in the 565-ticker universe.</span>';return;}
+  if(!Q||!Q.q[a]||!Q.q[b]){if(a.length>=2&&b.length>=2)out.innerHTML='<span class="muted" style="font-size:12.5px">Both tickers must be in the 623-ticker universe.</span>';return;}
   localStorage.setItem('term_scA',a);localStorage.setItem('term_scB',b);
   const qa=Q.q[a],qb=Q.q[b],aa=AN&&AN.a[a],ab=AN&&AN.a[b];
   const RF=4.55;
