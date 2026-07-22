@@ -1722,7 +1722,7 @@ goto(location.hash.replace('#','')||'home',false);
 
  /* ===== FULL RESEARCH VIEW (Jul 21, sub-tabs + crosshair Jul 22): lazy charts.json ===== */
  let CH=null, resTF="1Y", resT=null, resSub="Chart";
- let curPts=[],curOffs=[],curStart=null,curUp=true;
+ let curPts=[],curOffs=[],curStart=null,curUp=true,curDow=null;
  function slice2(arr,off,n){return n>=arr.length?arr.slice():arr.slice(-n);}
  function tfSeries(c,tf){
   const D=c.d,M=c.m;
@@ -1746,6 +1746,16 @@ goto(location.hash.replace('#','')||'home',false);
   ctx2.strokeStyle=col;ctx2.lineWidth=2;ctx2.stroke();
   ctx2.lineTo(X(pts.length-1),H);ctx2.lineTo(X(0),H);ctx2.closePath();
   ctx2.fillStyle=col+'22';ctx2.fill();
+  /* Dow swing reference lines (labels only — mechanical Dow trading backtested NEGATIVE; see dow_study) */
+  if(curDow){
+   const [,bref,sref]=curDow;
+   [[bref,'breakout watch ▲','#d4a017'],[sref,'breakdown watch ▼','#b06060']].forEach(([v,lab,c3])=>{
+    if(v!=null&&v>=mn&&v<=mx){
+     ctx2.setLineDash([6,5]);ctx2.strokeStyle=c3;ctx2.lineWidth=1;
+     ctx2.beginPath();ctx2.moveTo(pad,Y(v));ctx2.lineTo(W-pad,Y(v));ctx2.stroke();ctx2.setLineDash([]);
+     ctx2.fillStyle=c3;ctx2.font='11px sans-serif';ctx2.fillText(`${lab} $${v}`,pad+4,Y(v)-4);
+    }});
+  }
   return {X,Y,col};
  }
  function crosshair(cv,tip,idx){
@@ -1798,8 +1808,8 @@ goto(location.hash.replace('#','')||'home',false);
     <div class="muted" style="font-size:11px;margin-top:2px">Hover or drag across the chart to read the exact date and price at any point.</div>
     <table style="margin-top:10px"><tr>${rets.map(([tf])=>`<th>${tf}</th>`).join('')}</tr><tr>${rets.map(([tf,r])=>`<td style="font-weight:600;color:${r>=0?'var(--pos)':'var(--neg)'}">${r>=0?'+':''}${r.toFixed(1)}%</td>`).join('')}</tr></table>
     <div style="margin-top:10px;font-size:12.5px"><b>Technical sentiment</b> <span class="muted">(measured proxies — real news sentiment needs authenticated APIs)</span>:<br>
-     RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 518</div>`;
-   curPts=s.p;curOffs=s.o;curStart=s.start;curUp=chg>=0;
+     RSI(14) <b>${rsi==null?'—':rsi}</b> (${senti}) · vs 50-day MA <b>${ma50>0?'+':''}${ma50}%</b> · vs 200-day MA <b>${ma200>0?'+':''}${ma200}%</b> → ${trend} · 3-mo momentum: <b>P${momp==null?'—':momp}</b> of 518${c.dow?`<br><b>Dow swing structure</b>: <b>${c.dow[0]==='UP'?'uptrend (HH+HL)':c.dow[0]==='DOWN'?'downtrend (LH+LL)':'mixed'}</b> · breakout watch above <b>$${c.dow[1]}</b> · breakdown watch below <b>$${c.dow[2]}</b> <span class="muted">— reference levels only: our 8-yr backtest of mechanical Dow trading LOST to buy-and-hold on every fund instrument (09_paper_fund/dow_study.py)</span>`:''}</div>`;
+   curPts=s.p;curOffs=s.o;curStart=s.start;curUp=chg>=0;curDow=c.dow||null;
    const cv=document.getElementById('resCv');
    drawChart(cv,curPts,curUp);
    wireScrub(cv,document.getElementById('resTip'));
