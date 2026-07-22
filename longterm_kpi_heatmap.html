@@ -1779,7 +1779,7 @@ goto(location.hash.replace('#','')||'home',false);
   }
   function boot(){
    if(FD){render();return;}
-   fetch('fund.json').then(r=>r.json()).then(d=>{FD=d;render();})
+   fetch('fund.json?cb='+Date.now()).then(r=>r.json()).then(d=>{FD=d;render();})
     .catch(()=>{const el=document.getElementById('fdStats');if(el)el.innerHTML='<span class="muted" style="font-size:12px">fund.json unavailable.</span>';});
   }
   document.addEventListener('DOMContentLoaded',boot);
