@@ -141,6 +141,7 @@
     <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
   </div></div>
   <div class="menu" data-group="portfolio"><button aria-haspopup="true">Portfolio</button><div class="dd">
+    <a data-slug="fund">Fund Dashboard<span class="muted">NAV, allocations, decisions — simulation</span></a>
     <a data-slug="horizons">Horizons<span class="muted">all timeframes, one ledger, paper fund</span></a>
     <a data-slug="captax">Capital Preservation & Tax<span class="muted">real-terms survival math</span></a>
   </div></div>
@@ -253,6 +254,25 @@
     <div class="muted" style="font-size:12px;margin-bottom:8px">Same engine, wider net: anchors + 0.6/0.4 within-bucket relative leg. <b>Read the caveats:</b> new names have no 8-yr history yet, so no percentile grounding or peak penalty (H column = history-grounded). Banks/insurers lack current-ratio concepts (fewer ratios, flagged n&lt;4). <b>Pre-revenue frontier names</b> (flag "pre-rev") exclude net margin — below $50M FY revenue that ratio is noise — so their scores lean on cash-rich balance sheets from capital raises, NOT profitability. A 7 for D-Wave is not a 7 for Google.</div>
     <input id="scFilter" placeholder="Filter by ticker, name fragment, or bucket…" style="width:100%;max-width:420px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;margin-bottom:8px">
     <div id="scTable"><span class="muted" style="font-size:12px">Loading screen.json…</span></div>
+  </div>
+</div>
+
+<!-- ============ PAGE 18: FUND DASHBOARD (Jul 22) ============ -->
+<div class="page" id="p18">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <h3>Paper Fund Dashboard <span class="muted" style="font-weight:400;font-size:12px">· SIMULATION — $100,000 simulated capital, no real money, not investment advice · rules in <code>09_paper_fund/RULES.md</code> · <span id="fdAsOf"></span></span></h3>
+    <div id="fdStats" style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0"></div>
+    <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV vs SPY</b> — both indexed to 100 at inception (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
+    <div style="position:relative"><canvas id="fdCv" style="width:100%;height:200px"></canvas></div>
+    <div id="fdChartNote" class="muted" style="font-size:11.5px"></div>
+  </div>
+  <div class="block"><h3>Allocations & instruments <span class="muted" style="font-weight:400;font-size:12px">· weights vs half-Kelly caps · regime overlay applied</span></h3>
+    <div id="fdAlloc"></div>
+    <div id="fdHold" style="margin-top:10px"></div>
+    <div class="muted" style="font-size:12px;margin-top:8px"><b>Used vs not used:</b> v1 rules trade the five <i>sector proxies</i> only — single stocks (all 1,605 in the research universe, incl. the 128 scored names) inform research but are <b>not tradable by the fund yet</b>: no single-name signal has passed the standing policy (backtest + pre-registered criterion, RULES.md amendment 9). Sectors rated ≤ 4 get zero weight by rule 1. That is the honest boundary between what we study and what we trade.</div>
+  </div>
+  <div class="block"><h3>Decision ledger <span class="muted" style="font-weight:400;font-size:12px">· append-only, timestamped before outcomes are known</span></h3>
+    <div id="fdDecs"></div>
   </div>
 </div>
 
@@ -1471,7 +1491,7 @@ function renderEvtClass(){
 })();
 
 /* ---------- ROUTER + NAV (site revamp Jul 21; replaces flat tab bar) ---------- */
-const SLUGS={home:"p0",stocks:"p16",stockcompare:"p17",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",howto:"p3"};
+const SLUGS={home:"p0",stocks:"p16",stockcompare:"p17",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",fund:"p18",howto:"p3"};
 const GROUPOF={stocks:"stocks",stockcompare:"stocks",heatmap:"ratings",profiles:"ratings",screen:"ratings",compare:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",feed:"events",captax:"portfolio",horizons:"portfolio"};
 function goto(slug,push=true){
  if(!SLUGS[slug]) slug="home";
@@ -1697,6 +1717,74 @@ goto(location.hash.replace('#','')||'home',false);
   el.querySelectorAll('[data-lk]').forEach(x=>x.addEventListener('click',()=>{show(x.dataset.lk);el.scrollIntoView({behavior:'smooth',block:'start'});}));
   if(name==='Quantum Computing') renderQuantumOsint();
  }
+ /* FUND DASHBOARD (p18, Jul 22) — the paper fund's own view. SIMULATION only. */
+ (function(){
+  let FD=null;
+  function money(x){return '$'+x.toLocaleString(undefined,{maximumFractionDigits:0});}
+  function stat(label,val,color){return `<div><div class="muted" style="font-size:11px">${label}</div><div style="font-size:20px;font-weight:800${color?';color:'+color:''}">${val}</div></div>`;}
+  function render(){
+   const d=FD, s=d.stats;
+   document.getElementById('fdAsOf').textContent='data '+d.as_of;
+   const pc=v=>v==null?'—':(v>=0?'+':'')+v+'%';
+   document.getElementById('fdStats').innerHTML=
+    stat('NAV',money(s.nav))+
+    stat('Since inception',pc(s.ret_total),s.ret_total>=0?'var(--pos)':'var(--neg)')+
+    stat('Last mark',pc(s.ret_day),s.ret_day==null?null:s.ret_day>=0?'var(--pos)':'var(--neg)')+
+    stat('Invested',s.invested_pct+'%')+stat('Cash',s.cash_pct+'%')+
+    stat('Max drawdown',s.max_dd+'%')+
+    stat('Regime',d.regime.state,d.regime.state==='BASELINE'?'var(--pos)':'var(--neg)')+
+    stat('Daily marks',s.n_marks);
+   // NAV vs SPY indexed chart
+   const cv=document.getElementById('fdCv');
+   const dpr=window.devicePixelRatio||1,W=cv.clientWidth||900,H=200;
+   cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+   const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+   const nav=d.nav,spy=d.spy;
+   if(nav.length<2){document.getElementById('fdChartNote').textContent='Chart begins after the second daily mark — one honest point at a time. Current: NAV '+money(s.nav)+' at '+nav[0][0]+'.';
+    ctx.fillStyle='var(--dim)';ctx.font='12px system-ui';ctx.fillText('Accumulating history — '+s.n_marks+' mark(s) so far.',12,H/2);}
+   else{
+    const n0=nav[0][1],s0=spy.length?spy[0][1]:null;
+    const nx=nav.map(x=>100*x[1]/n0), sx=s0?spy.map(x=>100*x[1]/s0):[];
+    const all=nx.concat(sx), mn=Math.min(...all)-0.5, mx=Math.max(...all)+0.5;
+    const X=(i,len)=>10+(W-20)*i/Math.max(1,len-1), Y=v=>H-16-(H-32)*(v-mn)/((mx-mn)||1);
+    if(sx.length>1){ctx.strokeStyle='var(--dim)';ctx.lineWidth=1;ctx.setLineDash([4,3]);ctx.beginPath();sx.forEach((v,i)=>{i?ctx.lineTo(X(i,sx.length),Y(v)):ctx.moveTo(X(i,sx.length),Y(v));});ctx.stroke();ctx.setLineDash([]);}
+    ctx.strokeStyle='var(--accent)';ctx.lineWidth=1.75;ctx.lineJoin='round';ctx.beginPath();
+    nx.forEach((v,i)=>{i?ctx.lineTo(X(i,nx.length),Y(v)):ctx.moveTo(X(i,nx.length),Y(v));});ctx.stroke();
+    ctx.fillStyle='var(--dim)';ctx.font='10px system-ui';
+    ctx.fillText(nav[0][0],10,H-2);ctx.fillText(nav[nav.length-1][0],W-72,H-2);
+    document.getElementById('fdChartNote').innerHTML='<span style="color:var(--accent)">━ fund</span> · <span>╌ SPY</span> · '+nav.length+' marks';
+   }
+   // allocation bars
+   const hs=d.holdings;
+   let ah='';
+   hs.forEach(h=>{
+    const w=h.weight||0, cap=h.kelly_cap;
+    ah+=`<div style="display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12.5px">
+      <span style="width:40px;font-weight:700">${h.etf}</span>
+      <div style="flex:1;background:var(--line);border-radius:6px;height:16px;position:relative;overflow:hidden">
+        <div style="width:${Math.min(100,w*100/35)}%;height:100%;background:${h.eligible?'var(--accent)':'var(--dim)'}"></div>
+        <div style="position:absolute;top:0;left:${Math.min(100,cap*100/35)}%;width:2px;height:100%;background:var(--neg)"></div>
+      </div>
+      <span style="width:110px"><b>${w}%</b> <span class="muted">/ cap ${cap}%</span></span></div>`;});
+   ah+=`<div style="display:flex;align-items:center;gap:8px;margin:4px 0;font-size:12.5px"><span style="width:40px;font-weight:700">CASH</span><div style="flex:1"></div><span style="width:110px"><b>${s.cash_pct}%</b></span></div>`;
+   document.getElementById('fdAlloc').innerHTML=ah+'<div class="muted" style="font-size:11px">Bar scale 0–35% (the concentration cap). Red tick = half-Kelly cap for that sector.</div>';
+   // holdings table
+   let hh='<table><tr><th>ETF</th><th>Sector</th><th>Rating</th><th>Eligible?</th><th>Shares</th><th>Price</th><th>Value</th><th>Weight</th><th>Regime modifier</th></tr>';
+   hs.forEach(h=>{hh+=`<tr><td><b>${h.etf}</b></td><td class="muted" style="font-size:12px">${h.sec}</td><td style="font-weight:700;color:${color?color(h.rating):'var(--ink)'}">${h.rating}</td><td>${h.eligible?'✓':'✗ (≤4 → zero weight)'}</td><td>${h.shares}</td><td>$${h.price}</td><td>${money(h.value)}</td><td><b>${h.weight}%</b></td><td class="muted" style="font-size:12px">${h.regime_mod}</td></tr>`;});
+   document.getElementById('fdHold').innerHTML=hh+'</table>';
+   // decisions
+   let dh='<table><tr><th>UTC</th><th>Action</th><th>Detail</th></tr>';
+   d.decisions.slice().reverse().forEach(x=>{dh+=`<tr><td class="muted" style="font-size:11.5px;white-space:nowrap">${x.utc}</td><td><b>${x.a}</b></td><td style="font-size:12.5px">${x.det}</td></tr>`;});
+   document.getElementById('fdDecs').innerHTML=dh+'</table>';
+  }
+  function boot(){
+   if(FD){render();return;}
+   fetch('fund.json').then(r=>r.json()).then(d=>{FD=d;render();})
+    .catch(()=>{const el=document.getElementById('fdStats');if(el)el.innerHTML='<span class="muted" style="font-size:12px">fund.json unavailable.</span>';});
+  }
+  document.addEventListener('DOMContentLoaded',boot);
+  window.addEventListener('hashchange',()=>{if(location.hash.includes('fund'))boot();});
+ })();
  /* EXTENDED COMPANY SCREEN (v4, Jul 22) — 128 names scored from our XBRL pipeline */
  (function(){
   let SC=null;
@@ -1715,7 +1803,7 @@ goto(location.hash.replace('#','')||'home',false);
   }
   function boot(){
    if(SC){render();return;}
-   fetch('screen.json').then(r=>r.json()).then(d=>{SC=d;const a=document.getElementById('scAsOf');if(a)a.textContent=d.as_of;render();})
+   fetch('screen.json').then(r=>r.json()).then(d=>{SC=d;window.__SCJ=d;const a=document.getElementById('scAsOf');if(a)a.textContent=d.as_of;render();})
     .catch(()=>{const el=document.getElementById('scTable');if(el)el.innerHTML='<span class="muted" style="font-size:12px">screen.json unavailable.</span>';});
   }
   document.addEventListener('DOMContentLoaded',()=>{
@@ -1916,7 +2004,7 @@ goto(location.hash.replace('#','')||'home',false);
   const t=resT,panel=document.getElementById('resPanel');
   const c=CH&&CH.c[t];
   if(!c){panel.innerHTML='<span class="muted">No chart data for '+t+'</span>';return;}
-  const SUBS=["Chart","KPIs & Screen","Events, Regime & Sizing"];
+  const SUBS=["Chart","Peers & Industry","KPIs & Screen","Events, Regime & Sizing"];
   let h=`<div class="block" style="border-left:3px solid var(--accent)"><h3>${t} — full research <span class="muted" style="font-weight:400;font-size:11px">· as of ${CH.as_of} · end-of-day pipeline (intraday deliberately not shown)</span></h3>
    <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid var(--border);padding-bottom:10px">${SUBS.map(sb=>`<button class="csvBtn" style="float:none${sb===resSub?';border-color:var(--accent);color:var(--accent);font-weight:700':''}" data-sub="${sb}">${sb}</button>`).join('')}</div>
    <div id="resSubBody"></div>
@@ -1945,6 +2033,54 @@ goto(location.hash.replace('#','')||'home',false);
    drawChart(cv,curPts,curUp);
    wireScrub(cv,document.getElementById('resTip'));
    body.querySelectorAll('[data-tf]').forEach(b=>b.addEventListener('click',()=>{resTF=b.dataset.tf;renderResearch();}));
+  } else if(resSub==="Peers & Industry"){
+   /* Peers & Industry (Jul 22): the stock in the context of its own industry, from OUR feeds —
+      quotes (day/52w/vol), charts (momentum pct), analytics (regime excess), screen.json (scored ratios). */
+   const sec=Q&&Q.meta[t]?Q.meta[t][1]:null;
+   if(!sec){body.innerHTML='<span class="muted">No sector tag for '+t+'.</span>';}
+   else{
+    const peers=Object.keys(Q.meta).filter(x=>Q.meta[x][1]===sec);
+    const met=x=>{const q=Q.q[x]||[null,null,null,null];const ch=CH.c[x]||{};const a=(window.__A&&window.__A.a[x])||{};
+     return {t:x,day:q[1],off:q[2],vol:q[3],momp:ch.momp==null?null:ch.momp,rgT:a.rg?a.rg[1]:null};};
+    const rowsAll=peers.map(met);
+    const pctIn=(arr,v,hiBetter)=>{const xs=arr.filter(x=>x!=null).sort((a,b)=>a-b);if(v==null||!xs.length)return null;
+     let below=xs.filter(x=>x<v).length+0.5*xs.filter(x=>x===v).length;const p=Math.round(100*below/xs.length);return hiBetter?p:100-p;};
+    const me=met(t);
+    const med=arr=>{const xs=arr.filter(x=>x!=null).sort((a,b)=>a-b);return xs.length?xs[Math.floor(xs.length/2)]:null;};
+    const mDay=med(rowsAll.map(r=>r.day)),mOff=med(rowsAll.map(r=>r.off)),mVol=med(rowsAll.map(r=>r.vol)),mMom=med(rowsAll.map(r=>r.momp));
+    let h2=`<div style="font-size:12.5px;margin-bottom:8px"><b>${t} within "${sec}"</b> — ${peers.length} names in our universe share this tag.<br>
+     Day move <b>${me.day==null?'—':(me.day>0?'+':'')+me.day+'%'}</b> vs sector median ${mDay==null?'—':(mDay>0?'+':'')+mDay+'%'} ·
+     Off 52-wk high <b>${me.off==null?'—':me.off+'%'}</b> vs median ${mOff==null?'—':mOff+'%'} (P${pctIn(rowsAll.map(r=>r.off),me.off,true)??'—'} in sector — higher percentile = closer to its high) ·
+     30-d vol <b>${me.vol==null?'—':me.vol+'%'}</b> vs median ${mVol==null?'—':mVol+'%'} ·
+     3-mo momentum <b>P${me.momp??'—'}</b> universe-wide, sector median P${mMom??'—'}.</div>`;
+    // screen comparison if covered
+    const SCJ=window.__SCJ;
+    if(SCJ){const mine=SCJ.rows.find(r=>r.t===t);
+     if(mine){const bucket=SCJ.rows.filter(r=>r.sec===mine.sec&&r.avg!=null);
+      const bmed=k=>{const xs=bucket.map(r=>r[k]).filter(x=>x!=null).sort((a,b)=>a-b);return xs.length?xs[Math.floor(xs.length/2)]:null;};
+      const rank=bucket.sort((a,b)=>b.avg-a.avg).findIndex(r=>r.t===t)+1;
+      h2+=`<table style="margin-bottom:10px"><tr><th>Scored ratio (our XBRL pipeline)</th><th>${t}</th><th>"${mine.sec}" median</th></tr>
+       <tr><td>Screen score</td><td><b>${mine.avg??'—'}/10</b> <span class="muted">(#${rank} of ${bucket.length})</span></td><td>${bmed('avg')}/10</td></tr>
+       <tr><td>Net margin</td><td><b>${mine.nm==null?'— (pre-rev)':mine.nm+'%'}</b></td><td>${bmed('nm')==null?'—':bmed('nm')+'%'}</td></tr>
+       <tr><td>Current ratio</td><td><b>${mine.cur??'—'}</b></td><td>${bmed('cur')??'—'}</td></tr>
+       <tr><td>LT debt / assets</td><td><b>${mine.da??'—'}</b></td><td>${bmed('da')??'—'}</td></tr>
+       <tr><td>ROE</td><td><b>${mine.roe==null?'—':mine.roe+'%'}</b></td><td>${bmed('roe')==null?'—':bmed('roe')+'%'}</td></tr></table>`;
+     } else h2+=`<div class="muted" style="font-size:12px;margin-bottom:8px">${t} is not yet in the 128-name scored screen — market metrics above still apply. Ask to add it.</div>`;
+    }
+    // peer table: top 12 by momentum + ensure self
+    let show=rowsAll.slice().sort((a,b)=>(b.momp??-1)-(a.momp??-1)).slice(0,12);
+    if(!show.find(r=>r.t===t)) show.push(me);
+    h2+='<table><tr><th>Peer</th><th>Day</th><th>Off 52w hi</th><th>30d vol</th><th>Momentum</th><th>TENSION excess/yr</th></tr>';
+    show.forEach(r=>{const self=r.t===t;
+     h2+=`<tr${self?' style="outline:2px solid var(--accent);outline-offset:-2px"':''}><td><b ${self?'':'style="cursor:pointer;color:var(--accent)" data-peer="'+r.t+'"'}>${r.t}</b></td>
+      <td style="color:${r.day>0?'var(--pos)':r.day<0?'var(--neg)':'var(--dim)'}">${r.day==null?'—':(r.day>0?'+':'')+r.day+'%'}</td>
+      <td>${r.off==null?'—':r.off+'%'}</td><td>${r.vol==null?'—':r.vol+'%'}</td>
+      <td>${r.momp==null?'—':'P'+r.momp}</td><td>${r.rgT==null?'—':(r.rgT>0?'+':'')+r.rgT+'%'}</td></tr>`;});
+    h2+='</table><div class="muted" style="font-size:11px;margin-top:6px">Peers ranked by 3-mo momentum percentile; click any to open its research. TENSION excess = annualized return vs SPY inside the walk-forward TENSION regime (our detector). All from our own feeds — no third-party analytics.</div>';
+    body.innerHTML=h2;
+    body.querySelectorAll('[data-peer]').forEach(x=>x.addEventListener('click',()=>{openResearch(x.dataset.peer);}));
+    if(!SCJ) fetch('screen.json').then(r=>r.json()).then(d=>{window.__SCJ=d;if(resSub==="Peers & Industry")renderResearch();}).catch(()=>{});
+   }
   } else if(resSub==="KPIs & Screen"){
    const k=CH.kpi[t];
    if(k){
