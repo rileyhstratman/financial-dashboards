@@ -278,6 +278,10 @@
 
 <!-- ============ PAGE 15: OSINT LIVE FEED (split from Regime Monitor, Jul 21) ============ -->
 <div class="page" id="p15">
+  <div class="block"><h3>Supply-chain disruption monitor <span class="muted" style="font-weight:400;font-size:12px">· Phase B channel · 48h news-flow vs own trailing baseline · <span id="supAsOf"></span></span></h3>
+    <div id="supTable"><span class="muted" style="font-size:12px">Loading supply.json…</span></div>
+    <div class="muted" style="font-size:11.5px;margin-top:6px">Five buckets watched daily (ports, chokepoints, semiconductors, energy infrastructure, logistics labor). A <b>FLAG</b> fires when 48h coverage ≥ 2× the bucket's own 14-run baseline — each flag becomes a dated entry in the event library. The detector needs 5 runs of history before it may flag anything: it earns its baseline, it doesn't pretend one.</div>
+  </div>
   <div class="block"><h3>Live event feed — own OSINT pipeline<span class="info" data-pop="osint">i</span> <span class="muted" style="font-weight:400;font-size:12px">· data through 2026-07-19 · refreshed on redeploy via <code>06_osint/make_dashboard_embed.py</code></span></h3>
     <div style="margin-bottom:8px"><b>Attention status:</b> z = +1.4 <span class="muted">(elevated, not spiking)</span> — with the price detector in the TENSION regime, that's <b>pattern-consistent</b>: no divergence flag active.<span class="info" data-pop="patterns">i</span></div>
     <table><tr><th>Dates</th><th>Where</th><th>Relevance</th><th>Severity <span style="font-weight:400">(articles)</span></th><th>Attention pct</th><th>Independent sources</th></tr>
@@ -1713,9 +1717,57 @@ goto(location.hash.replace('#','')||'home',false);
   rows.forEach(r=>{h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-lk="${r.t}">${r.t}</b></td><td class="muted" style="font-size:12px">${r.name}</td><td>$${r.last.toLocaleString()}</td><td>${pc(r.day)}</td><td>${r.off52}%</td><td>${r.vol}%</td></tr>`;});
   h+='</table>';
   if(name==='Quantum Computing') h+='<div id="qOsint" style="margin-top:14px"><span class="muted" style="font-size:12px">Loading quantum OSINT…</span></div>';
+  const TMAP={'AI Infrastructure':'AI','AI Software':'AI','Nuclear':'Nuclear','Space':'Space','Fintech':'Crypto'};
+  if(TMAP[name]) h+='<div id="thOsint" style="margin-top:14px"><span class="muted" style="font-size:12px">Loading attention data…</span></div>';
   el.innerHTML=h+'</div>';
   el.querySelectorAll('[data-lk]').forEach(x=>x.addEventListener('click',()=>{show(x.dataset.lk);el.scrollIntoView({behavior:'smooth',block:'start'});}));
   if(name==='Quantum Computing') renderQuantumOsint();
+  else if(TMAP[name]) renderThemeAttention(TMAP[name]);
+ }
+ /* SUPPLY-CHAIN MONITOR (Phase B, Jul 22) — feed page block */
+ (function(){
+  function boot(){
+   const el=document.getElementById('supTable'); if(!el||el.dataset.done)return;
+   fetch('supply.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+    el.dataset.done=1;
+    const a=document.getElementById('supAsOf'); if(a)a.textContent=d.as_of;
+    const NAMES={ports_shipping:'Ports & shipping',chokepoints:'Chokepoints (Suez/Panama/Hormuz)',semiconductors:'Semiconductors',energy_infra:'Energy infrastructure',logistics_labor:'Logistics labor'};
+    let h='<table><tr><th>Bucket</th><th>Articles 48h</th><th>Baseline (14-run)</th><th>Status</th><th>Top headline</th></tr>';
+    Object.keys(NAMES).forEach(b=>{const x=d.buckets[b]; if(!x){h+=`<tr><td>${NAMES[b]}</td><td colspan="4" class="muted">unavailable</td></tr>`;return;}
+     h+=`<tr><td>${NAMES[b]}</td><td><b>${x.n48}</b></td><td>${x.baseline==null?'<span class="muted">accumulating</span>':x.baseline}</td><td>${x.flag?'<b style="color:var(--neg)">⚑ FLAG</b>':'<span class="muted">—</span>'}</td><td class="muted" style="font-size:11.5px">${x.heads&&x.heads[0]?x.heads[0].t:''}</td></tr>`;});
+    el.innerHTML=h+'</table>';
+   }).catch(()=>{el.innerHTML='<span class="muted" style="font-size:12px">supply.json unavailable.</span>';});
+  }
+  document.addEventListener('DOMContentLoaded',boot);
+  window.addEventListener('hashchange',()=>{if(location.hash.includes('feed'))boot();});
+ })();
+ /* GENERALIZED NARRATIVE ATTENTION (Phase B, Jul 22) — AI / Nuclear / Space / Crypto,
+    same sources & PIT discipline as the quantum layer. Narrative monitor, NOT a signal. */
+ let THA=null;
+ function renderThemeAttention(key){
+  const go=d=>{const el=document.getElementById('thOsint'); if(!el)return;
+   const e=d.themes&&d.themes[key]; if(!e){el.innerHTML='';return;}
+   let h=`<h3 style="margin-top:4px">${key} narrative monitor <span class="muted" style="font-weight:400;font-size:11px">· as of ${d.as_of} · point-in-time ledger in 06_osint</span></h3>`;
+   const rows=Object.keys(e.wiki||{}).filter(k=>e.wiki[k]&&e.wiki[k].length>4).map(k=>{
+    const s=e.wiki[k], last=s[s.length-1][1];
+    const prior=s.slice(-5,-1).map(x=>x[1]); const avg=prior.length?prior.reduce((a,b)=>a+b,0)/prior.length:null;
+    return {k,last,d4:avg?Math.round(100*(last/avg-1)):null};});
+   if(rows.length){
+    h+='<table><tr><th>Attention page</th><th>Views/wk</th><th>vs 4-wk avg</th></tr>';
+    rows.forEach(r=>{h+=`<tr><td>${r.k}</td><td>${r.last.toLocaleString()}</td><td style="color:${r.d4>25?'var(--pos)':r.d4<-25?'var(--neg)':'var(--dim)'}">${r.d4==null?'—':(r.d4>0?'+':'')+r.d4+'%'}</td></tr>`;});
+    h+='</table>';
+   }
+   if(e.news7d!=null) h+=`<div class="muted" style="font-size:12px;margin-top:6px"><b>News flow</b>: ${e.news7d} articles in the last 7 days.</div>`;
+   if((e.heads||[]).length){
+    h+='<ul style="margin:6px 0 0;padding-left:18px;font-size:12.5px">';
+    e.heads.slice(0,3).forEach(x=>{h+=`<li style="margin:3px 0"><a href="${x.u}" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">${x.t}</a> <span class="muted" style="font-size:11px">${x.dom?'· '+x.dom:''}</span></li>`;});
+    h+='</ul>';
+   }
+   h+='<div class="muted" style="font-size:11px;margin-top:6px">Wikipedia pageviews + Google News RSS · measures the narrative, is not itself a buy/sell signal.</div>';
+   el.innerHTML=h;};
+  if(THA){go(THA);return;}
+  fetch('themes_attention.json').then(r=>r.json()).then(d=>{THA=d;go(d);})
+   .catch(()=>{const el=document.getElementById('thOsint');if(el)el.innerHTML='';});
  }
  /* FUND DASHBOARD (p18, Jul 22) — the paper fund's own view. SIMULATION only. */
  (function(){
