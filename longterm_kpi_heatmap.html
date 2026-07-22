@@ -137,6 +137,7 @@
   </div></div>
   <div class="menu" data-group="events"><button aria-haspopup="true">Events & Regime</button><div class="dd">
     <a data-slug="regime">Regime Monitor<span class="muted">walk-forward HMM, current state</span></a>
+    <a data-slug="library">Event Library<span class="muted">every dated event, all channels</span></a>
     <a data-slug="feed">OSINT Live Feed<span class="muted">high-signal events, attention status</span></a>
     <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
   </div></div>
@@ -273,6 +274,17 @@
   </div>
   <div class="block"><h3>Decision ledger <span class="muted" style="font-weight:400;font-size:12px">· append-only, timestamped before outcomes are known</span></h3>
     <div id="fdDecs"></div>
+  </div>
+</div>
+
+<!-- ============ PAGE 19: EVENT LIBRARY (Jul 22) ============ -->
+<div class="page" id="p19">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <h3>Event Library <span class="muted" style="font-weight:400;font-size:12px">· every dated event, every channel — the raw material of the single-name program · <span id="elAsOf"></span></span></h3>
+    <div class="muted" style="font-size:12.5px;margin-bottom:8px">This library is the scarce resource: backtests are only as strong as the number of dated events behind them (SINGLE_NAME_ROADMAP.md). It grows daily on six channels — and the studies it feeds have so far produced four published negatives, one registered re-test, and one frozen candidate (EVENT_STUDY.md scoreboard). 8-K and insider ledgers show recent entries here; full ledgers live in <code>06_osint/</code>.</div>
+    <div id="elChips" style="margin-bottom:8px"></div>
+    <input id="elFilter" placeholder="Filter by ticker, keyword, date…" style="width:100%;max-width:420px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;margin-bottom:8px">
+    <div id="elTable"><span class="muted" style="font-size:12px">Loading events_library.json…</span></div>
   </div>
 </div>
 
@@ -1495,7 +1507,7 @@ function renderEvtClass(){
 })();
 
 /* ---------- ROUTER + NAV (site revamp Jul 21; replaces flat tab bar) ---------- */
-const SLUGS={home:"p0",stocks:"p16",stockcompare:"p17",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",fund:"p18",howto:"p3"};
+const SLUGS={home:"p0",stocks:"p16",stockcompare:"p17",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",fund:"p18",library:"p19",howto:"p3"};
 const GROUPOF={stocks:"stocks",stockcompare:"stocks",heatmap:"ratings",profiles:"ratings",screen:"ratings",compare:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",feed:"events",captax:"portfolio",horizons:"portfolio"};
 function goto(slug,push=true){
  if(!SLUGS[slug]) slug="home";
@@ -1724,6 +1736,41 @@ goto(location.hash.replace('#','')||'home',false);
   if(name==='Quantum Computing') renderQuantumOsint();
   else if(TMAP[name]) renderThemeAttention(TMAP[name]);
  }
+ /* EVENT LIBRARY (p19, Jul 22) — unified filterable timeline of all channels */
+ (function(){
+  let EL=null, chSel=null;
+  const CH_COLORS={conflict:'var(--neg)',macro:'var(--accent)',attention:'#b8860b','supply':'#8b4513','co-spike':'#9932cc','8-K':'var(--dim)','insider':'var(--pos)'};
+  function render(){
+   const el=document.getElementById('elTable'); if(!el||!EL)return;
+   const f=(document.getElementById('elFilter').value||'').toLowerCase();
+   let rows=EL.rows.filter(r=>(!chSel||r.ch===chSel)&&(!f||r.d.includes(f)||r.t.toLowerCase().includes(f)||r.l.toLowerCase().includes(f)||r.ch.includes(f)));
+   const shown=rows.slice(0,300);
+   let h='<table><tr><th>Date</th><th>Channel</th><th>Ticker</th><th>Event</th></tr>';
+   shown.forEach(r=>{h+=`<tr><td style="white-space:nowrap">${r.d}</td><td><span style="font-weight:700;font-size:11px;color:${CH_COLORS[r.ch]||'var(--ink)'}">${r.ch.toUpperCase()}</span></td><td>${r.t?`<b style="cursor:pointer;color:var(--accent)" data-elk="${r.t}">${r.t}</b>`:'<span class="muted">—</span>'}</td><td style="font-size:12.5px">${r.l}</td></tr>`;});
+   h+='</table>';
+   if(rows.length>300) h+=`<div class="muted" style="font-size:11.5px;margin-top:6px">Showing 300 of ${rows.length} matching rows — narrow the filter for the rest.</div>`;
+   el.innerHTML=h;
+   el.querySelectorAll('[data-elk]').forEach(x=>x.addEventListener('click',()=>{location.hash='stocks';setTimeout(()=>{if(window.show)show(x.dataset.elk);if(window.openResearch)openResearch(x.dataset.elk);},300);}));
+  }
+  function chips(){
+   const c=document.getElementById('elChips'); if(!c||!EL)return;
+   const all=Object.entries(EL.counts).sort((a,b)=>b[1]-a[1]);
+   c.innerHTML='<button class="csvBtn" style="float:none" data-elch="">All '+EL.rows.length+'</button> '+
+    all.map(([ch,n])=>`<button class="csvBtn" style="float:none${ch===chSel?';border-color:var(--accent);color:var(--accent);font-weight:700':''}" data-elch="${ch}">${ch} ${n}</button>`).join(' ')+
+    `<span class="muted" style="font-size:11px;margin-left:8px">full ledgers: 8-K ${EL.ledger_totals['8-K ledger']} · insider ${EL.ledger_totals['insider ledger']}</span>`;
+   c.querySelectorAll('[data-elch]').forEach(b=>b.addEventListener('click',()=>{chSel=b.dataset.elch||null;chips();render();}));
+  }
+  function boot(){
+   if(EL){render();return;}
+   fetch('events_library.json?cb='+Date.now()).then(r=>r.json()).then(d=>{EL=d;
+    const a=document.getElementById('elAsOf'); if(a)a.textContent='built '+d.as_of;
+    chips();render();
+    const fl=document.getElementById('elFilter'); if(fl)fl.addEventListener('input',render);
+   }).catch(()=>{const el=document.getElementById('elTable');if(el)el.innerHTML='<span class="muted" style="font-size:12px">events_library.json unavailable.</span>';});
+  }
+  document.addEventListener('DOMContentLoaded',boot);
+  window.addEventListener('hashchange',()=>{if(location.hash.includes('library'))boot();});
+ })();
  /* SUPPLY-CHAIN MONITOR (Phase B, Jul 22) — feed page block */
  (function(){
   function boot(){
