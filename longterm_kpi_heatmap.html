@@ -2216,8 +2216,34 @@ goto(location.hash.replace('#','')||'home',false);
      <div class="muted" style="font-size:12px;margin-top:8px">From SEC filings via our XBRL pipeline · FY ${k.fy_end} · basis and formulas: How to Read.</div>`;
    } else body.innerHTML=`<div class="muted" style="font-size:12.5px">Filing-level KPIs cover our 25-company universe; ${t} is outside it. Price analytics on the other sub-tabs still apply — and if ${t} is one of the 128 scored names, the Peers & Industry tab has its ratio-vs-bucket table.</div>`;
   } else {
-   body.innerHTML=analyticsRows(t)||'<span class="muted">No analytics for this ticker.</span>';
+   body.innerHTML=(analyticsRows(t)||'<span class="muted">No analytics for this ticker.</span>')+
+    '<div id="resInsider" style="margin-top:12px"></div><div id="resAttn" style="margin-top:10px"></div>';
+   renderResInsider(t); renderResAttn(t);
   }
+ }
+ /* Research-view OSINT blocks (Jul 22, improvements #2+#3): insider flow + narrative attention */
+ let INSJ=null, CAJ=null;
+ function renderResInsider(t){
+  const go=d=>{const el=document.getElementById('resInsider'); if(!el)return;
+   const evs=d.i&&d.i[t];
+   if(!evs||!evs.length){el.innerHTML='<div class="muted" style="font-size:12px"><b>Insider flow</b>: no Form 4 / 13D filings collected for '+t+' since the stream began (2026-07-15). Absence recorded, not assumed.</div>';return;}
+   let h='<b style="font-size:12.5px">Insider flow</b> <span class="muted" style="font-size:11px">· Form 4 open-market only (grants/exercises excluded) · stream since 2026-07-15 · '+d.as_of+'</span><table style="margin-top:4px"><tr><th>Date</th><th>Filing</th><th>Net open-market</th><th>Buys/Sales</th></tr>';
+   evs.forEach(e=>{const [dt_,form,net,nP,nS]=e;
+    const is13=form.startsWith('SC')||form.startsWith('SCHEDULE');
+    const netTxt=is13?'<b style="color:var(--accent)">activist/major-holder filing</b>':net==null?'<span class="muted">no open-market legs</span>':`<b style="color:${net>0?'var(--pos)':'var(--neg)'}">${net>0?'+':'−'}$${Math.abs(net).toLocaleString()}</b>`;
+    h+=`<tr><td style="white-space:nowrap">${dt_}</td><td>${form}</td><td>${netTxt}</td><td>${is13?'—':nP+' / '+nS}</td></tr>`;});
+   el.innerHTML=h+'</table>';};
+  if(INSJ){go(INSJ);return;}
+  fetch('insiders.json?cb='+Date.now()).then(r=>r.json()).then(d=>{INSJ=d;go(d);}).catch(()=>{});
+ }
+ function renderResAttn(t){
+  const go=d=>{const el=document.getElementById('resAttn'); if(!el)return;
+   const a=d.a&&d.a[t];
+   if(!a){el.innerHTML='<div class="muted" style="font-size:12px"><b>Narrative attention</b>: '+t+' is outside the 200-name weekly attention set (core + scored + frontier). Ask to add it.</div>';return;}
+   const col=a.d4>50?'var(--pos)':a.d4<-50?'var(--neg)':'var(--ink)';
+   el.innerHTML=`<div style="font-size:12.5px"><b>Narrative attention</b> <span class="muted" style="font-size:11px">· Wikipedia views, week of ${a.wk}</span>: <b>${a.w.toLocaleString()}</b>/wk · vs 4-wk avg <b style="color:${col}">${a.d4>0?'+':''}${a.d4}%</b> · 12-wk median ${a.med12.toLocaleString()}${a.spike?' · <b style="color:var(--neg)">⚑ SPIKE (≥3× median) — logged as a dated event</b>':''} <span class="muted">— measures the narrative, not a signal.</span></div>`;};
+  if(CAJ){go(CAJ);return;}
+  fetch('company_attention.json?cb='+Date.now()).then(r=>r.json()).then(d=>{CAJ=d;go(d);}).catch(()=>{const el=document.getElementById('resAttn');if(el)el.innerHTML='';});
  }
  window.openResearch=function(t){
   resT=t;
