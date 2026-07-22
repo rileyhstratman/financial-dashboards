@@ -275,10 +275,10 @@
   <div class="block" style="border-left:3px solid var(--accent)">
     <h3>Paper Fund Dashboard <span class="muted" style="font-weight:400;font-size:12px">· SIMULATION — $100,000 simulated capital, no real money, not investment advice · rules in <code>09_paper_fund/RULES.md</code> · <span id="fdAsOf"></span></span></h3>
     <div id="fdStats" style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0"></div>
-    <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV vs SPY</b> — both indexed to 100 at inception (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
+    <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV<span class="info" data-pop="fdnav">i</span> vs SPY<span class="info" data-pop="fdspy">i</span></b> — both indexed to 100<span class="info" data-pop="fdidx">i</span> at inception (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
     <div style="position:relative"><canvas id="fdCv" style="width:100%;height:200px"></canvas></div>
     <div id="fdChartNote" class="muted" style="font-size:11.5px"></div>
-    <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve</b> — NAV marked every <b>15 minutes</b> through market hours (chronological, append-only ledger: <code>09_paper_fund/intraday_nav.csv</code>; self-healing — missed slots reconstruct from real 5-min bars, labeled). Solid = fund, dashed = SPY, both indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
+    <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve<span class="info" data-pop="fdintra">i</span></b> — NAV marked every <b>15 minutes</b> through market hours (chronological, append-only ledger: <code>09_paper_fund/intraday_nav.csv</code>; self-healing — missed slots reconstruct from real 5-min bars, labeled). Solid = fund, dashed = SPY, both indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
     <canvas id="fdIntra" style="width:100%;height:150px"></canvas>
     <div id="fdIntraNote" class="muted" style="font-size:11.5px"></div></div>
   </div>
@@ -1924,18 +1924,18 @@ goto(location.hash.replace('#','')||'home',false);
     cv.addEventListener('mouseleave',()=>{draw(null);tip.style.display='none';});
    }
   }
-  function stat(label,val,color){return `<div><div class="muted" style="font-size:11px">${label}</div><div style="font-size:20px;font-weight:800${color?';color:'+color:''}">${val}</div></div>`;}
+  function stat(label,val,color,pop){return `<div><div class="muted" style="font-size:11px">${label}${pop?`<span class="info" data-pop="${pop}">i</span>`:''}</div><div style="font-size:20px;font-weight:800${color?';color:'+color:''}">${val}</div></div>`;}
   function render(){
    const d=FD, s=d.stats;
    document.getElementById('fdAsOf').textContent='data '+d.as_of;
    const pc=v=>v==null?'—':(v>=0?'+':'')+v+'%';
    document.getElementById('fdStats').innerHTML=
-    stat('NAV',money(s.nav))+
+    stat('NAV',money(s.nav),null,'fdnav')+
     stat('Since inception',pc(s.ret_total),s.ret_total>=0?'var(--pos)':'var(--neg)')+
     stat('Last mark',pc(s.ret_day),s.ret_day==null?null:s.ret_day>=0?'var(--pos)':'var(--neg)')+
     stat('Invested',s.invested_pct+'%')+stat('Cash',s.cash_pct+'%')+
-    stat('Max drawdown',s.max_dd+'%')+
-    stat('Regime',d.regime.state,d.regime.state==='BASELINE'?'var(--pos)':'var(--neg)')+
+    stat('Max drawdown',s.max_dd+'%',null,'fddd')+
+    stat('Regime',d.regime.state,d.regime.state==='BASELINE'?'var(--pos)':'var(--neg)','fdreg')+
     stat('Daily marks',s.n_marks);
    // NAV vs SPY indexed chart
    const cv=document.getElementById('fdCv');
@@ -2496,6 +2496,12 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ fdnav:`<b>NAV — net asset value.</b> Everything the fund owns, priced right now: cash + (shares held × latest close) across the five sector ETFs. Simulated capital started at $100,000 on Jul 21 2026; every mark is logged to an append-only ledger before outcomes are known. 5bp one-way costs are charged on every simulated trade, so NAV is net of frictions.`,
+ fdspy:`<b>SPY — the benchmark, and the bar to clear.</b> The S&P 500 ETF: what you'd own if you skipped all of this and bought "the market" in one click. Every strategy must justify itself against it — beating SPY after costs is the entire game; matching it means the research added nothing; trailing it means the research subtracted value. The dashed line keeps the fund honest.`,
+ fdidx:`<b>Indexed to 100 — why both lines start at the same point.</b> NAV is ~$100k and SPY is ~$748/share — raw prices can't share a chart. Both series are divided by their own starting value and ×100, so each line reads as "growth of the same dollar". At any hover point: fund 101.2 vs SPY 100.4 = the fund is 0.8% ahead cumulatively. The GAP between the lines is the whole story; the level of either alone is not.`,
+ fdintra:`<b>How the intraday curve is built.</b> A fixed grid of 27 slots, every 15 minutes from 9:30am to 4:00pm ET. Each mark = cash + shares × the latest real 5-minute bar. Self-healing: any missed slot is reconstructed from the day's actual bars on the next run, and the ledger labels every row <i>live</i> or <i>catchup</i> — the record never hides how a number got there. This is observation, not trading: the rules rebalance weekly or on regime switches, never intraday.`,
+ fddd:`<b>Max drawdown — the deepest valley.</b> The largest peak-to-trough NAV decline since inception, in %. It measures the worst experience of holding the fund, not just the outcome. The rules take it seriously: at −10% from peak, the failsafe halves the invested budget (RULES.md amendment 7) until half the drawdown is regained. Small early numbers mean little — drawdown statistics need months of marks to be meaningful.`,
+ fdreg:`<b>Regime — the walk-forward detector's current confirmed state.</b> BASELINE (calm), TENSION (defense-up/gold-down war-risk signature), or WAR-DRAWDOWN (broad risk-off). Detected by a hidden Markov model using only data available at each moment (no hindsight), confirmed after 5 consecutive days. It modifies the book mechanically: TENSION halves the GDX weight; WAR-DRAWDOWN halves the whole invested budget. Current state and history: Regime Monitor tab.`,
  kpnm:`<b>Net margin — higher is better, to a point.</b><br>Negative = losing money on every sale · under ~5% = thin (one bad quarter from red) · <b>10–20% = solid</b> · 25%+ = excellent, usually a moat.<br><br><b>The catch:</b> when a company's margin sits at the top of its OWN 15-year record (peak flag ⚠), history says it mean-reverts — chips and commodities especially. A spectacular margin can be a warning dressed as a compliment.`,
  kpcur:`<b>Current ratio — sweet spot ≈ 1.5–2.5.</b><br>Under 1.0 = current bills exceed current assets (strain) · 1.0–1.5 = adequate · <b>1.5–2.5 = healthy</b> · over ~3 = often "lazy" cash earning nothing — common right after big capital raises (frontier names run 10–60× for exactly that reason).<br><br>Retailers and fast-turn businesses run structurally lower and are fine.`,
  kpqk:`<b>Quick ratio — same test, inventory stripped out. ≥ 1.0 is the classic pass.</b><br>0.5–1.0 = watch it · <b>1.0–1.5 = comfortable</b> · far above that = same lazy-cash caveat as the current ratio.<br><br>Inventory-heavy businesses (retail, autos) naturally sit lower; software naturally sits near its current ratio since it holds no inventory.`,
