@@ -385,9 +385,11 @@
 <!-- ============ PAGE 3: HOW TO READ ============ -->
 <div class="page" id="p3">
   <div class="block" style="border-left:3px solid var(--accent)">
-    <h3>Explainer index <span class="muted" style="font-weight:400;font-size:12px">· every ⓘ popover on the site, searchable in one place</span></h3>
-    <input id="glossFilter" placeholder="Search explanations… (e.g. 13D, Kelly, P/E, regime, drawdown)" style="width:100%;max-width:460px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;margin-bottom:8px">
-    <div id="glossList" class="muted" style="font-size:12px">Loading…</div>
+    <details id="glossAcc" open>
+      <summary style="cursor:pointer;list-style:none"><h3 style="display:inline">Explainer index <span class="muted" style="font-weight:400;font-size:12px">· every ⓘ popover on the site, searchable in one place · click to collapse</span></h3></summary>
+      <input id="glossFilter" placeholder="Search explanations… (e.g. 13D, Kelly, P/E, regime, drawdown)" style="width:100%;max-width:460px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;margin:8px 0">
+      <div id="glossList" class="muted" style="font-size:12px">Loading…</div>
+    </details>
   </div>
   <details class="acc"><summary>Variable glossary<span class="muted">every symbol, grouped in 4 clusters</span></summary><div class="inner">
     <table>
@@ -2708,6 +2710,12 @@ const POPS={
   render();
   const f=document.getElementById('glossFilter');
   if(f)f.addEventListener('input',render);
+  // closeable + remembered (Riley, Jul 23): collapse state persists across visits
+  const acc=document.getElementById('glossAcc');
+  if(acc){
+   if(localStorage.getItem('term_gloss_open')==='0')acc.removeAttribute('open');
+   acc.addEventListener('toggle',()=>localStorage.setItem('term_gloss_open',acc.open?'1':'0'));
+  }
  });
 })();
 /* Event-timeline cell tooltips (Jul 23): hover any reaction cell on the Events page */
