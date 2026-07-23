@@ -143,13 +143,13 @@
   </div></div>
   <div class="menu" data-group="ratings"><button aria-haspopup="true">Ratings</button><div class="dd">
     <a data-slug="heatmap">Heat Map<span class="muted">5 sectors × 7 categories, 0–10 calls</span></a>
+    <a data-slug="screen">Company Screen<span class="muted">128 names scored from own filings</span></a>
     <a data-slug="profiles">Sector Profiles<span class="muted">radar, KPI strips, context layers</span></a>
-    <a data-slug="screen">Company Screen<span class="muted">top names per sector, own filings data</span></a>
     <a data-slug="compare">Compare Sectors<span class="muted">any two, side by side with Δ</span></a>
   </div></div>
   <div class="menu" data-group="events"><button aria-haspopup="true">Events & Regime</button><div class="dd">
-    <a data-slug="regime">Regime Monitor<span class="muted">walk-forward HMM, current state</span></a>
     <a data-slug="verdicts">Verdict Board<span class="muted">every study's outcome + live clocks</span></a>
+    <a data-slug="regime">Regime Monitor<span class="muted">the master variable — current state</span></a>
     <a data-slug="library">Event Library<span class="muted">every dated event, all channels</span></a>
     <a data-slug="feed">OSINT Live Feed<span class="muted">high-signal events, attention status</span></a>
     <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
@@ -180,7 +180,7 @@
       <b>Ratings</b> — the original engine: five sectors scored across seven categories, plus a 128-company screen scored from our own SEC filings. ·
       <b>Events &amp; Regime</b> — the intelligence side: a library of dated events on seven channels (conflict, macro, filings, insiders, FDA…), a market-regime detector, and the <b>Verdict Board</b> — every hypothesis we've tested and what happened to it. ·
       <b>Portfolio</b> — a $100,000 <i>simulated</i> fund run by written rules, marked every 15 minutes, benchmarked against the S&amp;P 500 with nothing hidden.<br><br>
-      <span class="muted">Tap any <span class="info" data-pop="vbstatus">i</span> icon anywhere on the site for a plain-language explanation. Nothing here is investment advice — it's a research machine with its work shown.</span>
+      <span class="muted">Tap any <span class="info" data-pop="iconhelp">i</span> icon anywhere on the site for a plain-language explanation of what you're looking at. Nothing here is investment advice — it's a research machine with its work shown.</span>
     </div>
     <div id="homeDigest" style="margin-top:10px"></div>
   </div>
@@ -196,9 +196,8 @@
       <a class="gotoLink" data-slug="feed">Live feed →</a> · <a class="gotoLink" data-slug="events">Event playbook →</a></div>
     <div class="block"><h3>My watchlist <span class="muted" style="font-weight:400;font-size:11px">★ star anything on the heat map or company screen</span></h3><div id="watchCard"></div></div>
     <div class="block"><h3>Paper fund</h3>
-      <div style="font-size:16px;font-weight:700;margin:4px 0">$99,970 <span class="muted" style="font-size:12px;font-weight:400">NAV · inception Jul 21</span></div>
-      <div class="muted" style="font-size:12.5px">59% invested / 41% cash — rule-driven from the ratings, Kelly caps, and regime overlay. Simulation only, every decision timestamped.</div>
-      <a class="gotoLink" data-slug="horizons">Horizons & ledger →</a></div>
+      <div id="homeFund"><div class="muted" style="font-size:12.5px">Loading live fund data…</div></div>
+      <a class="gotoLink" data-slug="fund">Fund Dashboard →</a></div>
   </div>
   <div class="block" style="border-left:3px solid #b8860b"><h3>Research highlight</h3>
     <b>The bot's edge is regime-dependent.</b> Joining the day-trading bot's 242 backtest trades to the regime detector: +0.61R per trade in the baseline regime vs −0.06R in tension (p=0.01) — and the live forward window has been all-tension. Gate pre-registered for Oct 1, not switched on. <a class="gotoLink" data-slug="horizons">The cross-wire study →</a></div>
@@ -2577,6 +2576,7 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ iconhelp:`<b>The ⓘ icons — the site explains itself.</b> Every ⓘ opens a plain-language explanation of the number or concept next to it: what it measures, what "good" looks like, and where the honest caveats are. There are 75+ of them across the site, and they're all indexed in one searchable list on the <b>How to Read</b> page (Explainer index, at the top). Each explanation appears where you need it — this popover is the only one that talks about the icons themselves.`,
  wlalerts:`<b>Watchlist alert badges — what fired in the last 7 days.</b><br><b style="color:var(--pos)">INSIDER BUY</b> — an insider spent ≥$250k of their own cash on shares (Form 4, open-market only).<br><b style="color:var(--accent)">13D/G</b> — someone crossed 5% ownership; 13D = ACTIVE intent (activist, often a catalyst), 13G = passive institution (usually routine).<br><b>8-K</b> — a material corporate filing; hover the badge for the item type (earnings vs CEO exit are very different news).<br><b style="color:var(--neg)">⚑ ATTN</b> — weekly Wikipedia attention ≥3× the stock's own 12-week median (narrative surge).<br><br><b>All badges mean LOOK, never BUY</b> — our own study of 1,191 insider events found no tradable edge in following them blindly (Verdict Board).`,
  vbstatus:`<b>Reading the verdicts.</b><br><b style="color:var(--neg)">NEGATIVE</b> — tested, failed, published. Dead idea; the tombstone stays up on purpose.<br><b style="color:var(--pos)">CANDIDATE</b> — passed in-sample AND robustness checks; frozen/pre-registered with a forward criterion; awaiting its clock. Not tradable yet.<br><b style="color:var(--accent)">REGISTERED</b> — a weaker-but-real pattern given a pre-committed forward test (no freeze, no basket).<br><b style="color:#b8860b">INCONCLUSIVE / PRELIMINARY</b> — underpowered or incomplete, with a written re-test trigger.<br><b style="color:var(--accent)">PASS-CAVEATS</b> — infrastructure audit (not a signal).<br><br><b>Registered clocks</b> are counted by the daily pipeline from the ledgers themselves — progress can't be typed in, only earned. Criteria were written BEFORE outcomes; no peeking, no repainting.`,
  scpe:`<b>P/E and P/S columns — read with two warnings.</b><br>Both computed from OUR OWN filings (FY EPS from collected diluted share counts; market cap from share-count concepts × live quote).<br><b>Warning 1 — FY-trailing:</b> uses the latest completed fiscal year, so a company deep into a new year reads stale, and cyclicals at turns read wrong (memory names can show 100×+ off a trough year until the new 10-K lands).<br><b>Warning 2 — sweet-spot scoring:</b> since v5 the P/E anchor score IS part of the blend — roughly: under ~10 good-but-checked (value-trap guard), 10–22 sweet spot, 30+ increasingly penalized, 70+ near-zero. Expensive glamour pays for its multiple in the score now.`,
@@ -2693,6 +2693,17 @@ const POPS={
    el.innerHTML='<div style="border-top:1px solid var(--line);padding-top:8px"><b style="font-size:12.5px">Since yesterday</b> <span class="muted" style="font-size:11px">· '+d.as_of+'</span>'+
     d.lines.map(l=>`<div style="font-size:12.5px;margin-top:3px">• ${l}</div>`).join('')+'</div>';
   }).catch(()=>{});
+ });
+})();
+/* Home Paper Fund card — LIVE from fund.json (Jul 23: was stale hardcoded text + wrong link) */
+(function(){
+ document.addEventListener('DOMContentLoaded',()=>{
+  const el=document.getElementById('homeFund'); if(!el)return;
+  fetch('fund.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+   const s=d.stats, pc=v=>v==null?'—':(v>=0?'+':'')+v+'%';
+   el.innerHTML=`<div style="font-size:16px;font-weight:700;margin:4px 0">$${s.nav.toLocaleString()} <span class="muted" style="font-size:12px;font-weight:400">NAV · <span style="color:${s.ret_total>=0?'var(--pos)':'var(--neg)'}">${pc(s.ret_total)}</span> since inception ${s.inception}</span></div>
+   <div class="muted" style="font-size:12.5px">${s.invested_pct}% invested / ${s.cash_pct}% cash · regime <b>${d.regime.state}</b>${s.port_vol!=null?` · est. vol ${s.port_vol}% vs ${s.vol_target}% target`:''} — rule-driven, simulation only, every decision timestamped.</div>`;
+  }).catch(()=>{el.innerHTML='<div class="muted" style="font-size:12.5px">fund.json unavailable.</div>';});
  });
 })();
 const pop=document.getElementById('pop');
