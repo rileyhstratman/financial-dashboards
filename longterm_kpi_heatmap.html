@@ -2458,8 +2458,8 @@ goto(location.hash.replace('#','')||'home',false);
    } else body.innerHTML=`<div class="muted" style="font-size:12.5px">Filing-level KPIs cover our 25-company universe; ${t} is outside it. Price analytics on the other sub-tabs still apply — and if ${t} is one of the 128 scored names, the Peers & Industry tab has its ratio-vs-bucket table.</div>`;
   } else {
    body.innerHTML=(analyticsRows(t)||'<span class="muted">No analytics for this ticker.</span>')+
-    '<div id="resInsider" style="margin-top:12px"></div><div id="resAttn" style="margin-top:10px"></div>';
-   renderResInsider(t); renderResAttn(t);
+    '<div id="resInsider" style="margin-top:12px"></div><div id="resWhales" style="margin-top:10px"></div><div id="resAttn" style="margin-top:10px"></div>';
+   renderResInsider(t); renderResWhales(t); renderResAttn(t);
   }
  }
  /* Research-view OSINT blocks (Jul 22, improvements #2+#3): insider flow + narrative attention */
@@ -2476,6 +2476,21 @@ goto(location.hash.replace('#','')||'home',false);
    el.innerHTML=h+'</table>';};
   if(INSJ){go(INSJ);return;}
   fetch('insiders.json?cb='+Date.now()).then(r=>r.json()).then(d=>{INSJ=d;go(d);}).catch(()=>{});
+ }
+ let WHJ=null;
+ function renderResWhales(t){
+  const go=d=>{const el=document.getElementById('resWhales'); if(!el)return;
+   const conv=(d.conv||{})[t], br=(d.breadth||{})[t]||0;
+   let h=`<b style="font-size:12.5px">Institutional footprint (13F)<span class="info" data-pop="whales">i</span></b> <span class="muted" style="font-size:11px">· ${d.n_mgrs} tracked managers · latest quarterly filings · ${d.as_of}</span><div style="font-size:12.5px;margin-top:3px">`;
+   h+=`Held by <b>${br}</b> of ${d.n_mgrs} tracked managers. `;
+   if(conv&&conv.length){
+    h+='Conviction positions (≥1% of a manager\\u2019s book): '+conv.slice(0,5).map(([m,p,v])=>`<b>${m}</b> ${p}%${v!=null?` ($${v>=1000?(v/1000).toFixed(1)+'B':v+'M'})`:''}`).join(' · ');
+    if(conv.length>5) h+=` <span class="muted">+${conv.length-5} more</span>`;
+   } else h+='<span class="muted">No tracked manager holds it at ≥1% of book — breadth only (quant-giant inventory).</span>';
+   el.innerHTML=h+'</div>';
+   if(window.bindPops)bindPops(el);};
+  if(WHJ){go(WHJ);return;}
+  fetch('whales.json?cb='+Date.now()).then(r=>r.json()).then(d=>{WHJ=d;go(d);}).catch(()=>{const el=document.getElementById('resWhales');if(el)el.innerHTML='';});
  }
  function renderResAttn(t){
   const go=d=>{const el=document.getElementById('resAttn'); if(!el)return;
@@ -2589,6 +2604,7 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ whales:`<b>Institutional footprint — 13F holdings of ~21 tracked managers.</b><br>Parsed from each manager's latest 13F-HR filing (SEC, our own pipeline; CUSIP→ticker map built from SEC fails-to-deliver data). Two very different reads, kept separate:<br><b>Conviction</b> — the position is ≥1% of that manager's reported book. For focused funds (Berkshire, Pershing, Appaloosa, Altimeter…) that's a deliberate bet.<br><b>Breadth</b> — how many tracked managers hold it AT ALL. The quant giants (Citadel, Millennium, AQR, RenTech, Two Sigma) hold 900–1,600 of our names as factor/market-making inventory — their mere presence means nothing; their absence is mildly interesting.<br><br><b>Caveats, always:</b> quarterly snapshots with a ~45-day lag (this data is old by design), longs only (no shorts — a "position" can be one leg of a pair), and famous holders are already famous (any edge is likely priced). Like every OSINT badge here: LOOK, never BUY. A 13F-based drift study is a registered future test, not an assumption.`,
  scqual:`<b>Quality columns (v6) — GP/A and Accruals, display-only.</b><br><b>GP/A</b> = gross profit ÷ total assets (Novy-Marx "gross profitability"): how much raw profit each dollar of assets produces before accounting choices muddy it. In the academic record it predicts returns about as well as value does, and it's one of the few factors that keeps replicating out-of-sample. Rough guide: &gt;0.6 elite (DECK 0.86, LULU 0.74), 0.3–0.6 solid, &lt;0.15 asset-heavy or struggling. Financials/insurers read strangely (their "gross profit" concept differs) — compare within a bucket only.<br><b>Accr</b> = (net income − operating cash flow) ÷ assets, the Sloan accruals red-flag: positive means reported earnings EXCEED the cash actually collected — earnings quality warning, historically followed by weak returns. ⚑ marks &gt;0.05. Negative is healthy (cash ahead of book earnings).<br><br><b>Neither touches the score.</b> Same discipline as the valuation leg: columns ship first, blending requires its own backtest on our data and a registered decision (QUANT_LANDSCAPE R5).`,
  stratlab:`<b>Strategy Lab — the night the project tested the textbook (Jul 22).</b> A survey of what quant funds actually run (QUANT_LANDSCAPE.md) followed by four same-night backtests on our own data, with priors DECLARED before running:<br><b style="color:var(--neg)">Vol-managed exposure (Moreira-Muir): NEGATIVE</b> — negative paired-t on all 6 instruments, exactly as the out-of-sample replication literature predicted. Our fixed 15% vol target stays.<br><b style="color:var(--neg)">Time-series momentum (12m sign): NEGATIVE</b> — trend filters on our instruments are now 0-for-2 (with Dow Theory).<br><b style="color:var(--neg)">Up-move drift (classic PEAD direction): NEGATIVE</b> — after beta-controls, up-shocks fade, not drift.<br><b style="color:var(--pos)">Crash-reversal: CANDIDATE</b> — &gt;10% one-day drops rebounded +2.2% (adj., 20d) but the month-clustered t is 2.04, below our new bar. Forward clock: next 200 fresh events.<br><b style="color:#b8860b">Low-vol anomaly: INCONCLUSIVE</b> — our backward-walked universe puts survivorship bias exactly on this sort; the "result" measures the bias, not the market.<br><b>Overnight split: CONFIRMED per-instrument (8y)</b> → RULES amendment 11: XLE/GDX/ITA buys at the close, sells at the open. Zero-cost execution alpha.<br><br>New standing bar (Harvey factor-zoo rule): in-sample claims need <b>t ≥ 3.0</b>; 2–3 is CANDIDATE at best. And every event study must now beta-control with an own-stock baseline and cluster its t by month — the first pass of the big-move study looked uniformly positive until those two corrections flipped it.`,
  dcfwhy:`<b>Why this sandbox exists — and where it's used for real.</b> Every P/E judgment on this site is secretly a DCF opinion: a multiple is just a compressed claim about future cash flows and discount rates. This page decompresses it so you can SEE the machine — and see its weakness: watch the terminal-value share at the bottom. Usually 60–80% of the entire valuation sits inside the perpetuity guess, which is why this project treats any single DCF point-estimate with suspicion, scores valuation against ANCHORS and own-history percentiles instead (Company Screen, L2 of the Conviction Stack), and keeps this page as the classroom, not the courtroom.`,
