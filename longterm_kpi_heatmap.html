@@ -172,11 +172,23 @@
 
 <!-- ============ PAGE 0: HOME / OVERVIEW (revamp Jul 21) ============ -->
 <div class="page" id="p0">
+  <div class="block" style="border-left:3px solid var(--accent);margin-bottom:14px">
+    <h3>Start here — what this site is, in one minute</h3>
+    <div style="font-size:13px;line-height:1.65">
+      <b>The Sector Terminal</b> is a research platform built from scratch: every number on it comes from our own data pipelines (SEC filings, price feeds, open-source intelligence), and every claim it makes has been tested — the failures are published right next to the survivors.<br><br>
+      <b>Stocks</b> — look up any of 1,605 names; each gets a full research workup (charts, peers, fundamentals, insider flow, a seven-layer "conviction stack"). Build a watchlist that remembers your entry price and flags real events. ·
+      <b>Ratings</b> — the original engine: five sectors scored across seven categories, plus a 128-company screen scored from our own SEC filings. ·
+      <b>Events &amp; Regime</b> — the intelligence side: a library of dated events on seven channels (conflict, macro, filings, insiders, FDA…), a market-regime detector, and the <b>Verdict Board</b> — every hypothesis we've tested and what happened to it. ·
+      <b>Portfolio</b> — a $100,000 <i>simulated</i> fund run by written rules, marked every 15 minutes, benchmarked against the S&amp;P 500 with nothing hidden.<br><br>
+      <span class="muted">Tap any <span class="info" data-pop="vbstatus">i</span> icon anywhere on the site for a plain-language explanation. Nothing here is investment advice — it's a research machine with its work shown.</span>
+    </div>
+    <div id="homeDigest" style="margin-top:10px"></div>
+  </div>
   <div class="home-grid">
     <div class="block"><h3>Sector calls</h3><div id="homeCalls"></div><a class="gotoLink" data-slug="heatmap">Open the heat map →</a></div>
     <div class="block"><h3>Market regime</h3>
       <div style="font-size:16px;font-weight:700;margin:4px 0">TENSION <span class="muted" style="font-size:12px;font-weight:400">since May 21, 2026</span></div>
-      <div class="muted" style="font-size:12.5px">Defense holding a bid, gold miners bleeding. Walk-forward detector — the version that flagged the 2026 war regime 19 days early.</div>
+      <div class="muted" style="font-size:12.5px">Defense holding a bid, gold miners bleeding. Walk-forward detector, stress-tested Jul 22 — the current-state call is robust across every configuration; switch lead-times are not relied on.</div>
       <a class="gotoLink" data-slug="regime">Regime Monitor →</a></div>
     <div class="block"><h3>Latest high-signal event</h3>
       <div style="font-size:14px;font-weight:600;margin:4px 0">Tehran strike wave · Jul 18–19</div>
@@ -369,6 +381,11 @@
 
 <!-- ============ PAGE 3: HOW TO READ ============ -->
 <div class="page" id="p3">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <h3>Explainer index <span class="muted" style="font-weight:400;font-size:12px">· every ⓘ popover on the site, searchable in one place</span></h3>
+    <input id="glossFilter" placeholder="Search explanations… (e.g. 13D, Kelly, P/E, regime, drawdown)" style="width:100%;max-width:460px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font-size:13px;margin-bottom:8px">
+    <div id="glossList" class="muted" style="font-size:12px">Loading…</div>
+  </div>
   <details class="acc"><summary>Variable glossary<span class="muted">every symbol, grouped in 4 clusters</span></summary><div class="inner">
     <table>
       <tr><th>Cluster</th><th>Symbols</th><th>Plain English</th></tr>
@@ -2635,6 +2652,49 @@ const POPS={
  evtsens:`<b>The escalation/de-escalation split.</b> Escalations = the 9 conflict-intensifying events (invasions, attacks, strikes, ceasefire collapse); de-escalations = the 3 peace events (ceasefires + memorandum). A big positive escalation average with a negative de-escalation average = a pure war-sensitivity profile; both near zero = event-indifferent. Next-day only — the cleanest window, before other news contaminates.`,
  evtclass:`<b>The four groups.</b> Defense majors = equal-weighted average of the 10 established names (LMT→LDOS); Emerging tier = KTOS/AVAV/RKLB average (highest beta in both directions); ITA/GDX/XLE/SPY = sector, gold-miner, energy and market benchmarks. Each cell shows avg t+1 / avg t+20. Cells hold 1–3 events — read as bands, not point estimates.`,
  dcf:`<b>What a DCF is.</b> A company is worth its future cash, shrunk back to today's dollars — money later is worth less than money now.<br><br><b>The four steps, live below:</b> project free cash flows (Step 1), blend the cost of capital into a discount rate (Step 2 — WACC), cap everything beyond the forecast with a terminal value (Step 3 — Gordon Growth), and sum the present values (Step 4).<br><br><b>The caveat made visible:</b> watch the terminal-value share at the bottom — usually 60–80% of the whole valuation sits in the perpetuity guess, which is why the Sensitivity tab exists.`};
+/* Explainer index (Jul 23): built at runtime FROM the POPS object itself — automatically
+   complete, can never drift from what the ⓘ icons actually say. */
+(function(){
+ function render(){
+  const list=document.getElementById('glossList'); if(!list)return;
+  const f=((document.getElementById('glossFilter')||{}).value||'').toLowerCase();
+  const entries=Object.keys(POPS).map(k=>{
+   const div=document.createElement('div'); div.innerHTML=POPS[k];
+   const title=(div.querySelector('b')||{}).textContent||k;
+   return {k,title,text:div.textContent};
+  }).filter(e=>!f||e.title.toLowerCase().includes(f)||e.text.toLowerCase().includes(f))
+    .sort((a,b)=>a.title.localeCompare(b.title));
+  list.innerHTML=entries.length?entries.map(e=>
+   `<details style="margin:3px 0"><summary style="cursor:pointer;font-size:12.5px;color:var(--ink)"><b>${e.title}</b></summary><div style="font-size:12.5px;padding:6px 0 4px 14px;line-height:1.6">${POPS[e.k]}</div></details>`).join('')
+   :'<span class="muted">No explanations match.</span>';
+  const n=Object.keys(POPS).length;
+  list.insertAdjacentHTML('afterbegin',`<div class="muted" style="font-size:11px;margin-bottom:6px">${entries.length} of ${n} explanations${f?' matching "'+f+'"':''}</div>`);
+ }
+ document.addEventListener('DOMContentLoaded',()=>{
+  render();
+  const f=document.getElementById('glossFilter');
+  if(f)f.addEventListener('input',render);
+ });
+})();
+/* Event-timeline cell tooltips (Jul 23): hover any reaction cell on the Events page */
+(function(){
+ document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('#p10 table td').forEach(td=>{
+   if(/[+\-]?\d+(\.\d+)?%?/.test(td.textContent)&&!td.title)
+    td.title='Market reaction: avg t+1 close / t+20 close vs the last close BEFORE the event, in %. Cells aggregate 1–3 events — read as bands, not point estimates. Full method: ⓘ icons on this page.';
+  });
+ });
+})();
+/* Home digest (Jul 23): "what changed" — rebuilt daily by make_digest.py */
+(function(){
+ document.addEventListener('DOMContentLoaded',()=>{
+  const el=document.getElementById('homeDigest'); if(!el)return;
+  fetch('digest.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+   el.innerHTML='<div style="border-top:1px solid var(--line);padding-top:8px"><b style="font-size:12.5px">Since yesterday</b> <span class="muted" style="font-size:11px">· '+d.as_of+'</span>'+
+    d.lines.map(l=>`<div style="font-size:12.5px;margin-top:3px">• ${l}</div>`).join('')+'</div>';
+  }).catch(()=>{});
+ });
+})();
 const pop=document.getElementById('pop');
 document.addEventListener('click',e=>{
  const ic=e.target.closest('.info');
