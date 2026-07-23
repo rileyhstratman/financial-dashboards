@@ -278,7 +278,7 @@
     <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV<span class="info" data-pop="fdnav">i</span> vs SPY<span class="info" data-pop="fdspy">i</span></b> — both indexed to 100<span class="info" data-pop="fdidx">i</span> at inception (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
     <div style="position:relative"><canvas id="fdCv" style="width:100%;height:200px"></canvas></div>
     <div id="fdChartNote" class="muted" style="font-size:11.5px"></div>
-    <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve<span class="info" data-pop="fdintra">i</span></b> — NAV marked every <b>15 minutes</b> through market hours (chronological, append-only ledger: <code>09_paper_fund/intraday_nav.csv</code>; self-healing — missed slots reconstruct from real 5-min bars, labeled). Solid = fund, dashed = SPY, both indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
+    <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve<span class="info" data-pop="fdintra">i</span></b> — published at <b>5-minute resolution</b> (79 points/session, built from real 5-min bars so no swing hides between marks); the durable append-only ledger stays at 15-min (<code>09_paper_fund/intraday_nav.csv</code>, self-healing). Solid = fund, dashed = SPY, indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
     <canvas id="fdIntra" style="width:100%;height:150px"></canvas>
     <div id="fdIntraNote" class="muted" style="font-size:11.5px"></div></div>
   </div>
