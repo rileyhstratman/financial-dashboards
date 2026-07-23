@@ -202,13 +202,13 @@
   <div class="block" style="border-left:3px solid #b8860b"><h3>Research highlight</h3>
     <b>The bot's edge is regime-dependent.</b> Joining the day-trading bot's 242 backtest trades to the regime detector: +0.61R per trade in the baseline regime vs −0.06R in tension (p=0.01) — and the live forward window has been all-tension. Gate pre-registered for Oct 1, not switched on. <a class="gotoLink" data-slug="horizons">The cross-wire study →</a></div>
   <h3 style="margin-top:20px">Explore</h3>
-  <div class="dir-grid">
-    <div class="block" data-slug="heatmap"><b>Ratings</b><div class="muted" style="font-size:12.5px;margin-top:4px">The heat map: five sectors scored 0–10 across seven weighted categories, every cell decomposable to raw data on click. Plus per-company shortlists from our own SEC-filings pipeline.</div></div>
-    <div class="block" data-slug="regime"><b>Events & Regime</b><div class="muted" style="font-size:12.5px;margin-top:4px">How defense, energy and gold actually moved around 13 verified geopolitical events — and which market regime the hidden-Markov detector says we're in now.</div></div>
-    <div class="block" data-slug="stochastic"><b>Projections</b><div class="muted" style="font-size:12.5px;margin-top:4px">Monte Carlo futures (nominal and inflation-adjusted), plus the interactive DCF and sensitivity sandboxes.</div></div>
-    <div class="block" data-slug="horizons"><b>Portfolio & Horizons</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every timeframe from intraday to five years under one evidence standard, a 141-entry chronological ledger, and a rules-driven paper fund.</div></div>
-    <div class="block" data-slug="captax"><b>Capital Preservation</b><div class="muted" style="font-size:12.5px;margin-top:4px">The stricter question: beating inflation and taxes, not just zero.</div></div>
-    <div class="block" data-slug="howto"><b>How to Read</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every symbol, source, formula and caveat — the honesty layer.</div></div>
+  <div class="dir-grid"><!-- ordered by what's most alive right now (Riley, Jul 23): fund > verdicts/regime > stocks > ratings > sandboxes > manual -->
+    <div class="block" data-slug="fund"><b>Paper Fund</b><div class="muted" style="font-size:12.5px;margin-top:4px">The live experiment: $100k simulated, rules-driven, marked every 15 minutes against SPY — with the intraday curve, risk math, and every decision logged. TENSION regime, amendment-11 overnight execution in force.</div></div>
+    <div class="block" data-slug="verdicts"><b>Verdict Board & Regime</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every hypothesis tested and what happened: 9 published negatives, 3 candidates, 8 registered clocks counting live (activist 13Ds, crash-reversal, de-escalation…). Plus the walk-forward regime detector — the master conditioning variable.</div></div>
+    <div class="block" data-slug="stocks"><b>Stocks & Research</b><div class="muted" style="font-size:12.5px;margin-top:4px">1,605 names, each with charts, a 7-layer conviction stack, insider flow, 13F institutional footprint, and peer comparisons read as Bearish→Bullish vs the industry median.</div></div>
+    <div class="block" data-slug="heatmap"><b>Ratings & Screen</b><div class="muted" style="font-size:12.5px;margin-top:4px">The original engine: five sectors scored 0–10 across seven categories, plus a 217-company screen scored from our own SEC filings — valuation and quality columns included.</div></div>
+    <div class="block" data-slug="stochastic"><b>Projections & Sandboxes</b><div class="muted" style="font-size:12.5px;margin-top:4px">Monte Carlo futures, the DCF explorer, sensitivity grid, and the capital-preservation floor — the classrooms behind the live rules.</div></div>
+    <div class="block" data-slug="howto"><b>How to Read</b><div class="muted" style="font-size:12.5px;margin-top:4px">Every symbol, source, formula and caveat — the honesty layer, with all 80+ explainers searchable in one place.</div></div>
   </div>
 </div>
 
@@ -2020,7 +2020,8 @@ goto(location.hash.replace('#','')||'home',false);
     const sxRaw=s0?spy.map(x=>100*x[1]/s0):[];
     const sx=sxRaw.length>1?nx.map((_,i)=>sxRaw[Math.round(i*(sxRaw.length-1)/Math.max(1,nx.length-1))]):null;
     iline(cv,{main:nx,sec:sx,padY:0.5,x0:nav[0][0],x1:nav[nav.length-1][0],
-     fmt:i=>`<b>${nav[i][0]}</b> · NAV $${nav[i][1].toLocaleString()} · fund <b>${(nx[i]-100)>=0?'+':''}${(nx[i]-100).toFixed(2)}%</b>${sx?` · SPY ${(sx[i]-100)>=0?'+':''}${(sx[i]-100).toFixed(2)}%`:''} <span class="muted">since inception</span>`});
+     fmt:i=>{const sj=spy.length>1?Math.round(i*(spy.length-1)/Math.max(1,nx.length-1)):0;
+      return `<b>${nav[i][0]}</b> · NAV $${nav[i][1].toLocaleString()} · fund <b>${(nx[i]-100)>=0?'+':''}${(nx[i]-100).toFixed(2)}%</b>${sx?` · SPY $${spy[sj][1].toFixed(2)} (${(sx[i]-100)>=0?'+':''}${(sx[i]-100).toFixed(2)}%)`:''} <span class="muted">since inception</span>`;}});
     document.getElementById('fdChartNote').innerHTML='<span style="color:var(--accent)">━ fund</span> · <span>╌ SPY</span> · '+nav.length+' marks · hover for exact values';
    }
    // intraday curve (Jul 22: Riley — chronological log through market hours, graphed)
@@ -2038,7 +2039,7 @@ goto(location.hash.replace('#','')||'home',false);
     const sp=mk[0].spy?mk.map(m=>m.spy?100*m.spy/mk[0].spy:null):null;
     const et=t=>{const [h,m]=t.split(':').map(Number);const eh=(h-4+24)%24;return (eh%12||12)+':'+String(m).padStart(2,'0')+(eh<12?'am':'pm');};
     iline(cv2,{main:nv,sec:sp,padY:0.03,x0:et(mk[0].t)+' ET',x1:et(mk[mk.length-1].t)+' ET',
-     fmt:i=>`<b>${et(mk[i].t)} ET</b> · NAV $${mk[i].nav.toLocaleString()} · <b>${(nv[i]-100)>=0?'+':''}${(nv[i]-100).toFixed(2)}%</b>${sp&&sp[i]!=null?` · SPY ${(sp[i]-100)>=0?'+':''}${(sp[i]-100).toFixed(2)}%`:''} <span class="muted">vs first mark</span>`});
+     fmt:i=>`<b>${et(mk[i].t)} ET</b> · NAV $${mk[i].nav.toLocaleString()} · <b>${(nv[i]-100)>=0?'+':''}${(nv[i]-100).toFixed(2)}%</b>${sp&&sp[i]!=null?` · SPY $${mk[i].spy.toFixed(2)} (${(sp[i]-100)>=0?'+':''}${(sp[i]-100).toFixed(2)}%)`:''} <span class="muted">vs first mark</span>`});
     const chg=100*(mk[mk.length-1].nav/mk[0].nav-1);
     if(note)note.innerHTML=`${idj.date} · ${mk.length} marks (15-min) · fund <b style="color:${chg>=0?'var(--pos)':'var(--neg)'}">${chg>=0?'+':''}${chg.toFixed(2)}%</b> since first mark · latest NAV $${mk[mk.length-1].nav.toLocaleString()} · hover for exact values`;
    }).catch(()=>{const note=document.getElementById('fdIntraNote');if(note)note.textContent='intraday.json not yet published — appears after the first market session of logging.';});
