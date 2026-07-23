@@ -287,7 +287,7 @@
   <div class="block" style="border-left:3px solid var(--accent)">
     <h3>Paper Fund Dashboard <span class="muted" style="font-weight:400;font-size:12px">· SIMULATION — $100,000 simulated capital, no real money, not investment advice · rules in <code>09_paper_fund/RULES.md</code> · <span id="fdAsOf"></span></span></h3>
     <div id="fdStats" style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0"></div>
-    <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV<span class="info" data-pop="fdnav">i</span> vs SPY<span class="info" data-pop="fdspy">i</span></b> — both indexed to 100<span class="info" data-pop="fdidx">i</span> at inception (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
+    <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV vs SPY<span class="info" data-pop="fdspy">i</span></b> — both indexed to 100 at inception<span class="info" data-pop="fdidx">i</span> (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
     <div style="position:relative"><canvas id="fdCv" style="width:100%;height:200px"></canvas></div>
     <div id="fdChartNote" class="muted" style="font-size:11.5px"></div>
     <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve<span class="info" data-pop="fdintra">i</span></b> — published at <b>5-minute resolution</b> (79 points/session, built from real 5-min bars so no swing hides between marks); the durable append-only ledger stays at 15-min (<code>09_paper_fund/intraday_nav.csv</code>, self-healing). Solid = fund, dashed = SPY, indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
@@ -489,6 +489,9 @@
 
 <!-- ============ PAGE 5: DCF EXPLORER ============ -->
 <div class="page" id="p5">
+  <div class="block" style="border-left:3px solid #b8860b;padding:10px 14px;margin-bottom:12px">
+    <span style="font-size:12.5px"><b>Classroom, not courtroom<span class="info" data-pop="dcfwhy">i</span></b> — this sandbox decompresses the valuation logic hiding inside every P/E on the site. Watch the terminal-value share: it's why the project scores valuation with anchors (Company Screen, Conviction L2) instead of trusting any single DCF number.</span>
+  </div>
   <div class="block">
     <b>Interactive DCF</b> — change any assumption and every intermediate number recomputes. Defaults are generic illustrations, not a real company.<span class="info" data-pop="dcf">i</span>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px" id="dcfInputs">
@@ -509,6 +512,9 @@
 
 <!-- ============ PAGE 7: SENSITIVITY ============ -->
 <div class="page" id="p7">
+  <div class="block" style="border-left:3px solid #b8860b;padding:10px 14px;margin-bottom:12px">
+    <span style="font-size:12.5px"><b>The fragility lesson<span class="info" data-pop="senswhy">i</span></b> — half a percent of assumption swings fair value 20–40%. This grid is WHY the project distrusts point-estimate valuations and why rate regimes (10y UST, footer) matter to every equity multiple. Play until the fragility is intuitive.</span>
+  </div>
   <div class="block" style="border-left:3px solid var(--accent)">
     <b>The r − g fragility grid:</b> what $1/yr of growing cash flow is worth (<span class="formula">PV = 1/(r−g)</span>) under every combination of discount rate (rows) and growth assumption (columns). The closer g gets to r, the more explosive — and fragile — the valuation.<span class="info" data-pop="sens">i</span>
   </div>
@@ -539,6 +545,9 @@
 
 <!-- ============ PAGE 9: CAPITAL PRESERVATION & TAX ============ -->
 <div class="page" id="p9">
+  <div class="block" style="border-left:3px solid #b8860b;padding:10px 14px;margin-bottom:12px">
+    <span style="font-size:12.5px"><b>The real floor<span class="info" data-pop="captaxwhy">i</span></b> — inflation and taxes set the bar every strategy must clear before "beating the market" means anything. This page computes that floor; the fund's benchmark discipline and Kelly sizing stand on it.</span>
+  </div>
   <div class="block" style="border-left:3px solid var(--accent)">
     <b>Why this page exists.</b> Everything else in this terminal is about picking what to own. This page is about not losing it: the asymmetry of losses, sizing positions so no single mistake is fatal, why the ORDER of returns matters once money is being withdrawn, inflation's quiet tax, and the actual tax bill. <span class="muted">Educational tooling — not investment, tax, or legal advice.</span>
   </div>
@@ -1983,7 +1992,7 @@ goto(location.hash.replace('#','')||'home',false);
    document.getElementById('fdAsOf').textContent='data '+d.as_of;
    const pc=v=>v==null?'—':(v>=0?'+':'')+v+'%';
    document.getElementById('fdStats').innerHTML=
-    stat('NAV',money(s.nav),null,'fdnav')+
+    stat('NAV'+(s.nav_asof?` <span style="font-weight:400;text-transform:none">· ${s.nav_asof}</span>`:''),money(s.nav),null,'fdnav')+
     stat('Since inception',pc(s.ret_total),s.ret_total>=0?'var(--pos)':'var(--neg)')+
     stat('Last mark',pc(s.ret_day),s.ret_day==null?null:s.ret_day>=0?'var(--pos)':'var(--neg)')+
     stat('Invested',s.invested_pct+'%')+stat('Cash',s.cash_pct+'%')+
@@ -2576,6 +2585,9 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ dcfwhy:`<b>Why this sandbox exists — and where it's used for real.</b> Every P/E judgment on this site is secretly a DCF opinion: a multiple is just a compressed claim about future cash flows and discount rates. This page decompresses it so you can SEE the machine — and see its weakness: watch the terminal-value share at the bottom. Usually 60–80% of the entire valuation sits inside the perpetuity guess, which is why this project treats any single DCF point-estimate with suspicion, scores valuation against ANCHORS and own-history percentiles instead (Company Screen, L2 of the Conviction Stack), and keeps this page as the classroom, not the courtroom.`,
+ senswhy:`<b>Why the r−g grid matters more than any single valuation.</b> Move the discount rate or growth guess by half a percent and fair value swings 20-40% — that's not a flaw in the math, it IS the math. This grid is the reason the project never trusts one DCF number: tiny assumption changes anyone could defend produce wildly different answers. It's also why rate regimes matter to equity values (the 10y UST feeds the r side — currently 4.55%, shown in the footer), and why the screen scores valuation with sweet-spot anchors rather than precise targets. Play with it until the fragility is intuitive; that intuition is the lesson.`,
+ captaxwhy:`<b>The bar every strategy must clear before "beating the market" means anything.</b> A nominal return isn't yours: inflation takes ~2.5-3.5%/yr and taxes take a slice of the rest. This page computes the REAL, after-tax survival math — what a portfolio must earn just to preserve purchasing power. It's the quiet foundation under the whole project: the fund's SPY benchmark, the Kelly sizing (which uses real edge, not nominal), and the doctrine that cash is a position with a known negative real yield. If a strategy can't beat this page's floor, its green numbers are an illusion.`,
  iconhelp:`<b>The ⓘ icons — the site explains itself.</b> Every ⓘ opens a plain-language explanation of the number or concept next to it: what it measures, what "good" looks like, and where the honest caveats are. There are 75+ of them across the site, and they're all indexed in one searchable list on the <b>How to Read</b> page (Explainer index, at the top). Each explanation appears where you need it — this popover is the only one that talks about the icons themselves.`,
  wlalerts:`<b>Watchlist alert badges — what fired in the last 7 days.</b><br><b style="color:var(--pos)">INSIDER BUY</b> — an insider spent ≥$250k of their own cash on shares (Form 4, open-market only).<br><b style="color:var(--accent)">13D/G</b> — someone crossed 5% ownership; 13D = ACTIVE intent (activist, often a catalyst), 13G = passive institution (usually routine).<br><b>8-K</b> — a material corporate filing; hover the badge for the item type (earnings vs CEO exit are very different news).<br><b style="color:var(--neg)">⚑ ATTN</b> — weekly Wikipedia attention ≥3× the stock's own 12-week median (narrative surge).<br><br><b>All badges mean LOOK, never BUY</b> — our own study of 1,191 insider events found no tradable edge in following them blindly (Verdict Board).`,
  vbstatus:`<b>Reading the verdicts.</b><br><b style="color:var(--neg)">NEGATIVE</b> — tested, failed, published. Dead idea; the tombstone stays up on purpose.<br><b style="color:var(--pos)">CANDIDATE</b> — passed in-sample AND robustness checks; frozen/pre-registered with a forward criterion; awaiting its clock. Not tradable yet.<br><b style="color:var(--accent)">REGISTERED</b> — a weaker-but-real pattern given a pre-committed forward test (no freeze, no basket).<br><b style="color:#b8860b">INCONCLUSIVE / PRELIMINARY</b> — underpowered or incomplete, with a written re-test trigger.<br><b style="color:var(--accent)">PASS-CAVEATS</b> — infrastructure audit (not a signal).<br><br><b>Registered clocks</b> are counted by the daily pipeline from the ledgers themselves — progress can't be typed in, only earned. Criteria were written BEFORE outcomes; no peeking, no repainting.`,
@@ -2591,7 +2603,7 @@ const POPS={
  elfda:`<b>FDA channel — regulatory approvals for the healthcare names.</b> openFDA approval submissions (status AP) matched to our tickers via a curated sponsor map — unmatched sponsors are ignored, never guessed. Read the detail: ORIG = a new drug's first approval (the big one); SUPPL EFFICACY = a new indication (often material); SUPPL LABELING/REMS = routine paperwork (usually noise). Same lesson as 8-K items and 13D-vs-13G: the TYPE carries the information.`,
  elco:`<b>CO-SPIKE channel — single-name narrative surges.</b> Weekly Wikipedia attention per company (200 tracked names); a spike = this week ≥ 3× the trailing 12-week median. A stock suddenly being read about is information — sometimes leading, sometimes trailing; the library records it either way.`,
  fdvol:`<b>Estimated portfolio volatility vs the 15% target.</b><br>Computed from 1 year of daily returns using the MEASURED correlation matrix of the five instruments (amendment 10 — measurement replaced the old assumed 0.5; the real average pairwise correlation is ~0.23, meaning the book is better diversified than the rules originally credited). If estimated vol exceeds 15% annualized, all weights scale DOWN proportionally — the target never levers up. GDX alone runs ~49% vol, which is exactly why the Kelly cap and TENSION overlay keep it small.`,
- fdnav:`<b>NAV — net asset value.</b> Everything the fund owns, priced right now: cash + (shares held × latest close) across the five sector ETFs. Simulated capital started at $100,000 on Jul 21 2026; every mark is logged to an append-only ledger before outcomes are known. 5bp one-way costs are charged on every simulated trade, so NAV is net of frictions.`,
+ fdnav:`<b>NAV — net asset value.</b> Everything the fund owns, priced at the most recent mark: cash + (shares held × price) across the five sector ETFs. Simulated capital started at $100,000 on Jul 21 2026; every mark is logged to an append-only ledger before outcomes are known; 5bp one-way costs on every simulated trade.<br><br><b>Why NAV can differ slightly between views:</b> the fund is marked at several times — a mid-session daily mark and 15-minute intraday marks through the trading day. Two views built from marks taken hours apart can differ by a few hundred dollars of price movement. The header now always uses the FRESHEST mark and states its time (shown under "NAV") — a timing difference, never an accounting one; the ledgers reconcile exactly.`,
  fdspy:`<b>SPY — the benchmark, and the bar to clear.</b> The S&P 500 ETF: what you'd own if you skipped all of this and bought "the market" in one click. Every strategy must justify itself against it — beating SPY after costs is the entire game; matching it means the research added nothing; trailing it means the research subtracted value. The dashed line keeps the fund honest.`,
  fdidx:`<b>Indexed to 100 — why both lines start at the same point.</b> NAV is ~$100k and SPY is ~$748/share — raw prices can't share a chart. Both series are divided by their own starting value and ×100, so each line reads as "growth of the same dollar". At any hover point: fund 101.2 vs SPY 100.4 = the fund is 0.8% ahead cumulatively. The GAP between the lines is the whole story; the level of either alone is not.`,
  fdintra:`<b>How the intraday curve is built.</b> A fixed grid of 27 slots, every 15 minutes from 9:30am to 4:00pm ET. Each mark = cash + shares × the latest real 5-minute bar. Self-healing: any missed slot is reconstructed from the day's actual bars on the next run, and the ledger labels every row <i>live</i> or <i>catchup</i> — the record never hides how a number got there. This is observation, not trading: the rules rebalance weekly or on regime switches, never intraday.`,
