@@ -149,6 +149,7 @@
   </div></div>
   <div class="menu" data-group="events"><button aria-haspopup="true">Events & Regime</button><div class="dd">
     <a data-slug="regime">Regime Monitor<span class="muted">walk-forward HMM, current state</span></a>
+    <a data-slug="verdicts">Verdict Board<span class="muted">every study's outcome + live clocks</span></a>
     <a data-slug="library">Event Library<span class="muted">every dated event, all channels</span></a>
     <a data-slug="feed">OSINT Live Feed<span class="muted">high-signal events, attention status</span></a>
     <a data-slug="events">Event Timelines<span class="muted">13 events × reactions + class playbook</span></a>
@@ -289,6 +290,19 @@
   </div>
   <div class="block"><h3>Decision ledger <span class="muted" style="font-weight:400;font-size:12px">· append-only, timestamped before outcomes are known</span></h3>
     <div id="fdDecs"></div>
+  </div>
+</div>
+
+<!-- ============ PAGE 20: VERDICT BOARD (Jul 23) ============ -->
+<div class="page" id="p20">
+  <div class="block" style="border-left:3px solid var(--accent)">
+    <h3>Verdict Board <span class="muted" style="font-weight:400;font-size:12px">· every hypothesis this project has tested, and what happened to it · <span id="vbAsOf"></span></span></h3>
+    <div class="muted" style="font-size:12.5px;margin-bottom:8px">The discipline is the product: every signal idea gets measured, permutation-tested where applicable, and either <b>published as a negative</b>, <b>registered with a pre-committed criterion</b>, or — rarely — advanced as a <b>candidate</b>. Nothing trades before its clock resolves. Most ideas <i>should</i> fail; the failures are what make the survivors credible.</div>
+    <div id="vbTally" style="margin-bottom:10px"></div>
+    <div id="vbTable"><span class="muted" style="font-size:12px">Loading verdicts.json…</span></div>
+  </div>
+  <div class="block"><h3>Registered clocks <span class="muted" style="font-weight:400;font-size:12px">· pre-committed criteria, counted by the daily pipeline — no peeking, no repainting</span></h3>
+    <div id="vbClocks"></div>
   </div>
 </div>
 
@@ -1515,7 +1529,7 @@ function renderEvtClass(){
 })();
 
 /* ---------- ROUTER + NAV (site revamp Jul 21; replaces flat tab bar) ---------- */
-const SLUGS={home:"p0",stocks:"p16",stockcompare:"p17",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",fund:"p18",library:"p19",howto:"p3"};
+const SLUGS={home:"p0",stocks:"p16",stockcompare:"p17",heatmap:"p1",profiles:"p4",screen:"p14",compare:"p13",stochastic:"p2",dcf:"p5",sensitivity:"p7",growth:"p8",captax:"p9",events:"p10",regime:"p11",feed:"p15",horizons:"p12",fund:"p18",library:"p19",verdicts:"p20",howto:"p3"};
 const GROUPOF={stocks:"stocks",stockcompare:"stocks",heatmap:"ratings",profiles:"ratings",screen:"ratings",compare:"ratings",stochastic:"projections",dcf:"projections",sensitivity:"projections",growth:"projections",events:"events",regime:"events",feed:"events",captax:"portfolio",horizons:"portfolio"};
 function goto(slug,push=true){
  if(!SLUGS[slug]) slug="home";
@@ -1777,6 +1791,28 @@ goto(location.hash.replace('#','')||'home',false);
   if(name==='Quantum Computing') renderQuantumOsint();
   else if(TMAP[name]) renderThemeAttention(TMAP[name]);
  }
+ /* VERDICT BOARD (p20, Jul 23) — the scientific record, live */
+ (function(){
+  const BADGE={NEGATIVE:'var(--neg)',CANDIDATE:'var(--pos)',REGISTERED:'var(--accent)',INCONCLUSIVE:'#b8860b',PRELIMINARY:'#b8860b','PASS-CAVEATS':'var(--accent)'};
+  function boot(){
+   const el=document.getElementById('vbTable'); if(!el||el.dataset.done)return;
+   fetch('verdicts.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+    el.dataset.done=1;
+    const a=document.getElementById('vbAsOf'); if(a)a.textContent='built '+d.as_of;
+    const t=d.tally;
+    document.getElementById('vbTally').innerHTML=
+     `<span style="font-weight:800;font-size:15px"><span style="color:var(--neg)">${t.negative} published negatives</span> · <span style="color:var(--pos)">${t.candidate} candidates</span> · <span style="color:var(--accent)">${t.registered} registered</span> · ${t.other} other</span> <span class="muted" style="font-size:11.5px">— the ratio IS the credibility</span>`;
+    let h='<table><tr><th>Hypothesis</th><th>Sample</th><th>Key result</th><th>Verdict</th><th>Doc</th></tr>';
+    d.verdicts.forEach(v=>{h+=`<tr><td><b>${v.name}</b><div class="muted" style="font-size:10.5px">${v.date}</div></td><td class="muted" style="font-size:11.5px">${v.n}</td><td style="font-size:12px">${v.stat}<div class="muted" style="font-size:11px">${v.note}</div></td><td><span style="font-weight:800;font-size:11px;color:${BADGE[v.status]||'var(--ink)'}">${v.status}</span></td><td class="muted" style="font-size:10.5px">${v.doc}</td></tr>`;});
+    el.innerHTML=h+'</table>';
+    let c='<table><tr><th>Clock</th><th>Progress</th><th>Pass criterion</th><th>ETA</th></tr>';
+    d.clocks.forEach(k=>{c+=`<tr><td><b>${k.name}</b></td><td style="font-weight:700">${k.progress}</td><td style="font-size:12px">${k.criterion}</td><td class="muted" style="font-size:11.5px">${k.eta}</td></tr>`;});
+    document.getElementById('vbClocks').innerHTML=c+'</table>';
+   }).catch(()=>{el.innerHTML='<span class="muted" style="font-size:12px">verdicts.json unavailable.</span>';});
+  }
+  document.addEventListener('DOMContentLoaded',boot);
+  window.addEventListener('hashchange',()=>{if(location.hash.includes('verdicts'))boot();});
+ })();
  /* EVENT LIBRARY (p19, Jul 22) — unified filterable timeline of all channels */
  (function(){
   let EL=null, chSel=null;
