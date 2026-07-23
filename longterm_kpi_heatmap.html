@@ -2484,7 +2484,7 @@ goto(location.hash.replace('#','')||'home',false);
    let h=`<b style="font-size:12.5px">Institutional footprint (13F)<span class="info" data-pop="whales">i</span></b> <span class="muted" style="font-size:11px">· ${d.n_mgrs} tracked managers · latest quarterly filings · ${d.as_of}</span><div style="font-size:12.5px;margin-top:3px">`;
    h+=`Held by <b>${br}</b> of ${d.n_mgrs} tracked managers. `;
    if(conv&&conv.length){
-    h+='Conviction positions (≥1% of a manager\\u2019s book): '+conv.slice(0,5).map(([m,p,v])=>`<b>${m}</b> ${p}%${v!=null?` ($${v>=1000?(v/1000).toFixed(1)+'B':v+'M'})`:''}`).join(' · ');
+    h+='Conviction positions (≥1% of a manager&rsquo;s book): '+conv.slice(0,5).map(([m,p,v])=>`<b>${m}</b> ${p}%${v!=null?` ($${v>=1000?(v/1000).toFixed(1)+'B':v+'M'})`:''}`).join(' · ');
     if(conv.length>5) h+=` <span class="muted">+${conv.length-5} more</span>`;
    } else h+='<span class="muted">No tracked manager holds it at ≥1% of book — breadth only (quant-giant inventory).</span>';
    el.innerHTML=h+'</div>';
