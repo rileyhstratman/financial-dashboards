@@ -2297,7 +2297,7 @@ goto(location.hash.replace('#','')||'home',false);
     h+=wRow('l1','L1 Sector context', e.l1!=null?`${e.sec}: <b>${e.l1}</b>/10 composite`:`${e.sec||'—'} <span class="muted">(outside the 5 rated sectors)</span>`, 'sector engine (heat map)');
     h+=wRow('l2','L2 Company fundamentals', e.l2!=null?`screen <b>${e.l2}</b>/10${e.l3_grounded?' · history-grounded':' · anchor-only'}`:'not in 128-name screen', 'own SEC-XBRL screen');
     h+=`<tr><td><b>L3 History check</b> <span class="muted" style="font-size:10.5px">penalty</span></td><td>${e.l3_flags?`⚠ <b>${e.l3_flags}</b> → −0.75 on blend`:(e.l2!=null?'no peak flags':'—')}</td><td>${e.l3_flags?'<b style="color:var(--neg)">−0.75</b>':'—'}</td><td class="muted" style="font-size:11px">1,784 ticker-year history</td></tr>`;
-    h+=wRow('l4','L4 Momentum & technicals', e.l4_momp!=null?`momentum P${e.l4_momp} · RSI ${e.l4_rsi??'—'}`:'—', 'charts pipeline');
+    h+=wRow('l4','L4 Momentum & technicals', (e.l4_momp!=null?`momentum P${e.l4_momp} · RSI ${e.l4_rsi??'—'}`:'—')+(cvj.regime==='TENSION'&&e.l4_momp!=null&&e.l4_momp>=80?' <b style="color:var(--neg)">⚠ high momentum in TENSION historically inverts (−1.28%/mo spread; registered study)</b>':''), 'charts pipeline + momentum study');
     h+=wRow('l5','L5 Regime fit', e.l5_excess!=null?`<b>${e.l5_excess>0?'+':''}${e.l5_excess}%</b>/yr excess in ${cvj.regime}`:'no regime coverage', 'walk-forward HMM + analytics');
     h+=wRow('l6','L6 Event evidence', (e.l6_basket?`deesc basket <b>${e.l6_basket}</b> · `:'')+(e.l6_de1!=null?`deesc t+1 ${e.l6_de1>0?'+':''}${e.l6_de1}%`:'—'), 'event studies + frozen basket');
     h+=wRow('l7','L7 Flow & narrative', e.l7_notes?e.l7_notes:'no insider/attention activity (7d)', 'insider stream + attention layer');
