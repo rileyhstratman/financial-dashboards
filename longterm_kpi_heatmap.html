@@ -2553,8 +2553,8 @@ goto(location.hash.replace('#','')||'home',false);
     keys.forEach(k=>{h+=`<tr><td>${M[k].label}</td><td><b>${fmtRV(k,e[k])}</b></td><td class="muted">${med[k]!=null?fmtRV(k,med[k]):'—'}</td><td class="muted" style="font-size:11px">${M[k].ideal}</td><td>${chipRD(e[k],med[k],M[k].hi)}</td></tr>`;});
     h+='</table>';});
    h+='<div class="muted" style="font-size:11px;margin-top:6px">Chip = direction-aware read vs the peer median (higher-better auto-inverted for debt/accruals). Ideal range = what analysts look for in absolute terms. Banks distort cash-flow ratios (CFO is not meaningful for financials).</div>';
-   h+='<div id="resMetHist" style="margin-top:14px"></div>';
-   el.innerHTML=h; if(window.bindPops)bindPops(el); renderFilings(t); renderMetHist(t);};
+   h+='<div id="resMetHist" style="margin-top:14px"></div><div id="resSeg" style="margin-top:14px"></div>';
+   el.innerHTML=h; if(window.bindPops)bindPops(el); renderFilings(t); renderMetHist(t); renderSeg(t);};
   if(RJ){go(RJ);return;}
   fetch('ratios.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resRatios');if(el)el.innerHTML='<span class="muted" style="font-size:12px">ratios.json unavailable.</span>';});
  }
@@ -2599,6 +2599,55 @@ goto(location.hash.replace('#','')||'home',false);
   const first=vals.find(v=>v!=null), last=[...vals].reverse().find(v=>v!=null);
   const chg=first!=null&&last!=null?(unit==='%'?`${last-first>=0?'+':''}${(last-first).toFixed(1)}pt`:`${first>0?(last/first-1>=0?'+':'')+(100*(last/first-1)).toFixed(0)+'%':''}`):'';
   document.getElementById('mhNote').innerHTML=`${M[mk].label} · ${yr[0]}→${yr[yr.length-1]} <b style="color:${(last>=first)?'var(--pos)':'var(--neg)'}">${fmtv(first)} → ${fmtv(last)}</b> ${chg?'('+chg+')':''} · hover for each year`;
+ }
+ /* SEGMENT MIX (Jul 25) — the breakdown our XBRL pipeline structurally cannot see.
+    companyfacts strips XBRL dimensions, so it only ever returns CONSOLIDATED totals; the
+    segment/geography split lives only in the filing's rendered R-file tables. segments.json
+    is parsed straight from the latest 10-K. For NVDA "Data Center vs Gaming" IS the thesis. */
+ let SEG=null, segGrp={};
+ function renderSeg(t){
+  const go=d=>{const el=document.getElementById('resSeg'); if(!el)return; SEG=d;
+   const e=(d.t||{})[t];
+   if(!e||!e.groups||!Object.keys(e.groups).length){el.innerHTML='';return;}
+   const gks=Object.keys(e.groups);
+   // default to the most "segment-like" group: prefer revenue-by-market/product/segment views
+   if(!segGrp[t]||!e.groups[segGrp[t]]){
+     segGrp[t]=gks.find(g=>/by market|by product|revenue by|reportable/i.test(g))||gks[0];
+   }
+   const tb=e.groups[segGrp[t]], yr=(e.fy||[]);
+   // rows with a full value set; drop obvious totals so shares are meaningful
+   let rows=Object.entries(tb).filter(([k,v])=>v.length>=1);
+   const nCol=Math.max(...rows.map(([k,v])=>v.length));
+   rows=rows.filter(([k,v])=>v.length===nCol);
+   const totRow=rows.find(([k])=>/^(revenue|revenues|total revenue|net revenue)s?$/i.test(k.trim()));
+   const parts=rows.filter(([k])=>k!==(totRow||[])[0]).slice(0,10);
+   const tot=totRow?totRow[1]:null;
+   let h=`<div style="font-size:12.5px;margin-bottom:4px"><b>Segment &amp; geography mix<span class="info" data-pop="segmix">i</span></b> <span class="muted" style="font-size:11px">· from the ${e.form} filed ${e.filed} · ${e.unit||''} · not in the XBRL API — parsed from the filing itself</span></div>`;
+   if(gks.length>1) h+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">'+gks.map(g=>`<button class="csvBtn" style="float:none;font-size:10.5px${g===segGrp[t]?';border-color:var(--accent);color:var(--accent)':''}" data-sg="${g.replace(/"/g,'&quot;')}">${g.length>34?g.slice(0,34)+'…':g}</button>`).join('')+'</div>';
+   h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="background:var(--panel2,rgba(127,127,127,.08))"><th style="text-align:left;padding:5px 6px">LINE</th>'+
+      yr.slice(0,nCol).map(y=>`<th style="text-align:right;padding:5px 6px">${y}</th>`).join('')+
+      (tot?'<th style="text-align:right;padding:5px 6px">SHARE</th><th style="text-align:right;padding:5px 6px">YoY</th>':'')+'</tr>';
+   parts.forEach(([k,v])=>{
+     const share=(tot&&tot[0])?100*v[0]/tot[0]:null;
+     const yoy=(v.length>1&&v[1])?100*(v[0]/v[1]-1):null;
+     h+=`<tr style="border-top:1px solid var(--line)"><td style="padding:5px 6px">${k}</td>`+
+        v.map(x=>`<td style="text-align:right;padding:5px 6px">${x==null?'—':x.toLocaleString()}</td>`).join('')+
+        (tot?`<td style="text-align:right;padding:5px 6px">${share==null?'—':share.toFixed(1)+'%'}</td>`+
+             `<td style="text-align:right;padding:5px 6px;color:${yoy==null?'inherit':(yoy>=0?'var(--pos)':'var(--neg)')}">${yoy==null?'—':(yoy>=0?'+':'')+yoy.toFixed(0)+'%'}</td>`:'')+'</tr>';
+   });
+   h+='</table>';
+   if(tot&&parts.length){ // share-of-revenue bars for the latest period
+     const mx=Math.max(...parts.map(p=>Math.abs(p[1][0]||0)))||1;
+     h+='<div style="margin-top:8px">'+parts.slice(0,6).map(([k,v])=>{
+       const w=Math.max(0,100*(v[0]||0)/mx);
+       return `<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:11.5px"><span style="width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${k}</span><div style="flex:1;background:var(--line);border-radius:5px;height:12px;overflow:hidden"><div style="width:${w}%;height:100%;background:var(--accent);opacity:.75"></div></div><span style="width:64px;text-align:right">${(v[0]||0).toLocaleString()}</span></div>`;
+     }).join('')+'</div>';
+   }
+   el.innerHTML=h; if(window.bindPops)bindPops(el);
+   el.querySelectorAll('[data-sg]').forEach(b=>b.addEventListener('click',()=>{segGrp[t]=b.dataset.sg;renderSeg(t);}));
+  };
+  if(SEG){go(SEG);return;}
+  fetch('segments.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resSeg');if(el)el.innerHTML='';});
  }
  function renderFilings(t){
   const el=document.getElementById('resFilings'); if(!el)return;
@@ -2754,6 +2803,7 @@ goto(location.hash.replace('#','')||'home',false);
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
  kpirat:`<b>The seven scored categories and the ratios inside each.</b> Every sector's 0–10 rating is a weighted blend of these component ratios, each scored against sweet-spot anchors:<br><br><b>Profitability</b> — gross margin, net margin, EBITDA margin.<br><b>Growth</b> — revenue growth, sustainable growth rate (SGR = ROE × retention).<br><b>Cash Flow</b> — cash return on assets, FCF-based sustainable growth.<br><b>Financial Health / Solvency</b> — current ratio, quick ratio, LT-debt/assets, interest coverage.<br><b>Efficiency / Returns</b> — ROE, ROA, asset turnover.<br><b>Valuation</b> — trailing P/E, forward P/E, PEG (market cap shown for context, not scored).<br><b>Quality / Risk</b> — earnings stability, peak-margin mean-reversion penalty.<br><br>Click any heat-map cell to see the exact ratio values and arithmetic for that sector. For an INDIVIDUAL stock, the research view's KPIs & Screen tab shows all 29 of these ratios with peer medians, ideal ranges, and a Bearish→Bullish read.`,
+ segmix:`<b>Segment &amp; geography mix — the breakdown the XBRL API cannot give us.</b> Every other fundamental on this page comes from SEC's companyfacts API, which strips XBRL <i>dimensions</i> — so it only ever returns CONSOLIDATED totals. The split by business segment, product line and region exists only inside the filing's own rendered tables, so we parse it straight out of the latest 10-K (or 20-F/40-F). That matters because the consolidated number often hides the entire thesis: a company can look like steady mid-single-digit growth while one segment quietly compounds at 60% and another shrinks. SHARE is each line as a percent of the reported total for the most recent period; YoY compares the two most recent reported periods. Read with care: (1) companies choose their own segment definitions and re-cut them over time, so a renamed or merged segment can create an artificial jump; (2) some lines are sub-components of others (e.g. a product line inside a segment), so shares need not sum to 100%; (3) figures are as-reported in the filing's units, not restated by us. Everything here is traceable to the exact filing named above.`,
  methist:`<b>Fundamentals over time — the direction of the business.</b> The same interactive chart you use for price, but for the ratio KPIs: pick a metric (revenue, revenue growth, net margin, ROE, current/quick ratio), pick a window (3Y/5Y/10Y/MAX), and hover to read each fiscal year. This is often more telling than any single snapshot — a company compounding revenue while margins EXPAND is a very different story from one growing revenue as margins erode. Built from our own SEC-XBRL annual history (2015 onward where available). Two caveats: (1) the history reflects the current reporting entity — big acquisitions or spinoffs create step-changes; (2) only metrics we have multi-year history for appear (revenue, margin, ROE, liquidity today; valuation/cash-flow trajectories need price history and are a future add).`,
  dcffv:`<b>Intrinsic value (DCF) — a first-pass estimate, not a price target.</b> A discounted-cash-flow value built mechanically from OUR numbers: base free cash flow (CFO − capex) projected 5 years at a start growth rate (from the 3-year revenue CAGR, capped at 25%) that fades to a 2.5% terminal rate, plus a Gordon terminal value, discounted at 9%, plus net cash, divided by shares.<br><br><b>Read it with heavy skepticism.</b> (1) The <b>terminal value is ~75% of the answer</b> — it's a perpetuity guess, so tiny changes in the discount or terminal rate swing fair value 20-40% (that's the whole lesson of the Sensitivity sandbox). (2) A FIXED 9% discount ignores each company's actual risk/beta. (3) High-flyers (NVDA, COST) will look "overvalued" here because a conservative DCF can't price hyper-growth or premium quality — that's a feature, not a bug: it tells you how much of the price is optimism beyond mechanical cash flows. (4) Only computed where base FCF is positive — banks, energy at a trough, and cash-burning names correctly get no DCF. Use it as ONE lens beside the multiples and the peer chips, never alone. Not investment advice.`,
  rattrend:`<b>Trend sparklines — direction, not just the latest number.</b> The two mini-charts show up to 6 fiscal years of history from our own SEC-XBRL pull: <b>revenue</b> as bars (with the trailing annualized growth rate) and <b>net margin</b> as a line. A single-year snapshot can mislead — a great margin off one blowout year, or a scary drop that's really a one-time write-down. The trajectory tells you whether the business is compounding, plateauing, or eroding. Two caveats: history reflects the company's current reporting entity (acquisitions/spinoffs create step-changes), and fiscal-year ends differ across firms.`,
