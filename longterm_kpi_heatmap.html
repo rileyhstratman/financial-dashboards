@@ -288,6 +288,7 @@
     <h3>Paper Fund Dashboard <span class="muted" style="font-weight:400;font-size:12px">· SIMULATION — $100,000 simulated capital, no real money, not investment advice · rules in <code>09_paper_fund/RULES.md</code> · <span id="fdAsOf"></span></span></h3>
     <div id="fdStats" style="display:flex;gap:18px;flex-wrap:wrap;margin:10px 0"></div>
     <div class="muted" style="font-size:12px;margin-bottom:4px"><b>NAV vs SPY<span class="info" data-pop="fdspy">i</span></b> — both indexed to 100 at inception<span class="info" data-pop="fdidx">i</span> (Jul 21 2026). Early days: the line grows one point per daily mark.</div>
+    <div id="fdTFbar" style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap"></div>
     <div style="position:relative"><canvas id="fdCv" style="width:100%;height:200px"></canvas></div>
     <div id="fdChartNote" class="muted" style="font-size:11.5px"></div>
     <div style="margin-top:14px"><div class="muted" style="font-size:12px;margin-bottom:4px"><b>Intraday curve<span class="info" data-pop="fdintra">i</span></b> — published at <b>5-minute resolution</b> (79 points/session, built from real 5-min bars so no swing hides between marks); the durable append-only ledger stays at 15-min (<code>09_paper_fund/intraday_nav.csv</code>, self-healing). Solid = fund, dashed = SPY, indexed to the day's first mark. Observation only — the rules still trade weekly/on regime switches, never intraday.</div>
@@ -2002,6 +2003,36 @@ goto(location.hash.replace('#','')||'home',false);
    }
   }
   function stat(label,val,color,pop){return `<div><div class="muted" style="font-size:11px">${label}${pop?`<span class="info" data-pop="${pop}">i</span>`:''}</div><div style="font-size:20px;font-weight:800${color?';color:'+color:''}">${val}</div></div>`;}
+  let fdTF="MAX";
+  const FDTF={"1D":1,"1W":6,"1M":22,"3M":66,"6M":127,"MAX":1e9};
+  function drawFundNav(){
+   const d=FD, s=d.stats, cv=document.getElementById('fdCv');
+   const dpr=window.devicePixelRatio||1,W=cv.clientWidth||900,H=200;
+   cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
+   const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+   // filter to the selected window (keep the last N daily marks; SPY aligned by ratio)
+   const keepN=FDTF[fdTF]||1e9;
+   const navF=(d.nav||[]).slice(Math.max(0,(d.nav||[]).length-keepN));
+   const spyF=(d.spy||[]).slice(Math.max(0,(d.spy||[]).length-keepN));
+   // toggle bar — only offer windows we actually have data for
+   const bar=document.getElementById('fdTFbar');
+   if(bar){
+    bar.innerHTML=Object.keys(FDTF).map(tf=>`<button class="csvBtn" style="float:none${tf===fdTF?';border-color:var(--accent);color:var(--accent)':''}" data-fdtf="${tf}">${tf}</button>`).join('')+
+     `<span class="muted" style="margin-left:auto;font-size:11px;align-self:center">${(d.nav||[]).length} daily marks so far</span>`;
+    bar.querySelectorAll('[data-fdtf]').forEach(b=>b.addEventListener('click',()=>{fdTF=b.dataset.fdtf;drawFundNav();}));
+   }
+   if(navF.length<2){document.getElementById('fdChartNote').textContent='Chart begins after the second daily mark — one honest point at a time. Current: NAV '+money(s.nav)+' at '+(d.nav[0]?d.nav[0][0]:'—')+'.';
+    ctx.fillStyle='var(--dim)';ctx.font='12px system-ui';ctx.fillText('Accumulating history — '+s.n_marks+' mark(s) so far.',12,H/2);return;}
+   const n0=navF[0][1],s0=spyF.length?spyF[0][1]:null;
+   const nx=navF.map(x=>100*x[1]/n0);
+   const sxRaw=s0?spyF.map(x=>100*x[1]/s0):[];
+   const sx=sxRaw.length>1?nx.map((_,i)=>sxRaw[Math.round(i*(sxRaw.length-1)/Math.max(1,nx.length-1))]):null;
+   iline(cv,{main:nx,sec:sx,padY:0.5,x0:navF[0][0],x1:navF[navF.length-1][0],
+    fmt:i=>{const sj=spyF.length>1?Math.round(i*(spyF.length-1)/Math.max(1,nx.length-1)):0;
+     return `<b>${navF[i][0]}</b> · NAV $${navF[i][1].toLocaleString()} · fund <b>${(nx[i]-100)>=0?'+':''}${(nx[i]-100).toFixed(2)}%</b>${sx?` · SPY $${spyF[sj][1].toFixed(2)} (${(sx[i]-100)>=0?'+':''}${(sx[i]-100).toFixed(2)}%)`:''} <span class="muted">over ${fdTF==='MAX'?'inception':fdTF}</span>`;}});
+   const chg=nx[nx.length-1]-100;
+   document.getElementById('fdChartNote').innerHTML='<span style="color:var(--accent)">━ fund</span> · <span>╌ SPY</span> · '+navF.length+' marks · <b style="color:'+(chg>=0?'var(--pos)':'var(--neg)')+'">'+(chg>=0?'+':'')+chg.toFixed(2)+'%</b> over '+(fdTF==='MAX'?'inception':fdTF)+' · hover for exact values';
+  }
   function render(){
    const d=FD, s=d.stats;
    document.getElementById('fdAsOf').textContent='data '+d.as_of;
@@ -2016,24 +2047,8 @@ goto(location.hash.replace('#','')||'home',false);
     (s.port_vol!=null?stat('Est. vol (1y)',s.port_vol+'% / '+s.vol_target+'%',s.vol_ok?'var(--pos)':'var(--neg)','fdvol'):'')+
     stat('Daily marks',s.n_marks)+
     (s.pending_orders?stat('Orders pending window',s.pending_orders,'#b8860b','fdpend'):'');
-   // NAV vs SPY indexed chart
-   const cv=document.getElementById('fdCv');
-   const dpr=window.devicePixelRatio||1,W=cv.clientWidth||900,H=200;
-   cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr);
-   const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
-   const nav=d.nav,spy=d.spy;
-   if(nav.length<2){document.getElementById('fdChartNote').textContent='Chart begins after the second daily mark — one honest point at a time. Current: NAV '+money(s.nav)+' at '+nav[0][0]+'.';
-    ctx.fillStyle='var(--dim)';ctx.font='12px system-ui';ctx.fillText('Accumulating history — '+s.n_marks+' mark(s) so far.',12,H/2);}
-   else{
-    const n0=nav[0][1],s0=spy.length?spy[0][1]:null;
-    const nx=nav.map(x=>100*x[1]/n0);
-    const sxRaw=s0?spy.map(x=>100*x[1]/s0):[];
-    const sx=sxRaw.length>1?nx.map((_,i)=>sxRaw[Math.round(i*(sxRaw.length-1)/Math.max(1,nx.length-1))]):null;
-    iline(cv,{main:nx,sec:sx,padY:0.5,x0:nav[0][0],x1:nav[nav.length-1][0],
-     fmt:i=>{const sj=spy.length>1?Math.round(i*(spy.length-1)/Math.max(1,nx.length-1)):0;
-      return `<b>${nav[i][0]}</b> · NAV $${nav[i][1].toLocaleString()} · fund <b>${(nx[i]-100)>=0?'+':''}${(nx[i]-100).toFixed(2)}%</b>${sx?` · SPY $${spy[sj][1].toFixed(2)} (${(sx[i]-100)>=0?'+':''}${(sx[i]-100).toFixed(2)}%)`:''} <span class="muted">since inception</span>`;}});
-    document.getElementById('fdChartNote').innerHTML='<span style="color:var(--accent)">━ fund</span> · <span>╌ SPY</span> · '+nav.length+' marks · hover for exact values';
-   }
+   // NAV vs SPY indexed chart — with timeframe toggle (Jul 24, Riley: days/weeks/max)
+   drawFundNav();
    // intraday curve (Jul 22: Riley — chronological log through market hours, graphed)
    fetch('intraday.json?cb='+Date.now()).then(r=>r.json()).then(idj=>{
     const cv2=document.getElementById('fdIntra'), note=document.getElementById('fdIntraNote');
