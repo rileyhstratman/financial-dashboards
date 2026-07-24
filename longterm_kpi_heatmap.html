@@ -1956,6 +1956,7 @@ goto(location.hash.replace('#','')||'home',false);
  /* FUND DASHBOARD (p18, Jul 22) — the paper fund's own view. SIMULATION only. */
  (function(){
   let FD=null;
+  window.iline=iline;   // expose interactive-chart helper for drawMet (metrics-history) outside this IIFE
   function money(x){return '$'+x.toLocaleString(undefined,{maximumFractionDigits:0});}
   /* iline (Jul 22): interactive indexed line chart — crosshair (vertical + horizontal),
      hover dot, tooltip — same interaction language as the research charts. */
