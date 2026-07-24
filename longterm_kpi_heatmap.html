@@ -322,6 +322,7 @@
   <div class="block" style="border-left:3px solid #b8860b">
     <h3>Methods Lab<span class="info" data-pop="methlab">i</span> <span class="muted" style="font-weight:400;font-size:12px">· Jul 23 — the validation toolkit, applied to ourselves</span></h3>
     <div class="muted" style="font-size:12.5px">Five advanced methods assessed (05_roadmap/QUANT_METHODS.md). <b>Three built on our own data:</b> <b>parameter stability</b> — swept momentum's parameters and found a NEGATIVE plateau (0/18 cells positive), the tool correctly refusing to invent a peak; <b>walk-forward efficiency</b> — formalized (OOS/IS edge ratio, guarded so a negative in-sample can't fake a WFE); <b>cluster analysis / HRP</b> — hierarchical risk parity on the fund book confirms XLE is the true diversifier and flags that the rules take deliberate GDX risk (16% vs HRP's 2.6%) — a mirror, not a mandate. <b>Two honest no's:</b> <b>quantum probability</b> (a cognition/context model — its lesson, state-dependence, we already do via the regime detector) and <b>quantum illumination</b> (literally entangled-photon radar hardware — not a finance method). Tap the ⓘ for why.</div>
+    <div id="methViz" style="margin-top:12px"><span class="muted" style="font-size:12px">Loading methods.json…</span></div>
   </div>
 </div>
 
@@ -2620,6 +2621,7 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ evvars:`<b>The variable→outcome drill (conflict events).</b><br>The exercise Riley asked for: take a class of geopolitical event (13 verified conflict events — invasions, strikes, mobilizations, ceasefires, pledges), tag EVERY variable knowable at capture (direction ESC/DEESC, kinetic vs diplomatic, initiator, surprise/novelty, clustering, and the market regime), then measure which variables actually move the OUTCOME. "Outcome" here is the MARKET outcome — the defense-prime basket, energy, gold, SPY at t+5 — because this is a markets project; we study how the tape reacts, never military results.<br><br><b>What the data said:</b> of ~6 tagged variables, only TWO carry the signal. <b>Direction</b> flips the sign (escalation lifts defense, de-escalation fades it). <b>Regime</b> dominates even direction — the identical escalation label paid +5.4% for defense pre-2026 but −1.9% in the 2026 "war-fatigue" regime. Kinetic/surprise/initiator add little beyond those two.<br><br><b>The lesson (why it's a training drill):</b> enumerate many features, but let the data tell you which few matter — here direction + regime, not the exotic ones. And the caveat that never leaves: 13 events, clustered, a single historical path — associations, not causal effects. Source: 06_osint/event_variable_exercise.py.`,
  methlab:`<b>Methods Lab — validation techniques, turned on ourselves (Jul 23).</b><br>Riley asked about five advanced methods; the honest split:<br><br><b style="color:var(--pos)">BUILT — Parameter stability:</b> sweep a signal's parameters ±a few steps. A real edge sits on a broad PLATEAU (neighbors work too); an overfit one is a lone PEAK that collapses when nudged. Our 12-1 momentum came back a NEGATIVE plateau — 0 of 18 grid cells positive — so the tool correctly refused to find a peak that isn't there, matching the verdict that only BASELINE-conditional momentum has an edge.<br><b style="color:var(--pos)">BUILT — Walk-forward efficiency:</b> OOS-edge ÷ IS-edge. &gt;0.5 keeps most of the edge out-of-sample; &lt;0.3 is overfit-suspect. Guarded so a negative in-sample can't manufacture a flattering ratio.<br><b style="color:var(--pos)">BUILT — Cluster analysis (HRP):</b> López de Prado's hierarchical risk parity clusters assets by correlation distance and allocates risk down the tree. On our book it confirms XLE is the genuine diversifier (negatively correlated, clusters alone) and shows the rule weights take deliberate GDX risk (16% vs risk-parity's 2.6%, because Precious Metals is top-rated) — a diversification mirror, never a mandate to override the signal engine.<br><br><b style="color:var(--neg)">HONEST NO — Quantum probability:</b> a real academic model of order/context effects in human JUDGMENT, not a market signal. Its one useful lesson — signal strength is state-dependent — we already encode literally via the regime detector (momentum works in BASELINE, not TENSION). We take the lesson, not the Hilbert-space machinery.<br><b style="color:var(--neg)">HONEST NO — Quantum illumination:</b> an entangled-photon RADAR protocol from physics — detecting a weak reflector in noise. Zero connection to markets; anyone using the term in trading means it as metaphor. Our whole game is signal-in-noise, but the actual technique is a radar receiver, not a strategy.`,
  fdpend:`<b>Orders pending a window — amendment 12's tight execution discipline.</b><br>Every trade this fund makes executes ONLY at the session open (13:30–13:50 UTC window, "MOO") or the session close (19:45–20:30 UTC, "MOC") — never at a random mid-session price. When the weekly rebalance computes new targets outside those windows, the trades QUEUE here and fill at the next window's exact open/close from the daily bars. Sells of XLE/GDX/ITA always take the open (their returns accrue overnight — 8y measured, amendment 11); everything else takes the close.<br><br>The decisions ledger records the queue moment and the fill moment separately, so the gap between decision price and execution price is measurable — that's the slippage discipline live funds pay millions to control, running here in simulation for free.`,
  vchips:`<b>The Bearish→Bullish chips — how each metric is read against the industry.</b><br>Every ratio is compared to the MEDIAN of the stock's own peer bucket, direction-aware: for margins, ROE, gross profitability and the screen score, higher is better; for LT debt/assets and the accruals red-flag, LOWER is better (the chip already accounts for this — a low debt number reads BULLISH).<br><br><b>The bands:</b> within ±10% of the peer median = <b style="color:var(--dim)">NEUTRAL</b> · 10–35% better = <b style="color:var(--pos)">BULLISH</b> · &gt;35% better = <b style="color:var(--pos)">VERY BULLISH</b> · and the mirror image in red for worse.<br><br><b>Three honest caveats.</b> (1) These are RELATIVE reads: a BULLISH chip in a sick industry means "least sick," not healthy — check the absolute anchors on the KPIs tab too. (2) Current ratio is treated higher-better here, but far above ~3 can mean lazy capital (the KPI ⓘ explains the sweet spot). (3) Chips are a comparison summary, not a signal — nothing here has a backtested verdict behind it except what the Verdict Board says.`,
@@ -2742,6 +2744,76 @@ const POPS={
    if(/[+\-]?\d+(\.\d+)?%?/.test(td.textContent)&&!td.title)
     td.title='Market reaction: avg t+1 close / t+20 close vs the last close BEFORE the event, in %. Cells aggregate 1–3 events — read as bands, not point estimates. Full method: ⓘ icons on this page.';
   });
+ });
+})();
+/* Methods Lab visuals (Jul 24): correlation dendrogram + HRP-vs-rule bars +
+   conflict-event variable chart, drawn as inline SVG from methods.json. */
+(function(){
+ const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+ function dendro(cl){
+  // horizontal single-linkage tree from merge list; x = merge distance (scaled)
+  const merges=cl.merges||[]; if(!merges.length) return '';
+  const order=cl.order||[]; const H=22, W=560, padL=44, padR=210, top=8;
+  const y={}; order.forEach((t,i)=>y[t]=top+i*H+H/2);
+  const maxd=Math.max(...merges.map(m=>m[2]),0.7);
+  const X=d=>padL+(d/maxd)*(W-padL-padR);
+  const nodeY={}; order.forEach(t=>nodeY[t]=y[t]);
+  let g=''; const pos={}; order.forEach(t=>pos[t]=[padL,y[t]]);
+  // leaves
+  order.forEach(t=>{g+=`<text x="4" y="${y[t]+4}" fill="var(--dim)" font-size="12" font-weight="600">${t}</text>`;});
+  merges.forEach(m=>{
+   const A=m[0].join('+'), B=m[1].join('+'), d=m[2];
+   const pa=pos[A]||pos[m[0][0]]||[padL,y[m[0][0]]];
+   const pb=pos[B]||pos[m[1].join('+')]||[padL, (m[1].map(t=>y[t]).reduce((a,b)=>a+b,0)/m[1].length)];
+   const ay=pos[A]?pos[A][1]:y[m[0][0]];
+   const by=pos[B]?pos[B][1]:(m[1].map(t=>y[t]).reduce((a,b)=>a+b,0)/m[1].length);
+   const ax=pos[A]?pos[A][0]:padL, bx=pos[B]?pos[B][0]:padL;
+   const x=X(d), my=(ay+by)/2;
+   g+=`<path d="M${ax} ${ay} H${x} V${by} H${bx}" fill="none" stroke="var(--accent)" stroke-width="1.6" opacity="0.85"/>`;
+   g+=`<text x="${x+3}" y="${my-3}" fill="var(--dim)" font-size="9.5">d=${d}</text>`;
+   pos[m[0].concat(m[1]).join('+')]=[x,my];
+  });
+  return `<svg viewBox="0 0 ${W} ${top+order.length*H+8}" width="100%" style="max-width:600px">${g}</svg>`;
+ }
+ function bars(cl){
+  const ETFS=['XLE','XLB','GDX','ITA','XLK']; const hrp=cl.hrp||{}, rule=cl.rule||{};
+  const W=560, rowH=30, padL=44, top=6, maxv=Math.max(...ETFS.flatMap(t=>[hrp[t]||0,rule[t]||0]),0.4);
+  const bw=v=>Math.max(1,(v/maxv)*(W-padL-140));
+  let g='';
+  ETFS.forEach((t,i)=>{const yy=top+i*rowH;
+   g+=`<text x="4" y="${yy+16}" fill="var(--dim)" font-size="12" font-weight="600">${t}</text>`;
+   g+=`<rect x="${padL}" y="${yy+3}" width="${bw(hrp[t]||0)}" height="9" fill="var(--accent)" rx="2"/>`;
+   g+=`<rect x="${padL}" y="${yy+15}" width="${bw(rule[t]||0)}" height="9" fill="var(--gold)" rx="2"/>`;
+   g+=`<text x="${padL+Math.max(bw(hrp[t]||0),bw(rule[t]||0))+6}" y="${yy+11}" fill="var(--accent)" font-size="10">HRP ${((hrp[t]||0)*100).toFixed(0)}%</text>`;
+   g+=`<text x="${padL+Math.max(bw(hrp[t]||0),bw(rule[t]||0))+6}" y="${yy+23}" fill="var(--gold)" font-size="10">rule ${((rule[t]||0)*100).toFixed(0)}%</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${top+ETFS.length*rowH+4}" width="100%" style="max-width:600px">${g}</svg>`;
+ }
+ function evBars(tab){
+  const slices=[['direction = ESC','ESC (escalation)','var(--pos)'],['direction = DEESC','DEESC (ceasefire)','var(--neg)'],
+   ['ESC in PRE-2026 regime','ESC · pre-2026','var(--accent)'],['ESC in 2026 (BASE/TENSION)','ESC · 2026 regime','var(--gold)']];
+  const rows=slices.filter(s=>tab[s[0]]); if(!rows.length) return '';
+  const W=560, rowH=26, padL=150, mid=padL+((W-padL-40)/2), scale=v=>(v/8)*((W-padL-40)/2);
+  let g=`<line x1="${mid}" y1="0" x2="${mid}" y2="${rows.length*rowH+4}" stroke="var(--border)" stroke-width="1"/>`;
+  rows.forEach((s,i)=>{const v=tab[s[0]].DEF, yy=4+i*rowH; const w=scale(Math.abs(v));
+   g+=`<text x="4" y="${yy+15}" fill="var(--dim)" font-size="11">${s[1]}</text>`;
+   g+=`<rect x="${v>=0?mid:mid-w}" y="${yy+4}" width="${w}" height="12" fill="${s[2]}" rx="2"/>`;
+   g+=`<text x="${v>=0?mid+w+4:mid-w-4}" y="${yy+14}" fill="var(--text)" font-size="10.5" font-weight="700" text-anchor="${v>=0?'start':'end'}">${v>=0?'+':''}${v}%</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${rows.length*rowH+8}" width="100%" style="max-width:600px">${g}</svg>`;
+ }
+ function render(d){
+  const el=document.getElementById('methViz'); if(!el)return;
+  const cl=d.cluster||{}, ev=d.event_vars||{};
+  el.innerHTML=
+   `<div style="font-size:12px;color:var(--dim);margin:4px 0 2px"><b style="color:var(--text)">Fund correlation tree</b> — single-linkage on our measured matrix. XLE branches off last (its own cluster): the genuine diversifier.<span class="info" data-pop="methlab">i</span></div>`+dendro(cl)+
+   `<div style="font-size:12px;color:var(--dim);margin:10px 0 2px"><b style="color:var(--text)">Risk-parity vs rule weights</b> — <span style="color:var(--accent)">HRP</span> would hold GDX ~3% (48% vol); the <span style="color:var(--gold)">rules</span> hold ~16% (Precious Metals is top-rated). A diversification mirror, not a mandate.</div>`+bars(cl)+
+   `<div style="font-size:12px;color:var(--dim);margin:10px 0 2px"><b style="color:var(--text)">Conflict event → defense reaction (t+5)</b> — the training drill: direction and regime are load-bearing. Same escalation label pays +5.4% pre-2026 but −1.9% in the 2026 war-fatigue regime.<span class="info" data-pop="evvars">i</span></div>`+evBars(ev)+
+   `<div class="muted" style="font-size:10.5px;margin-top:6px">Drawn from methods.json · cluster/HRP + momentum stability + 13-event variable study. Associations on a small single-path sample — see the ⓘ.</div>`;
+ }
+ document.addEventListener('DOMContentLoaded',()=>{
+  fetch('methods.json?cb='+Date.now()).then(r=>r.json()).then(render)
+   .catch(()=>{const el=document.getElementById('methViz');if(el)el.innerHTML='<span class="muted" style="font-size:12px">methods.json unavailable.</span>';});
  });
 })();
 /* Home digest (Jul 23): "what changed" — rebuilt daily by make_digest.py */
