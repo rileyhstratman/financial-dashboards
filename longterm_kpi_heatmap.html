@@ -2504,6 +2504,27 @@ goto(location.hash.replace('#','')||'home',false);
  }
  /* Research-grade ratios + live SEC filings (Jul 24, Riley) */
  let RJ=null;
+ function trendSpark(tr){
+  // revenue bar sparkline + net-margin line sparkline, side by side, 6y trajectory
+  const yr=tr.yr, rev=tr.rev, nm=tr.nm;
+  const W=210,H=54,pad=6;
+  const revBars=(()=>{const mx=Math.max(...rev,0.01),bw=(W-pad*2)/rev.length;
+   let g='';rev.forEach((v,i)=>{const bh=(v/mx)*(H-20);g+=`<rect x="${pad+i*bw+1}" y="${H-14-bh}" width="${bw-2}" height="${bh}" fill="var(--accent)" opacity="0.85" rx="1"/>`;});
+   yr.forEach((y,i)=>{g+=`<text x="${pad+i*bw+bw/2}" y="${H-3}" fill="var(--dim)" font-size="8" text-anchor="middle">'${y}</text>`;});
+   const g0=rev[0],gN=rev[rev.length-1],cagr=g0>0?(Math.pow(gN/g0,1/(rev.length-1))-1)*100:null;
+   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`;})();
+  const nmv=nm.filter(x=>x!=null);
+  const nmLine=(()=>{if(nmv.length<2)return '';const mn=Math.min(...nmv),mx=Math.max(...nmv),rng=(mx-mn)||1,bw=(W-pad*2)/nm.length;
+   let pts=[],g='';nm.forEach((v,i)=>{if(v==null)return;const x=pad+i*bw+bw/2,y=H-14-((v-mn)/rng)*(H-22);pts.push([x,y]);});
+   g+=`<polyline points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="var(--gold)" stroke-width="1.6"/>`;
+   pts.forEach(p=>g+=`<circle cx="${p[0]}" cy="${p[1]}" r="1.6" fill="var(--gold)"/>`);
+   yr.forEach((y,i)=>{g+=`<text x="${pad+i*bw+bw/2}" y="${H-3}" fill="var(--dim)" font-size="8" text-anchor="middle">'${y}</text>`;});
+   return `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">${g}</svg>`;})();
+  const rc=rev[0]>0?((Math.pow(rev[rev.length-1]/rev[0],1/(rev.length-1))-1)*100).toFixed(0):'—';
+  return `<div style="display:flex;gap:22px;flex-wrap:wrap;margin-bottom:10px;padding:6px 12px;background:var(--panel);border-radius:6px">
+    <div><div class="muted" style="font-size:11px"><b style="color:var(--accent)">Revenue</b> $${rev[0]}B → <b>$${rev[rev.length-1]}B</b> · ${rc}%/yr<span class="info" data-pop="rattrend">i</span></div>${revBars}</div>
+    <div><div class="muted" style="font-size:11px"><b style="color:var(--gold)">Net margin</b> trajectory (${nmv.length?nmv[nmv.length-1]+'%':'—'} latest)</div>${nmLine||'<span class="muted" style="font-size:10px">margin history n/a</span>'}</div></div>`;
+ }
  function chipRD(v,m,hi){if(v==null||m==null)return '<span class="muted" style="font-size:10px">—</span>';
   let rel=m===0?(v===0?0:(v>0?1:-1)):(v-m)/Math.abs(m); if(!hi)rel=-rel;
   const L=rel>=0.35?['VERY BULLISH','var(--pos)']:rel>=0.10?['BULLISH','var(--pos)']:rel>-0.10?['NEUTRAL','var(--dim)']:rel>-0.35?['BEARISH','var(--neg)']:['VERY BEARISH','var(--neg)'];
@@ -2520,6 +2541,7 @@ goto(location.hash.replace('#','')||'home',false);
    const med=(d.med[e.sec]||{}), M=d.meta;
    let h='';
    if(e.summary)h+=`<div style="background:var(--panel);border-left:3px solid var(--accent);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:13px"><b style="color:var(--accent)">${t} at a glance<span class="info" data-pop="ratsum">i</span></b> — ${e.summary}</div>`;
+   if(e.trend)h+=trendSpark(e.trend);
    h+=`<div style="font-size:12.5px;margin-bottom:6px"><b>Research-grade ratios</b> <span class="muted" style="font-size:11px">· from our SEC-XBRL pipeline · FY ${e.fy||'—'} · vs ${e.sec} peers · <span class="info" data-pop="ratg">i</span></span></div>`;
    d.groups.forEach(g=>{const keys=Object.keys(M).filter(k=>M[k].group===g&&e[k]!=null);
     if(!keys.length)return;
@@ -2685,6 +2707,7 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ rattrend:`<b>Trend sparklines — direction, not just the latest number.</b> The two mini-charts show up to 6 fiscal years of history from our own SEC-XBRL pull: <b>revenue</b> as bars (with the trailing annualized growth rate) and <b>net margin</b> as a line. A single-year snapshot can mislead — a great margin off one blowout year, or a scary drop that's really a one-time write-down. The trajectory tells you whether the business is compounding, plateauing, or eroding. Two caveats: history reflects the company's current reporting entity (acquisitions/spinoffs create step-changes), and fiscal-year ends differ across firms.`,
  ratsum:`<b>"At a glance" — the auto-summary, and its limits.</b> One sentence built mechanically from this company's own ratio profile: growth character (3y revenue CAGR), margin tier (net margin), whether returns are high (ROE ≥20% on modest leverage), balance-sheet posture (debt/equity), any cash-quality flags (weak CFO conversion, high accruals), and a valuation coda (P/E cheap/fair/rich, or FCF yield). It is a DESCRIPTION of what the numbers say — never a recommendation. It's blunt by design (a goodwill write-down year reads "loss-making"; a cyclical trough reads "shrinking") — the nuance lives in the full table and the ⓘ ranges below. Read it as the 5-second orientation, then check the rows.`,
  ratg:`<b>Research-grade ratios — how to read the table.</b> Every ratio is computed from our OWN SEC-XBRL pipeline (annual/FY figures × live price), grouped the way an analyst thinks: size, growth, profitability, cash & earnings quality, valuation, solvency, efficiency. Three columns of context on each: <b>the value</b>, <b>the peer-sector median</b> (what typical looks like in this industry), and <b>the ideal range</b> (what good looks like in absolute terms). The chip is a direction-aware read vs the peer median — higher-is-better auto-inverts for debt and accruals, so a low debt/equity correctly reads BULLISH. Two honest caveats: (1) FY-trailing figures lag, so a company mid-year or a cyclical at a turn reads stale; (2) banks/insurers distort cash-flow ratios (CFO isn't meaningful for financials) — compare those within the Financials peer set only.`,
  secfil:`<b>SEC filings — live from EDGAR.</b> These links go straight to the company's official SEC EDGAR pages, filtered by type, sorted newest-first — so they <b>update automatically</b> the moment a new filing posts, with no action on our side. <b>10-K</b> = the annual report (the deepest read — business, risks, full financials). <b>10-Q</b> = quarterly update. <b>8-K</b> = material events (earnings releases, leadership changes, M&A, big contracts) filed within days of the event. "Newest 8-K in our feed" shows the most recent one our daily pipeline already captured and classified. Reading primary filings is the difference between research and headlines.`,
