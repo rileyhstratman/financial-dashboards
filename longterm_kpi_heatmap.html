@@ -2526,7 +2526,7 @@ goto(location.hash.replace('#','')||'home',false);
     keys.forEach(k=>{h+=`<tr><td>${M[k].label}</td><td><b>${fmtRV(k,e[k])}</b></td><td class="muted">${med[k]!=null?fmtRV(k,med[k]):'—'}</td><td class="muted" style="font-size:11px">${M[k].ideal}</td><td>${chipRD(e[k],med[k],M[k].hi)}</td></tr>`;});
     h+='</table>';});
    h+='<div class="muted" style="font-size:11px;margin-top:6px">Chip = direction-aware read vs the peer median (higher-better auto-inverted for debt/accruals). Ideal range = what analysts look for in absolute terms. Banks distort cash-flow ratios (CFO is not meaningful for financials).</div>';
-   el.innerHTML=h; if(window.bindPops)bindPops(el);};
+   el.innerHTML=h; if(window.bindPops)bindPops(el); renderFilings(t);};
   if(RJ){go(RJ);return;}
   fetch('ratios.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resRatios');if(el)el.innerHTML='<span class="muted" style="font-size:12px">ratios.json unavailable.</span>';});
  }
