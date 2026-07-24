@@ -2491,12 +2491,55 @@ goto(location.hash.replace('#','')||'home',false);
      <div class="muted" style="font-size:11.5px;margin-top:6px">▲/▼ = vs the ${k.sector} median in our covered-KPI universe. Tap any ⓘ for what an ideal value looks like — and where "ideal" flips into a warning.</div>
      ${k.peak_flags?`<div style="margin-top:8px;font-size:12.5px">⚠ <b>Peak-earnings flags:</b> ${k.peak_flags} — profitability at the top of this company's own 15+ year record; the project's most reliable finding is that peak margins mean-revert.</div>`:''}
      <div class="muted" style="font-size:12px;margin-top:8px">From SEC filings via our XBRL pipeline · FY ${k.fy_end} · basis and formulas: How to Read.</div>`;
-   } else body.innerHTML=`<div class="muted" style="font-size:12.5px">Filing-level KPIs cover our 25-company universe; ${t} is outside it. Price analytics on the other sub-tabs still apply — and if ${t} is one of the 217 scored names, the Peers & Industry tab has its ratio-vs-bucket table.</div>`;
+   } else body.innerHTML='';
+   // Research-grade ratio table (Jul 24) — full analyst set from ratios.json, with peer
+   // median, ideal range, and a direction-aware Bearish→Bullish chip. Plus live SEC links.
+   body.innerHTML+='<div id="resRatios" style="margin-top:'+(k?'14px':'0')+'"><span class="muted" style="font-size:12px">Loading research-grade ratios…</span></div><div id="resFilings" style="margin-top:12px"></div>';
+   renderRatios(t); renderFilings(t);
   } else {
    body.innerHTML=(analyticsRows(t)||'<span class="muted">No analytics for this ticker.</span>')+
     '<div id="resInsider" style="margin-top:12px"></div><div id="resWhales" style="margin-top:10px"></div><div id="resAttn" style="margin-top:10px"></div>';
    renderResInsider(t); renderResWhales(t); renderResAttn(t);
   }
+ }
+ /* Research-grade ratios + live SEC filings (Jul 24, Riley) */
+ let RJ=null;
+ function chipRD(v,m,hi){if(v==null||m==null)return '<span class="muted" style="font-size:10px">—</span>';
+  let rel=m===0?(v===0?0:(v>0?1:-1)):(v-m)/Math.abs(m); if(!hi)rel=-rel;
+  const L=rel>=0.35?['VERY BULLISH','var(--pos)']:rel>=0.10?['BULLISH','var(--pos)']:rel>-0.10?['NEUTRAL','var(--dim)']:rel>-0.35?['BEARISH','var(--neg)']:['VERY BEARISH','var(--neg)'];
+  return `<span style="font-size:9.5px;font-weight:${L[0].startsWith('VERY')?800:600};color:${L[1]};border:1px solid ${L[1]};border-radius:8px;padding:0px 5px;white-space:nowrap">${L[0]}</span>`;}
+ function fmtRV(k,v){if(v==null)return '—';
+  if(k==='rev')return '$'+(v>=1000?(v/1000).toFixed(1)+'B':v.toLocaleString()+'M');
+  if(['gm','nm','roa','roe','roc','cfom','ey','revg','revc'].includes(k))return v+'%';
+  if(['pe','ps','pb','evs','cur','qk','de','at','ccr','invt'].includes(k))return v+'×';
+  if(k==='dso')return v+'d';
+  return v;}
+ function renderRatios(t){
+  const go=d=>{const el=document.getElementById('resRatios'); if(!el)return; RJ=d;
+   const e=d.r[t]; if(!e){el.innerHTML='<div class="muted" style="font-size:12px"><b>Research-grade ratios</b>: '+t+' is outside the 217 scored names (needs our XBRL fundamentals). Ask to add it.</div>';return;}
+   const med=(d.med[e.sec]||{}), M=d.meta;
+   let h=`<div style="font-size:12.5px;margin-bottom:6px"><b>Research-grade ratios</b> <span class="muted" style="font-size:11px">· from our SEC-XBRL pipeline · FY ${e.fy||'—'} · vs ${e.sec} peers · <span class="info" data-pop="ratg">i</span></span></div>`;
+   d.groups.forEach(g=>{const keys=Object.keys(M).filter(k=>M[k].group===g&&e[k]!=null);
+    if(!keys.length)return;
+    h+=`<div style="font-size:11px;font-weight:700;color:var(--accent);margin:8px 0 2px;text-transform:uppercase;letter-spacing:.4px">${g}</div>`;
+    h+='<table><tr><th>Ratio</th><th>'+t+'</th><th>Peer median</th><th>Ideal range</th><th>Read</th></tr>';
+    keys.forEach(k=>{h+=`<tr><td>${M[k].label}</td><td><b>${fmtRV(k,e[k])}</b></td><td class="muted">${med[k]!=null?fmtRV(k,med[k]):'—'}</td><td class="muted" style="font-size:11px">${M[k].ideal}</td><td>${chipRD(e[k],med[k],M[k].hi)}</td></tr>`;});
+    h+='</table>';});
+   h+='<div class="muted" style="font-size:11px;margin-top:6px">Chip = direction-aware read vs the peer median (higher-better auto-inverted for debt/accruals). Ideal range = what analysts look for in absolute terms. Banks distort cash-flow ratios (CFO is not meaningful for financials).</div>';
+   el.innerHTML=h; if(window.bindPops)bindPops(el);};
+  if(RJ){go(RJ);return;}
+  fetch('ratios.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resRatios');if(el)el.innerHTML='<span class="muted" style="font-size:12px">ratios.json unavailable.</span>';});
+ }
+ function renderFilings(t){
+  const el=document.getElementById('resFilings'); if(!el)return;
+  const e=(RJ&&RJ.r[t])||null; const cik=e&&e.cik;
+  const ed=(ty,lbl)=>cik?`<a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${cik}&type=${ty}&dateb=&owner=include&count=20" target="_blank" rel="noopener" style="color:var(--accent)">${lbl}</a>`:lbl;
+  let recent='';
+  const f8=(INSJ&&INSJ.f&&INSJ.f[t])||null;   // newest 8-K from our daily feed: [date, description]
+  if(f8&&f8.length>=2){recent=`<div class="muted" style="font-size:11.5px;margin-top:3px">Newest 8-K in our feed: <b>${f8[0]}</b> — ${f8[1]}${f8[1].length>=78?'…':''}</div>`;}
+  el.innerHTML=`<div style="font-size:12.5px"><b>SEC filings<span class="info" data-pop="secfil">i</span></b> <span class="muted" style="font-size:11px">· live from EDGAR — always the newest</span><br>`+
+   (cik?`${ed('10-K','Annual reports (10-K)')} · ${ed('10-Q','Quarterlies (10-Q)')} · ${ed('8-K','Material events (8-K)')} · ${ed('','All filings')}`:'<span class="muted">no CIK mapped</span>')+`</div>${recent}`;
+  if(window.bindPops)bindPops(el);
  }
  /* Research-view OSINT blocks (Jul 22, improvements #2+#3): insider flow + narrative attention */
  let INSJ=null, CAJ=null;
@@ -2640,6 +2683,8 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ ratg:`<b>Research-grade ratios — how to read the table.</b> Every ratio is computed from our OWN SEC-XBRL pipeline (annual/FY figures × live price), grouped the way an analyst thinks: size, growth, profitability, cash & earnings quality, valuation, solvency, efficiency. Three columns of context on each: <b>the value</b>, <b>the peer-sector median</b> (what typical looks like in this industry), and <b>the ideal range</b> (what good looks like in absolute terms). The chip is a direction-aware read vs the peer median — higher-is-better auto-inverts for debt and accruals, so a low debt/equity correctly reads BULLISH. Two honest caveats: (1) FY-trailing figures lag, so a company mid-year or a cyclical at a turn reads stale; (2) banks/insurers distort cash-flow ratios (CFO isn't meaningful for financials) — compare those within the Financials peer set only.`,
+ secfil:`<b>SEC filings — live from EDGAR.</b> These links go straight to the company's official SEC EDGAR pages, filtered by type, sorted newest-first — so they <b>update automatically</b> the moment a new filing posts, with no action on our side. <b>10-K</b> = the annual report (the deepest read — business, risks, full financials). <b>10-Q</b> = quarterly update. <b>8-K</b> = material events (earnings releases, leadership changes, M&A, big contracts) filed within days of the event. "Newest 8-K in our feed" shows the most recent one our daily pipeline already captured and classified. Reading primary filings is the difference between research and headlines.`,
  shadow:`<b>The single-name shadow sleeve — the bridge off ETFs.</b><br>The whole project's goal is to trade STOCKS, not sector ETFs. But nothing trades until it clears the bar (amendment 9), and no single-name signal has passed yet. So instead of waiting, this puts our per-stock work on a LIVE FORWARD CLOCK: a $100k paper sleeve holding the top conviction-ranked stocks (≥5 evidence layers, history-grounded, clean accruals), equal-weight, max 3 per sector, weekly rebalance, marked daily — separate from the ETF book, every decision logged.<br><br><b>It is explicitly OBSERVATIONAL.</b> We are NOT claiming the conviction blend works — most single-name signals we tested failed or are still on clocks. This is the honest way to find out: a real, un-cherry-picked track record. <b>Pre-registered (frozen 2026-07-24):</b> to earn a real single-name allocation, the sleeve must beat SPY AND the ETF fund out-of-sample over ≥6 months with a monthly return-difference t > 2.0. If it fails, that's a published negative like any other. This is Phase C beginning — the thing that eventually lets the fund trade stocks for real.`,
  evvars:`<b>The variable→outcome drill (conflict events).</b><br>The exercise Riley asked for: take a class of geopolitical event (13 verified conflict events — invasions, strikes, mobilizations, ceasefires, pledges), tag EVERY variable knowable at capture (direction ESC/DEESC, kinetic vs diplomatic, initiator, surprise/novelty, clustering, and the market regime), then measure which variables actually move the OUTCOME. "Outcome" here is the MARKET outcome — the defense-prime basket, energy, gold, SPY at t+5 — because this is a markets project; we study how the tape reacts, never military results.<br><br><b>What the data said:</b> of ~6 tagged variables, only TWO carry the signal. <b>Direction</b> flips the sign (escalation lifts defense, de-escalation fades it). <b>Regime</b> dominates even direction — the identical escalation label paid +5.4% for defense pre-2026 but −1.9% in the 2026 "war-fatigue" regime. Kinetic/surprise/initiator add little beyond those two.<br><br><b>The lesson (why it's a training drill):</b> enumerate many features, but let the data tell you which few matter — here direction + regime, not the exotic ones. And the caveat that never leaves: 13 events, clustered, a single historical path — associations, not causal effects. Source: 06_osint/event_variable_exercise.py.`,
  methlab:`<b>Methods Lab — validation techniques, turned on ourselves (Jul 23).</b><br>Riley asked about five advanced methods; the honest split:<br><br><b style="color:var(--pos)">BUILT — Parameter stability:</b> sweep a signal's parameters ±a few steps. A real edge sits on a broad PLATEAU (neighbors work too); an overfit one is a lone PEAK that collapses when nudged. Our 12-1 momentum came back a NEGATIVE plateau — 0 of 18 grid cells positive — so the tool correctly refused to find a peak that isn't there, matching the verdict that only BASELINE-conditional momentum has an edge.<br><b style="color:var(--pos)">BUILT — Walk-forward efficiency:</b> OOS-edge ÷ IS-edge. &gt;0.5 keeps most of the edge out-of-sample; &lt;0.3 is overfit-suspect. Guarded so a negative in-sample can't manufacture a flattering ratio.<br><b style="color:var(--pos)">BUILT — Cluster analysis (HRP):</b> López de Prado's hierarchical risk parity clusters assets by correlation distance and allocates risk down the tree. On our book it confirms XLE is the genuine diversifier (negatively correlated, clusters alone) and shows the rule weights take deliberate GDX risk (16% vs risk-parity's 2.6%, because Precious Metals is top-rated) — a diversification mirror, never a mandate to override the signal engine.<br><br><b style="color:var(--neg)">HONEST NO — Quantum probability:</b> a real academic model of order/context effects in human JUDGMENT, not a market signal. Its one useful lesson — signal strength is state-dependent — we already encode literally via the regime detector (momentum works in BASELINE, not TENSION). We take the lesson, not the Hilbert-space machinery.<br><b style="color:var(--neg)">HONEST NO — Quantum illumination:</b> an entangled-photon RADAR protocol from physics — detecting a weak reflector in noise. Zero connection to markets; anyone using the term in trading means it as metaphor. Our whole game is signal-in-noise, but the actual technique is a radar receiver, not a strategy.`,
