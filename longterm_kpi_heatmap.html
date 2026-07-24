@@ -2553,8 +2553,8 @@ goto(location.hash.replace('#','')||'home',false);
     keys.forEach(k=>{h+=`<tr><td>${M[k].label}</td><td><b>${fmtRV(k,e[k])}</b></td><td class="muted">${med[k]!=null?fmtRV(k,med[k]):'—'}</td><td class="muted" style="font-size:11px">${M[k].ideal}</td><td>${chipRD(e[k],med[k],M[k].hi)}</td></tr>`;});
     h+='</table>';});
    h+='<div class="muted" style="font-size:11px;margin-top:6px">Chip = direction-aware read vs the peer median (higher-better auto-inverted for debt/accruals). Ideal range = what analysts look for in absolute terms. Banks distort cash-flow ratios (CFO is not meaningful for financials).</div>';
-   h+='<div id="resMetHist" style="margin-top:14px"></div><div id="resSeg" style="margin-top:14px"></div>';
-   el.innerHTML=h; if(window.bindPops)bindPops(el); renderFilings(t); renderMetHist(t); renderSeg(t);};
+   h+='<div id="resMetHist" style="margin-top:14px"></div><div id="resSeg" style="margin-top:14px"></div><div id="resInsD" style="margin-top:14px"></div>';
+   el.innerHTML=h; if(window.bindPops)bindPops(el); renderFilings(t); renderMetHist(t); renderSeg(t); renderInsD(t);};
   if(RJ){go(RJ);return;}
   fetch('ratios.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resRatios');if(el)el.innerHTML='<span class="muted" style="font-size:12px">ratios.json unavailable.</span>';});
  }
@@ -2648,6 +2648,45 @@ goto(location.hash.replace('#','')||'home',false);
   };
   if(SEG){go(SEG);return;}
   fetch('segments.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resSeg');if(el)el.innerHTML='';});
+ }
+ /* DEEP INSIDER RECORD (Jul 25) — the FULL multi-year Form 4 history, parsed transaction
+    by transaction, with the comp noise separated from the only codes that carry signal. */
+ let INSD=null;
+ const TXC={P:'Open-market BUY',S:'Open-market sale',A:'Grant / award',M:'Option exercise',
+            F:'Tax withholding',G:'Gift',J:'Other',C:'Conversion',D:'Disposition'};
+ function renderInsD(t){
+  const go=d=>{const el=document.getElementById('resInsD'); if(!el)return; INSD=d;
+   const e=(d.t||{})[t]; if(!e||!e.n_tx){el.innerHTML='';return;}
+   const $=n=>{const a=Math.abs(n);return (n<0?'-':'')+'$'+(a>=1e9?(a/1e9).toFixed(2)+'B':a>=1e6?(a/1e6).toFixed(1)+'M':a>=1e3?(a/1e3).toFixed(0)+'K':a.toFixed(0));};
+   const yrs=Object.keys(e.years||{}).sort();
+   let h=`<div style="font-size:12.5px;margin-bottom:4px"><b>Insider record — full Form 4 history<span class="info" data-pop="insdeep">i</span></b> <span class="muted" style="font-size:11px">· ${e.n_tx} transactions parsed from SEC filings · only open-market buys/sells are treated as signal</span></div>`;
+   // headline read
+   const noBuys=(e.tot_buy||0)===0;
+   h+=`<div style="font-size:12.5px;margin:6px 0;padding:7px 9px;border-left:3px solid ${noBuys?'var(--neg)':'var(--pos)'};background:var(--panel2,rgba(127,127,127,.06))">`+
+      `Open-market <b>buys ${$(e.tot_buy||0)}</b> vs <b>sells ${$(e.tot_sell||0)}</b>`+
+      (e.clusters&&e.clusters.length?` · <b>${e.clusters.length}</b> buy cluster${e.clusters.length>1?'s':''}`:' · no buy clusters')+
+      `<br><span class="muted" style="font-size:11.5px">${noBuys?'Not one insider bought shares on the open market in this window — every acquisition was a grant. Sales at this scale are usual for equity-heavy pay, so read them as compensation mechanics, not conviction.':'Open-market purchases present — the one insider behaviour with replicated predictive power.'}</span></div>`;
+   if(yrs.length){
+     h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="background:var(--panel2,rgba(127,127,127,.08))">'+
+        '<th style="text-align:left;padding:5px 6px">YEAR</th><th style="text-align:right;padding:5px 6px">BUYS</th><th style="text-align:right;padding:5px 6px">SELLS</th><th style="text-align:right;padding:5px 6px">NET</th><th style="text-align:right;padding:5px 6px">BUYERS</th><th style="text-align:right;padding:5px 6px">SELLERS</th></tr>';
+     yrs.forEach(y=>{const v=e.years[y];
+       h+=`<tr style="border-top:1px solid var(--line)"><td style="padding:5px 6px">${y}</td>`+
+          `<td style="text-align:right;padding:5px 6px;color:${v.buy?'var(--pos)':'inherit'}">${v.buy?$(v.buy):'—'}</td>`+
+          `<td style="text-align:right;padding:5px 6px">${v.sell?$(v.sell):'—'}</td>`+
+          `<td style="text-align:right;padding:5px 6px;color:${v.net>=0?'var(--pos)':'var(--neg)'}">${$(v.net)}</td>`+
+          `<td style="text-align:right;padding:5px 6px">${v.buyers||'—'}</td><td style="text-align:right;padding:5px 6px">${v.sellers||'—'}</td></tr>`;});
+     h+='</table>';
+   }
+   // transaction-code mix — shows how much of "insider activity" is just compensation
+   if(e.codes){
+     const tot=Object.values(e.codes).reduce((a,b)=>a+b,0)||1;
+     h+='<div class="muted" style="font-size:11.5px;margin-top:7px">Transaction mix · '+
+        Object.entries(e.codes).sort((a,b)=>b[1]-a[1]).map(([c,n])=>`<b>${TXC[c]||c}</b> ${n} (${(100*n/tot).toFixed(0)}%)`).join(' · ')+'</div>';
+   }
+   el.innerHTML=h; if(window.bindPops)bindPops(el);
+  };
+  if(INSD){go(INSD);return;}
+  fetch('insider_deep.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resInsD');if(el)el.innerHTML='';});
  }
  function renderFilings(t){
   const el=document.getElementById('resFilings'); if(!el)return;
@@ -2803,6 +2842,7 @@ goto(location.hash.replace('#','')||'home',false);
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
  kpirat:`<b>The seven scored categories and the ratios inside each.</b> Every sector's 0–10 rating is a weighted blend of these component ratios, each scored against sweet-spot anchors:<br><br><b>Profitability</b> — gross margin, net margin, EBITDA margin.<br><b>Growth</b> — revenue growth, sustainable growth rate (SGR = ROE × retention).<br><b>Cash Flow</b> — cash return on assets, FCF-based sustainable growth.<br><b>Financial Health / Solvency</b> — current ratio, quick ratio, LT-debt/assets, interest coverage.<br><b>Efficiency / Returns</b> — ROE, ROA, asset turnover.<br><b>Valuation</b> — trailing P/E, forward P/E, PEG (market cap shown for context, not scored).<br><b>Quality / Risk</b> — earnings stability, peak-margin mean-reversion penalty.<br><br>Click any heat-map cell to see the exact ratio values and arithmetic for that sector. For an INDIVIDUAL stock, the research view's KPIs & Screen tab shows all 29 of these ratios with peer medians, ideal ranges, and a Bearish→Bullish read.`,
+ insdeep:`<b>Insider record — and why most "insider selling" headlines are noise.</b> This is the complete Form 4 history we pulled from SEC for this company, parsed transaction by transaction rather than counted. That distinction is the whole point: SEC transaction codes are not equivalent. Code <b>P</b> is an open-market PURCHASE — an insider choosing to buy with their own money — and clustered P buys (several distinct insiders buying in a short window) are among the few single-name signals that replicate in the literature. Code <b>S</b> is an open-market sale, which is far weaker evidence: executives at equity-paid companies sell constantly for diversification, taxes and pre-scheduled 10b5-1 plans. Codes <b>A</b> (grant), <b>M</b> (option exercise), <b>F</b> (shares withheld for tax) and <b>G</b> (gift) are compensation mechanics carrying essentially no directional information — yet they inflate the "insider transactions" counts you see on retail finance sites. We store every code but score only P and S, and we surface the mix so you can see how much of the activity is merely pay. Caveats: dollar values use the price reported on the form; a company with zero buys is normal for mega-cap tech and is not by itself bearish; and this reflects filings we successfully retrieved — if a crawl is incomplete we drop the company rather than show a misleading zero.`,
  segmix:`<b>Segment &amp; geography mix — the breakdown the XBRL API cannot give us.</b> Every other fundamental on this page comes from SEC's companyfacts API, which strips XBRL <i>dimensions</i> — so it only ever returns CONSOLIDATED totals. The split by business segment, product line and region exists only inside the filing's own rendered tables, so we parse it straight out of the latest 10-K (or 20-F/40-F). That matters because the consolidated number often hides the entire thesis: a company can look like steady mid-single-digit growth while one segment quietly compounds at 60% and another shrinks. SHARE is each line as a percent of the reported total for the most recent period; YoY compares the two most recent reported periods. Read with care: (1) companies choose their own segment definitions and re-cut them over time, so a renamed or merged segment can create an artificial jump; (2) some lines are sub-components of others (e.g. a product line inside a segment), so shares need not sum to 100%; (3) figures are as-reported in the filing's units, not restated by us. Everything here is traceable to the exact filing named above.`,
  methist:`<b>Fundamentals over time — the direction of the business.</b> The same interactive chart you use for price, but for the ratio KPIs: pick a metric (revenue, revenue growth, net margin, ROE, current/quick ratio), pick a window (3Y/5Y/10Y/MAX), and hover to read each fiscal year. This is often more telling than any single snapshot — a company compounding revenue while margins EXPAND is a very different story from one growing revenue as margins erode. Built from our own SEC-XBRL annual history (2015 onward where available). Two caveats: (1) the history reflects the current reporting entity — big acquisitions or spinoffs create step-changes; (2) only metrics we have multi-year history for appear (revenue, margin, ROE, liquidity today; valuation/cash-flow trajectories need price history and are a future add).`,
  dcffv:`<b>Intrinsic value (DCF) — a first-pass estimate, not a price target.</b> A discounted-cash-flow value built mechanically from OUR numbers: base free cash flow (CFO − capex) projected 5 years at a start growth rate (from the 3-year revenue CAGR, capped at 25%) that fades to a 2.5% terminal rate, plus a Gordon terminal value, discounted at 9%, plus net cash, divided by shares.<br><br><b>Read it with heavy skepticism.</b> (1) The <b>terminal value is ~75% of the answer</b> — it's a perpetuity guess, so tiny changes in the discount or terminal rate swing fair value 20-40% (that's the whole lesson of the Sensitivity sandbox). (2) A FIXED 9% discount ignores each company's actual risk/beta. (3) High-flyers (NVDA, COST) will look "overvalued" here because a conservative DCF can't price hyper-growth or premium quality — that's a feature, not a bug: it tells you how much of the price is optimism beyond mechanical cash flows. (4) Only computed where base FCF is positive — banks, energy at a trough, and cash-burning names correctly get no DCF. Use it as ONE lens beside the multiples and the peer chips, never alone. Not investment advice.`,
