@@ -215,7 +215,7 @@
 <!-- ============ PAGE 1: HEATMAP ============ -->
 <div class="page" id="p1">
   <div class="block" style="border-left:3px solid var(--accent)">
-    Every cell is a <b>0–10 rating, read like a stock call</b> — click any cell for the exact arithmetic behind it.<span class="info" data-pop="heat">i</span>
+    Every cell is a <b>0–10 rating, read like a stock call</b> — click any cell for the exact arithmetic behind it.<span class="info" data-pop="heat">i</span> The seven scored categories and the actual ratios inside each: <span class="info" data-pop="kpirat">i</span>
   </div>
   <div class="legend">
     <span>0 Very Bearish</span>
@@ -2552,9 +2552,52 @@ goto(location.hash.replace('#','')||'home',false);
     keys.forEach(k=>{h+=`<tr><td>${M[k].label}</td><td><b>${fmtRV(k,e[k])}</b></td><td class="muted">${med[k]!=null?fmtRV(k,med[k]):'—'}</td><td class="muted" style="font-size:11px">${M[k].ideal}</td><td>${chipRD(e[k],med[k],M[k].hi)}</td></tr>`;});
     h+='</table>';});
    h+='<div class="muted" style="font-size:11px;margin-top:6px">Chip = direction-aware read vs the peer median (higher-better auto-inverted for debt/accruals). Ideal range = what analysts look for in absolute terms. Banks distort cash-flow ratios (CFO is not meaningful for financials).</div>';
-   el.innerHTML=h; if(window.bindPops)bindPops(el); renderFilings(t);};
+   h+='<div id="resMetHist" style="margin-top:14px"></div>';
+   el.innerHTML=h; if(window.bindPops)bindPops(el); renderFilings(t); renderMetHist(t);};
   if(RJ){go(RJ);return;}
   fetch('ratios.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resRatios');if(el)el.innerHTML='<span class="muted" style="font-size:12px">ratios.json unavailable.</span>';});
+ }
+ // Fundamentals-over-time — interactive trajectory chart (Jul 24, Riley): same crosshair
+ // + timeframe UX as the price charts, but for the ratio KPIs across years.
+ let MH=null, mhMetric={}, mhTF={};
+ function renderMetHist(t){
+  const go=d=>{const el=document.getElementById('resMetHist'); if(!el)return; MH=d;
+   const e=d.t[t]; if(!e){el.innerHTML='<div class="muted" style="font-size:12px"><b>Fundamentals over time</b>: no multi-year history for '+t+' yet.</div>';return;}
+   const keys=Object.keys(e.m); if(!keys.length){el.innerHTML='';return;}
+   if(!mhMetric[t]||!e.m[mhMetric[t]])mhMetric[t]=keys.includes('rev')?'rev':keys[0];
+   mhTF[t]=mhTF[t]||'MAX';
+   const M=d.meta, mk=mhMetric[t];
+   let h=`<div style="font-size:12.5px;margin-bottom:4px"><b>Fundamentals over time<span class="info" data-pop="methist">i</span></b> <span class="muted" style="font-size:11px">· the direction of the business, ${e.yr[0]}–${e.yr[e.yr.length-1]} · from our SEC-XBRL history</span></div>`;
+   h+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">'+keys.map(k=>`<button class="csvBtn" style="float:none${k===mk?';border-color:var(--accent);color:var(--accent)':''}" data-mhm="${k}">${M[k].label}</button>`).join('')+'</div>';
+   const TFS=['3Y','5Y','10Y','MAX'];
+   h+='<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px">'+TFS.map(tf=>`<button class="csvBtn" style="float:none;font-size:10.5px${tf===mhTF[t]?';border-color:var(--accent);color:var(--accent)':''}" data-mhtf="${tf}">${tf}</button>`).join('')+'</div>';
+   h+='<div style="position:relative"><canvas id="mhCv" style="width:100%;height:170px"></canvas></div><div id="mhNote" class="muted" style="font-size:11.5px"></div>';
+   el.innerHTML=h; if(window.bindPops)bindPops(el);
+   drawMet(t);
+   el.querySelectorAll('[data-mhm]').forEach(b=>b.addEventListener('click',()=>{mhMetric[t]=b.dataset.mhm;renderMetHist(t);}));
+   el.querySelectorAll('[data-mhtf]').forEach(b=>b.addEventListener('click',()=>{mhTF[t]=b.dataset.mhtf;renderMetHist(t);}));
+  };
+  if(MH){go(MH);return;}
+  fetch('metrics_history.json?cb='+Date.now()).then(r=>r.json()).then(go).catch(()=>{const el=document.getElementById('resMetHist');if(el)el.innerHTML='';});
+ }
+ function drawMet(t){
+  const e=MH.t[t], mk=mhMetric[t], M=MH.meta, unit=M[mk].unit;
+  const N={'3Y':3,'5Y':5,'10Y':10,'MAX':99}[mhTF[t]]||99;
+  let yr=e.yr, vals=e.m[mk];
+  const start=Math.max(0,yr.length-N-1);
+  yr=yr.slice(start); vals=vals.slice(start);
+  // drop leading nulls
+  while(vals.length&&vals[0]==null){vals=vals.slice(1);yr=yr.slice(1);}
+  const cv=document.getElementById('mhCv'); if(!cv)return;
+  if(vals.filter(v=>v!=null).length<2){const c=cv.getContext('2d');c.clearRect(0,0,cv.width,cv.height);document.getElementById('mhNote').textContent='Not enough history for this metric in this window.';return;}
+  // interpolate nulls for a continuous line, but tooltip shows real values
+  const line=vals.map(v=>v); for(let i=0;i<line.length;i++){if(line[i]==null){let a=i-1;while(a>=0&&line[a]==null)a--;let b=i+1;while(b<line.length&&line[b]==null)b++;line[i]=(a>=0&&b<line.length)?(line[a]+(line[b]-line[a])*(i-a)/(b-a)):(a>=0?line[a]:line[b]);}}
+  const fmtv=v=>unit==='$B'?'$'+v+'B':unit==='×'?v+'×':v+'%';
+  iline(cv,{main:line,padY:0.08,x0:yr[0],x1:yr[yr.length-1],
+   fmt:i=>`<b>FY ${yr[i]}</b> · ${M[mk].label}: <b>${vals[i]==null?'—':fmtv(vals[i])}</b>`});
+  const first=vals.find(v=>v!=null), last=[...vals].reverse().find(v=>v!=null);
+  const chg=first!=null&&last!=null?(unit==='%'?`${last-first>=0?'+':''}${(last-first).toFixed(1)}pt`:`${first>0?(last/first-1>=0?'+':'')+(100*(last/first-1)).toFixed(0)+'%':''}`):'';
+  document.getElementById('mhNote').innerHTML=`${M[mk].label} · ${yr[0]}→${yr[yr.length-1]} <b style="color:${(last>=first)?'var(--pos)':'var(--neg)'}">${fmtv(first)} → ${fmtv(last)}</b> ${chg?'('+chg+')':''} · hover for each year`;
  }
  function renderFilings(t){
   const el=document.getElementById('resFilings'); if(!el)return;
@@ -2709,6 +2752,8 @@ goto(location.hash.replace('#','')||'home',false);
 
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
+ kpirat:`<b>The seven scored categories and the ratios inside each.</b> Every sector's 0–10 rating is a weighted blend of these component ratios, each scored against sweet-spot anchors:<br><br><b>Profitability</b> — gross margin, net margin, EBITDA margin.<br><b>Growth</b> — revenue growth, sustainable growth rate (SGR = ROE × retention).<br><b>Cash Flow</b> — cash return on assets, FCF-based sustainable growth.<br><b>Financial Health / Solvency</b> — current ratio, quick ratio, LT-debt/assets, interest coverage.<br><b>Efficiency / Returns</b> — ROE, ROA, asset turnover.<br><b>Valuation</b> — trailing P/E, forward P/E, PEG (market cap shown for context, not scored).<br><b>Quality / Risk</b> — earnings stability, peak-margin mean-reversion penalty.<br><br>Click any heat-map cell to see the exact ratio values and arithmetic for that sector. For an INDIVIDUAL stock, the research view's KPIs & Screen tab shows all 29 of these ratios with peer medians, ideal ranges, and a Bearish→Bullish read.`,
+ methist:`<b>Fundamentals over time — the direction of the business.</b> The same interactive chart you use for price, but for the ratio KPIs: pick a metric (revenue, revenue growth, net margin, ROE, current/quick ratio), pick a window (3Y/5Y/10Y/MAX), and hover to read each fiscal year. This is often more telling than any single snapshot — a company compounding revenue while margins EXPAND is a very different story from one growing revenue as margins erode. Built from our own SEC-XBRL annual history (2015 onward where available). Two caveats: (1) the history reflects the current reporting entity — big acquisitions or spinoffs create step-changes; (2) only metrics we have multi-year history for appear (revenue, margin, ROE, liquidity today; valuation/cash-flow trajectories need price history and are a future add).`,
  dcffv:`<b>Intrinsic value (DCF) — a first-pass estimate, not a price target.</b> A discounted-cash-flow value built mechanically from OUR numbers: base free cash flow (CFO − capex) projected 5 years at a start growth rate (from the 3-year revenue CAGR, capped at 25%) that fades to a 2.5% terminal rate, plus a Gordon terminal value, discounted at 9%, plus net cash, divided by shares.<br><br><b>Read it with heavy skepticism.</b> (1) The <b>terminal value is ~75% of the answer</b> — it's a perpetuity guess, so tiny changes in the discount or terminal rate swing fair value 20-40% (that's the whole lesson of the Sensitivity sandbox). (2) A FIXED 9% discount ignores each company's actual risk/beta. (3) High-flyers (NVDA, COST) will look "overvalued" here because a conservative DCF can't price hyper-growth or premium quality — that's a feature, not a bug: it tells you how much of the price is optimism beyond mechanical cash flows. (4) Only computed where base FCF is positive — banks, energy at a trough, and cash-burning names correctly get no DCF. Use it as ONE lens beside the multiples and the peer chips, never alone. Not investment advice.`,
  rattrend:`<b>Trend sparklines — direction, not just the latest number.</b> The two mini-charts show up to 6 fiscal years of history from our own SEC-XBRL pull: <b>revenue</b> as bars (with the trailing annualized growth rate) and <b>net margin</b> as a line. A single-year snapshot can mislead — a great margin off one blowout year, or a scary drop that's really a one-time write-down. The trajectory tells you whether the business is compounding, plateauing, or eroding. Two caveats: history reflects the company's current reporting entity (acquisitions/spinoffs create step-changes), and fiscal-year ends differ across firms.`,
  ratsum:`<b>"At a glance" — the auto-summary, and its limits.</b> One sentence built mechanically from this company's own ratio profile: growth character (3y revenue CAGR), margin tier (net margin), whether returns are high (ROE ≥20% on modest leverage), balance-sheet posture (debt/equity), any cash-quality flags (weak CFO conversion, high accruals), and a valuation coda (P/E cheap/fair/rich, or FCF yield). It is a DESCRIPTION of what the numbers say — never a recommendation. It's blunt by design (a goodwill write-down year reads "loss-making"; a cyclical trough reads "shrinking") — the nuance lives in the full table and the ⓘ ranges below. Read it as the 5-second orientation, then check the rows.`,
