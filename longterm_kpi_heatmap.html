@@ -2627,8 +2627,16 @@ goto(location.hash.replace('#','')||'home',false);
    h+='<table style="width:100%;border-collapse:collapse;font-size:12.5px"><tr style="background:var(--panel2,rgba(127,127,127,.08))"><th style="text-align:left;padding:5px 6px">LINE</th>'+
       yr.slice(0,nCol).map(y=>`<th style="text-align:right;padding:5px 6px">${y}</th>`).join('')+
       (tot?'<th style="text-align:right;padding:5px 6px">SHARE</th><th style="text-align:right;padding:5px 6px">YoY</th>':'')+'</tr>';
+   // SHARE SANITY GUARD: some filers mix reporting periods inside one rendered table —
+   // Hubbell's disaggregation puts QUARTERLY totals alongside ANNUAL segment lines, which
+   // made Grid Infrastructure compute as 184% of company revenue. Any share outside a
+   // plausible band means the denominator is not comparable, so we suppress the number
+   // rather than print a confident impossibility.
+   const shareOK=v=>v!=null&&isFinite(v)&&v>=0&&v<=105;
+   let badShare=false;
    parts.forEach(([k,v])=>{
-     const share=(tot&&tot[0])?100*v[0]/tot[0]:null;
+     let share=(tot&&tot[0])?100*v[0]/tot[0]:null;
+     if(share!=null&&!shareOK(share)){share=null;badShare=true;}
      const yoy=(v.length>1&&v[1])?100*(v[0]/v[1]-1):null;
      h+=`<tr style="border-top:1px solid var(--line)"><td style="padding:5px 6px">${k}</td>`+
         v.map(x=>`<td style="text-align:right;padding:5px 6px">${x==null?'—':x.toLocaleString()}</td>`).join('')+
@@ -2636,6 +2644,7 @@ goto(location.hash.replace('#','')||'home',false);
              `<td style="text-align:right;padding:5px 6px;color:${yoy==null?'inherit':(yoy>=0?'var(--pos)':'var(--neg)')}">${yoy==null?'—':(yoy>=0?'+':'')+yoy.toFixed(0)+'%'}</td>`:'')+'</tr>';
    });
    h+='</table>';
+   if(badShare) h+='<div class="muted" style="font-size:11px;margin-top:4px;color:var(--neg)">⚠ SHARE suppressed on some lines — this filing mixes reporting periods (e.g. a quarterly total beside annual segment lines), so the percentages would not be comparable. The absolute figures above are as-reported.</div>';
    if(tot&&parts.length){ // share-of-revenue bars for the latest period
      const mx=Math.max(...parts.map(p=>Math.abs(p[1][0]||0)))||1;
      h+='<div style="margin-top:8px">'+parts.slice(0,6).map(([k,v])=>{
