@@ -2655,7 +2655,28 @@ goto(location.hash.replace('#','')||'home',false);
    fmt:i=>`<b>FY ${yr[i]}</b> · ${M[mk].label}: <b>${vals[i]==null?'—':fmtv(vals[i])}</b>`});
   const first=vals.find(v=>v!=null), last=[...vals].reverse().find(v=>v!=null);
   const chg=first!=null&&last!=null?(unit==='%'?`${last-first>=0?'+':''}${(last-first).toFixed(1)}pt`:`${first>0?(last/first-1>=0?'+':'')+(100*(last/first-1)).toFixed(0)+'%':''}`):'';
-  document.getElementById('mhNote').innerHTML=`${M[mk].label} · ${yr[0]}→${yr[yr.length-1]} <b style="color:${(last>=first)?'var(--pos)':'var(--neg)'}">${fmtv(first)} → ${fmtv(last)}</b> ${chg?'('+chg+')':''} · hover for each year`;
+  // DIRECTION-AWARE colouring (Jul 25). Previously this coloured green whenever the line
+  // went UP, which is wrong for anything that isn't monotonically better. `hi` is true
+  // (higher better), false (lower better), or "band" (sweet spot — more is NOT better past
+  // a point, e.g. a current ratio of 4.0 is idle cash, not strength). For band metrics we
+  // judge against the ideal range instead of the direction of travel, and where the read is
+  // genuinely ambiguous we leave it UNCOLOURED rather than imply a verdict.
+  const hi=M[mk].hi, band=M[mk].band;
+  let col='var(--dim)', verdict='';
+  if(band){
+    const inB=v=>v>=band[0]&&v<=band[1];
+    const f0=inB(first), f1=inB(last);
+    col = f1?'var(--pos)':(last>band[1]?'#b8860b':'var(--neg)');
+    verdict = f1?` · inside the ideal ${band[0]}–${band[1]}× band`
+             : last>band[1]?` · above the ideal ${band[0]}–${band[1]}× band — liquidity sitting idle`
+             : ` · below the ideal ${band[0]}–${band[1]}× band`;
+    if(f0&&!f1) verdict+=' (drifted out)'; else if(!f0&&f1) verdict+=' (moved in)';
+  } else if(hi===true||hi===false){
+    const better = hi===true ? (last>=first) : (last<=first);
+    col = last===first?'var(--dim)':(better?'var(--pos)':'var(--neg)');
+    verdict = last===first?'' : (better?' · improving':' · deteriorating');
+  }
+  document.getElementById('mhNote').innerHTML=`${M[mk].label} · ${yr[0]}→${yr[yr.length-1]} <b style="color:${col}">${fmtv(first)} → ${fmtv(last)}</b> ${chg?'('+chg+')':''}<span class="muted">${verdict}${band?' · higher is NOT automatically better here':''}</span> · hover for each year`;
  }
  /* SEGMENT MIX (Jul 25) — the breakdown our XBRL pipeline structurally cannot see.
     companyfacts strips XBRL dimensions, so it only ever returns CONSOLIDATED totals; the
