@@ -1,0 +1,1 @@
+{"as_of":"2026-07-25 02:56:56Z","form":"8-K","n_scanned":100,"window_span_min":408.4,"rolloff_risk":false,"n_universe_hits":0,"hits":[],"note":"getcurrent lists filings ~1 min after SEC acceptance; seen_lat_s is our observation latency vs the acceptance timestamp."}
