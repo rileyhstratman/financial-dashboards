@@ -2198,16 +2198,73 @@ goto(location.hash.replace('#','')||'home',false);
   const disp=f<=0?"0 (no measured edge over cash)":half>100?">100% (μ estimate too optimistic — treat as 'small')":half.toFixed(0)+"% of capital";
   return `<div style="margin-top:6px;font-size:12.5px"><b>Sizing math</b> (3y μ ${a.mu}%, σ ${a.sig}%, rf 4.55%): half-Kelly ≈ <b>${disp}</b> <span class="muted">— estimation error in μ dominates; education only</span></div>`;
  }
+ /* ── READ CHIPS (Jul 25) ───────────────────────────────────────────────────────
+    Riley's note: this tab was "all over the place… just noise". The fix is NOT to paint
+    every number green or red — most of these measures have no proven directional content,
+    and our own Verdict Board carries 11 published negatives saying so. Colouring them
+    would manufacture confidence we have not earned.
+    So each row gets ONE of three honest chips:
+      READ      — we have a defensible directional basis (measured behaviour in the
+                  CURRENT regime; open-market insider decisions). Green/red.
+      CONTEXT   — real, useful background with NO established directional edge
+                  (13F snapshots, narrative attention, historical event reactions). Grey.
+      SIZING    — a risk/position-size constraint, not a view. Neutral.
+    Knowing WHICH bucket a number is in IS the signal-vs-noise separation. */
+ function rdChip(kind,txt){
+  const c={read_pos:['var(--pos)','READ'],read_neg:['var(--neg)','READ'],
+           read_flat:['var(--dim)','READ'],ctx:['var(--dim)','CONTEXT'],
+           size:['var(--dim)','SIZING']}[kind]||['var(--dim)','—'];
+  const solid=kind==='read_pos'||kind==='read_neg';
+  return `<span style="display:inline-block;min-width:60px;text-align:center;font-size:9.5px;`+
+    `font-weight:700;letter-spacing:.04em;padding:2px 6px;border-radius:9px;margin-right:8px;`+
+    `border:1px solid ${c[0]};color:${solid?'#fff':c[0]};background:${solid?c[0]:'transparent'};`+
+    `opacity:${solid?1:.75}">${txt||c[1]}</span>`;
+ }
+ function rdHdr(t,sub){
+  return `<div style="margin:12px 0 5px;font-size:10.5px;font-weight:700;letter-spacing:.07em;`+
+    `color:var(--dim);border-bottom:1px solid var(--line);padding-bottom:3px">${t}`+
+    (sub?` <span style="font-weight:400;letter-spacing:0;text-transform:none">· ${sub}</span>`:'')+`</div>`;
+ }
+ function rdRow(chipHtml,label,body){
+  return `<div style="display:flex;align-items:flex-start;gap:2px;margin:5px 0;font-size:12.5px">`+
+    `<div style="flex:0 0 auto;padding-top:1px">${chipHtml}</div>`+
+    `<div style="flex:1"><b>${label}</b> ${body}</div></div>`;
+ }
  function analyticsRows(t){
   const A=window.__A; if(!A||!A.a[t]) return "";
   const a=A.a[t];
   const f=(v)=>v==null?"—":`<span style="color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${v}%</span>`;
-  let h=`<div style="margin-top:8px;font-size:12.5px"><b>Event fingerprint</b> · 2026 war onset: ${f(a.e9[0])} next-day, ${f(a.e9[1])} at +20d · peace memo: ${f(a.e11[0])} / ${f(a.e11[1])} · onset avg (3 wars): ${f(a.on[0])} / ${f(a.on[1])} · de-escalation avg: ${f(a.de[0])} / ${f(a.de[1])}</div>`;
-  const rg=a.rg||[]; const cur=1; /* index 1 = TENSION = current */
-  const names=["Baseline","Tension","Drawdown"];
-  h+=`<div style="margin-top:6px;font-size:12.5px"><b>Regime behavior</b> (ann. excess vs SPY): `+rg.map((v,i)=>`${i===cur?'<u>':''}${names[i]} ${v==null?'—':f(v)}${i===cur?'</u> ←now':''}`).join(' · ')+`</div>`;
-  h+=kellyRow(a);
-  if(A.er[t]) h+=`<div style="margin-top:6px;font-size:12.5px"><b>Next report</b> ≈ ${A.er[t]} <span class="muted">(estimate from our filing-cadence math — the scored-screen names; not an announced date)</span></div>`;
+  const rg=a.rg||[], cur=1, names=["Baseline","Tension","Drawdown"];
+  const now=rg[cur];
+  let h=`<div style="font-size:11px;margin-top:6px;padding:6px 8px;background:var(--panel2,rgba(127,127,127,.06));border-radius:5px">`+
+    rdChip('read_pos','READ')+`<span class="muted">has a defensible directional basis · </span>`+
+    rdChip('ctx')+`<span class="muted">real data, no proven edge · </span>`+
+    rdChip('size')+`<span class="muted">a constraint, not a view</span>`+
+    `<span class="info" data-pop="readchips">i</span></div>`;
+
+  // ── 1. the only genuinely directional item here: behaviour in the CURRENT regime
+  h+=rdHdr('DIRECTIONAL READ','measured behaviour in the regime we are actually in');
+  const rk=now==null?'read_flat':now>5?'read_pos':now<-5?'read_neg':'read_flat';
+  const verdict=now==null?'no estimate':now>5?'OUTPERFORMS in this regime':now<-5?'UNDERPERFORMS in this regime':'roughly in line';
+  h+=rdRow(rdChip(rk),'Regime behaviour',
+    `<b style="color:${now==null?'var(--dim)':now>5?'var(--pos)':now<-5?'var(--neg)':'var(--dim)'}">${verdict}</b>`+
+    ` — ${now==null?'—':(now>0?'+':'')+now+'%'} annualised excess vs SPY while in <b>${names[cur]}</b> (current). `+
+    `<span class="muted">Other regimes: `+rg.map((v,i)=>i===cur?null:`${names[i]} ${v==null?'—':(v>0?'+':'')+v+'%'}`).filter(Boolean).join(' · ')+
+    `. Historical conditional averages, not a forecast.</span>`);
+
+  // ── 2. context: real data, no established directional edge
+  h+=rdHdr('CONTEXT','no established directional edge — background only');
+  h+=rdRow(rdChip('ctx'),'Event fingerprint',
+    `war onset ${f(a.e9[0])} next-day / ${f(a.e9[1])} at +20d · peace memo ${f(a.e11[0])} / ${f(a.e11[1])} · `+
+    `onset avg of 3 wars ${f(a.on[0])} / ${f(a.on[1])} · de-escalation avg ${f(a.de[0])} / ${f(a.de[1])} `+
+    `<span class="muted">— how this name moved around past dated events. Our own event studies mostly FAILED significance (see Verdict Board), so read as description, not prediction.</span>`);
+
+  // ── 3. sizing / timing: constraints and logistics, deliberately not a view
+  h+=rdHdr('SIZING & TIMING','constraints and dates — not a view');
+  const kr=kellyRow(a);
+  if(kr) h+=rdRow(rdChip('size'),'Position cap',kr.replace(/^<div[^>]*>/,'').replace(/<\/div>$/,'').replace(/^<b>Sizing math<\/b>\s*/,''));
+  if(A.er[t]) h+=rdRow(rdChip('size','DATE'),'Next report',
+    `≈ ${A.er[t]} <span class="muted">— estimated from filing cadence, not an announced date.</span>`);
   return h;
  }
  const pct=v=>`<span style="font-weight:700;color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${v.toFixed(2)}%</span>`;
@@ -2777,8 +2834,16 @@ goto(location.hash.replace('#','')||'home',false);
  function renderResInsider(t){
   const go=d=>{const el=document.getElementById('resInsider'); if(!el)return;
    const evs=d.i&&d.i[t];
-   if(!evs||!evs.length){el.innerHTML='<div class="muted" style="font-size:12px"><b>Insider flow</b>: no Form 4 / 13D filings collected for '+t+' since the stream began (2026-07-15). Absence recorded, not assumed.</div>';return;}
-   let h='<b style="font-size:12.5px">Insider flow</b> <span class="muted" style="font-size:11px">· Form 4 open-market only (grants/exercises excluded) · stream since 2026-07-15 · '+d.as_of+'</span><table style="margin-top:4px"><tr><th>Date</th><th>Filing</th><th>Net open-market</th><th>Buys/Sales</th></tr>';
+   if(!evs||!evs.length){el.innerHTML=rdHdr('DIRECTIONAL READ','the one insider behaviour that replicates: open-market BUYS')+row(rdChip('read_flat','NO SIGNAL'),'Insider flow','<span class="muted">no Form 4 / 13D filings collected for '+t+' since the stream began (2026-07-15). Absence recorded, not assumed.</span>');return;}
+   // directional only where there are actual open-market decisions (P/S), not comp noise
+   let nB=0,nS_=0,net=0;
+   evs.forEach(e=>{nB+=(e[3]||0); nS_+=(e[4]||0); net+=(e[2]||0);});
+   const ik=nB>0&&net>0?'read_pos':nS_>0&&net<0?'read_neg':'read_flat';
+   const iv=nB>0&&net>0?'NET BUYING':nS_>0&&net<0?'NET SELLING':'NO SIGNAL';
+   let h=rdHdr('DIRECTIONAL READ','the one insider behaviour that replicates: open-market BUYS')+
+     rdRow(rdChip(ik,iv),'Insider flow',
+      `<span class="muted">Form 4 open-market only (grants/exercises excluded) · since 2026-07-15 · ${d.as_of}</span>`)+
+     '<table style="margin-top:2px"><tr><th>Date</th><th>Filing</th><th>Net open-market</th><th>Buys/Sales</th></tr>';
    evs.forEach(e=>{const [dt_,form,net,nP,nS]=e;
     const is13=form.startsWith('SC')||form.startsWith('SCHEDULE');
     const netTxt=is13?'<b style="color:var(--accent)">activist/major-holder filing</b>':net==null?'<span class="muted">no open-market legs</span>':`<b style="color:${net>0?'var(--pos)':'var(--neg)'}">${net>0?'+':'−'}$${Math.abs(net).toLocaleString()}</b>`;
@@ -2791,7 +2856,10 @@ goto(location.hash.replace('#','')||'home',false);
  function renderResWhales(t){
   const go=d=>{const el=document.getElementById('resWhales'); if(!el)return;
    const conv=(d.conv||{})[t], br=(d.breadth||{})[t]||0;
-   let h=`<b style="font-size:12.5px">Institutional footprint (13F)<span class="info" data-pop="whales">i</span></b> <span class="muted" style="font-size:11px">· ${d.n_mgrs} tracked managers · latest quarterly filings · ${d.as_of}</span><div style="font-size:12.5px;margin-top:3px">`;
+   let h=rdHdr('CONTEXT','positioning snapshot — LOOK, never BUY')+
+     row(rdChip('ctx'),`Institutional footprint (13F)<span class="info" data-pop="whales">i</span>`,
+      `<span class="muted">${d.n_mgrs} tracked managers · quarterly filings with a ~45-day lag · ${d.as_of}</span>`)+
+     `<div style="font-size:12.5px;margin-top:1px">`;
    h+=`Held by <b>${br}</b> of ${d.n_mgrs} tracked managers. `;
    if(conv&&conv.length){
     h+='Conviction positions (≥1% of a manager&rsquo;s book): '+conv.slice(0,5).map(([m,p,v])=>`<b>${m}</b> ${p}%${v!=null?` ($${v>=1000?(v/1000).toFixed(1)+'B':v+'M'})`:''}`).join(' · ');
@@ -2807,7 +2875,10 @@ goto(location.hash.replace('#','')||'home',false);
    const a=d.a&&d.a[t];
    if(!a){el.innerHTML='<div class="muted" style="font-size:12px"><b>Narrative attention</b>: '+t+' is outside the 200-name weekly attention set (core + scored + frontier). Ask to add it.</div>';return;}
    const col=a.d4>50?'var(--pos)':a.d4<-50?'var(--neg)':'var(--ink)';
-   el.innerHTML=`<div style="font-size:12.5px"><b>Narrative attention</b> <span class="muted" style="font-size:11px">· Wikipedia views, week of ${a.wk}</span>: <b>${a.w.toLocaleString()}</b>/wk · vs 4-wk avg <b style="color:${col}">${a.d4>0?'+':''}${a.d4}%</b> · 12-wk median ${a.med12.toLocaleString()}${a.spike?' · <b style="color:var(--neg)">⚑ SPIKE (≥3× median) — logged as a dated event</b>':''} <span class="muted">— measures the narrative, not a signal.</span></div>`;};
+   el.innerHTML=rdRow(rdChip('ctx'),'Narrative attention',
+     `<b>${a.w.toLocaleString()}</b>/wk (Wikipedia, week of ${a.wk}) · vs 4-wk avg <b style="color:${col}">${a.d4>0?'+':''}${a.d4}%</b> · 12-wk median ${a.med12.toLocaleString()}`+
+     (a.spike?' · <b style="color:var(--neg)">⚑ SPIKE (≥3× median) — logged as a dated event</b>':'')+
+     ` <span class="muted">— measures how loud the story is, NOT whether the stock goes up. Deliberately uncoloured.</span>`);};
   if(CAJ){go(CAJ);return;}
   fetch('company_attention.json?cb='+Date.now()).then(r=>r.json()).then(d=>{CAJ=d;go(d);}).catch(()=>{const el=document.getElementById('resAttn');if(el)el.innerHTML='';});
  }
@@ -2915,6 +2986,7 @@ goto(location.hash.replace('#','')||'home',false);
 /* ---------- ⓘ popovers (added Jul 16 refresh): long explainers live here, one click away ---------- */
 const POPS={
  kpirat:`<b>The seven scored categories and the ratios inside each.</b> Every sector's 0–10 rating is a weighted blend of these component ratios, each scored against sweet-spot anchors:<br><br><b>Profitability</b> — gross margin, net margin, EBITDA margin.<br><b>Growth</b> — revenue growth, sustainable growth rate (SGR = ROE × retention).<br><b>Cash Flow</b> — cash return on assets, FCF-based sustainable growth.<br><b>Financial Health / Solvency</b> — current ratio, quick ratio, LT-debt/assets, interest coverage.<br><b>Efficiency / Returns</b> — ROE, ROA, asset turnover.<br><b>Valuation</b> — trailing P/E, forward P/E, PEG (market cap shown for context, not scored).<br><b>Quality / Risk</b> — earnings stability, peak-margin mean-reversion penalty.<br><br>Click any heat-map cell to see the exact ratio values and arithmetic for that sector. For an INDIVIDUAL stock, the research view's KPIs & Screen tab shows all 29 of these ratios with peer medians, ideal ranges, and a Bearish→Bullish read.`,
+ readchips:`<b>Why most of this page is deliberately NOT colour-coded.</b> The obvious way to make a research page feel decisive is to paint every number green or red. We do not, because it would be dishonest: colour implies "this tells you which way the stock goes", and for most of these measures we have TESTED that claim on our own data and it failed. The Verdict Board currently carries 11 published negatives — including the accruals anomaly (t=1.51) and the short-interest effect (t=1.36 over 166 settlement periods) — both of which look compelling on a mean and evaporate on a median. So every row here carries one of three honest labels. <b>READ</b> (green/red) means we have a defensible directional basis: measured behaviour in the regime we are ACTUALLY in, or open-market insider purchases, which is the one insider behaviour that replicates in the literature. <b>CONTEXT</b> (grey) means the data is real and worth seeing but has no established directional edge — 13F snapshots are quarterly and ~45 days stale, narrative attention measures how loud a story is rather than where the price goes, and our own event studies mostly failed significance. <b>SIZING</b> means it is a constraint or a date, not a view at all. Knowing which bucket a number sits in IS the separation between signal and noise; a page where everything is coloured is a page where nothing is.`,
  shortint:`<b>Short interest — positioning, and why we do NOT trade it.</b> FINRA publishes, twice a month, how many shares of each stock are sold short and still open. We show <b>days-to-cover</b> = short position ÷ average daily volume, because raw share counts are meaningless across sizes: ten million shares short is a rounding error for a mega-cap and an existential problem for a small one. The percentile ranks this name against all LIQUID US stocks (average volume above 100k shares) on the same settlement date — ranking against the full tape is misleading, because thousands of barely-traded shells show enormous days-to-cover simply because their volume is near zero. <b>We tested the classic short-interest effect on our own data — 166 settlement periods back to 2019 — and it failed:</b> the low-minus-high spread was +0.31pt per ~21 days with a t-stat of 1.36, medians were flat across every quintile, and the squeeze story did not show either (the high-short group's right tail was no fatter than the low-short group's). So this is deliberately NOT an alpha signal. It ships as a RISK flag: crowded shorts change the shape of the outcome distribution — borrow costs, squeeze risk, violent gaps on news — even where they do not change the average. Names in the top 5% are excluded from the shadow sleeve on those grounds; "elevated" names are kept and simply labelled. Timing note: short interest is measured at a settlement date but not published until roughly eight days later, so any study forming positions on the settlement date is using information nobody had.`,
  fildeep:`<b>Material events — why the 8-K ITEM CODE is the whole story.</b> An 8-K is the "something happened" filing, but it is not one kind of event, and a raw count of 8-Ks is close to meaningless. Every 8-K carries item codes that say exactly what happened: <b>2.02</b> is an earnings release (scheduled, routine), <b>1.01</b> a material agreement and <b>2.01</b> a completed acquisition (real deals), <b>5.02</b> an officer or director change, <b>4.01</b> an auditor change, and <b>4.02</b> non-reliance on previously issued financials — a RESTATEMENT, the most serious item on the list. Items <b>9.01</b> (exhibits), <b>8.01</b> (other) and <b>5.07</b> (shareholder vote results) are largely procedural, so we de-emphasise them. The management-churn line compares officer/director changes in the last 12 months against this company's own historical average — a spike is worth investigating because clustered executive departures frequently precede strategy changes or problems, though they can equally reflect a planned succession or an acquisition. Two honest caveats: (1) history comes from SEC's submissions record, which paginates by filing volume — companies that issue thousands of routine prospectuses (large banks especially) can have their older 8-K history capped, and we label that; (2) item codes describe the CATEGORY of event, not whether it was good or bad — always read the filing itself before drawing a conclusion.`,
  insdeep:`<b>Insider record — and why most "insider selling" headlines are noise.</b> This is the complete Form 4 history we pulled from SEC for this company, parsed transaction by transaction rather than counted. That distinction is the whole point: SEC transaction codes are not equivalent. Code <b>P</b> is an open-market PURCHASE — an insider choosing to buy with their own money — and clustered P buys (several distinct insiders buying in a short window) are among the few single-name signals that replicate in the literature. Code <b>S</b> is an open-market sale, which is far weaker evidence: executives at equity-paid companies sell constantly for diversification, taxes and pre-scheduled 10b5-1 plans. Codes <b>A</b> (grant), <b>M</b> (option exercise), <b>F</b> (shares withheld for tax) and <b>G</b> (gift) are compensation mechanics carrying essentially no directional information — yet they inflate the "insider transactions" counts you see on retail finance sites. We store every code but score only P and S, and we surface the mix so you can see how much of the activity is merely pay. Caveats: dollar values use the price reported on the form; a company with zero buys is normal for mega-cap tech and is not by itself bearish; and this reflects filings we successfully retrieved — if a crawl is incomplete we drop the company rather than show a misleading zero.`,
