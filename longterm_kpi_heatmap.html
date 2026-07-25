@@ -1670,11 +1670,18 @@ goto(location.hash.replace('#','')||'home',false);
   const t=new Date(m[1]+'T'+(m[2]||'12:00')+':00Z');
   return (Date.now()-t.getTime())/36e5;
  }
- function chip(name,asOf){
+ /* Thresholds are PER FEED, because "stale" means completely different things depending on
+    the cadence. The original chip assumed every feed was daily (green <36h), which is right
+    for fundamentals and useless for a real-time one: the EDGAR minute-poller silently died
+    and sat there for SEVEN HOURS reading bright green, because seven hours is well inside a
+    daily feed's tolerance. A feed that promises minute latency must go red in minutes.
+    warn/bad are in HOURS; omitting them keeps the old daily defaults. */
+ function chip(name,asOf,warn,bad){
   const h=age(asOf);
   if(h==null)return `<span class="muted">${name}: —</span>`;
-  const col=h>90?'var(--neg)':h>36?'#b8860b':'var(--pos)';
-  const lbl=h<24?Math.round(h)+'h':Math.round(h/24)+'d';
+  const w=warn==null?36:warn, b=bad==null?90:bad;
+  const col=h>b?'var(--neg)':h>w?'#b8860b':'var(--pos)';
+  const lbl=h<1?Math.round(h*60)+'m':h<24?Math.round(h)+'h':Math.round(h/24)+'d';
   return `<span style="color:${col}">● </span>${name} ${lbl}`;
  }
  function renderHealth(){
@@ -1686,10 +1693,25 @@ goto(location.hash.replace('#','')||'home',false);
    fetch('fund.json?cb='+Date.now()).then(r=>r.json()),
    fetch('feed.json?cb='+Date.now()).then(r=>r.json()),
    fetch('supply.json?cb='+Date.now()).then(r=>r.json()),
+   fetch('edgar_rt.json?cb='+Date.now()).then(r=>r.json()),
+   fetch('news_global.json?cb='+Date.now()).then(r=>r.json()),
   ]).then(rs=>{
-   const names=['fund','conflict feed','supply'];
-   rs.forEach((r,i)=>{if(r.status==='fulfilled')parts.push(chip(names[i],r.value.as_of));});
-   el.innerHTML='<b>Feed health</b> · '+parts.join(' · ')+' <span class="muted">(green &lt;36h · amber &lt;90h · red older — daily feeds refresh each morning, weekends excepted)</span>';
+   // name, warn-hours, bad-hours. The last two are REAL-TIME feeds on launchd timers:
+   // EDGAR polls every 60s and GDELT every 15min, so anything over ~1h is a dead collector,
+   // not a slow morning. Both are excluded from the "weekends excepted" caveat because
+   // filings and world news do not stop for Saturday.
+   const defs=[['fund'],['conflict feed'],['supply'],
+               ['EDGAR 1-min',0.5,1],['global news',0.75,2]];
+   const rt=[];
+   rs.forEach((r,i)=>{
+    if(r.status!=='fulfilled')
+      {if(i>=3)rt.push(`<span style="color:var(--neg)">● </span>${defs[i][0]} MISSING`); return;}
+    const c=chip(defs[i][0],r.value.as_of,defs[i][1],defs[i][2]);
+    (i>=3?rt:parts).push(c);
+   });
+   let h='<b>Feed health</b> · '+parts.join(' · ')+' <span class="muted">(green &lt;36h · amber &lt;90h · red older — daily feeds refresh each morning, weekends excepted)</span>';
+   h+='<br><b>Real-time collectors</b> · '+rt.join(' · ')+' <span class="muted">(these run on local launchd timers — EDGAR every 60s, global news every 15min. Red means the collector is DOWN, not merely slow: a silent dead poller looks exactly like a quiet news day, which is the single most dangerous failure mode in this stack.)</span>';
+   el.innerHTML=h;
   });
  }
  setTimeout(renderHealth,2500);
