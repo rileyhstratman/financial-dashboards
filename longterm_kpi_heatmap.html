@@ -2784,6 +2784,18 @@ goto(location.hash.replace('#','')||'home',false);
    if(e.dcf){const D=e.dcf,up=D.up,c=up>=0?'var(--pos)':'var(--neg)';
     h+=`<div style="background:var(--panel);border-radius:6px;padding:8px 12px;margin-bottom:8px;font-size:12.5px"><b>Intrinsic value (DCF)<span class="info" data-pop="dcffv">i</span></b> — fair value <b>$${D.fair.toLocaleString()}</b>/share vs price $${D.px.toLocaleString()} → <b style="color:${c}">${up>=0?'+':''}${up}%</b> ${up>=0?'undervalued':'overvalued'} <span class="muted" style="font-size:11px">· ${D.g0}% start growth fading to ${D.gt}%, ${D.disc}% discount · terminal value = ${D.tv_share}% of the estimate (fragile — see ⓘ)</span></div>`;}
    h+=`<div style="font-size:12.5px;margin-bottom:6px"><b>Research-grade ratios</b> <span class="muted" style="font-size:11px">· from our SEC-XBRL pipeline · FY ${e.fy||'—'} · vs ${e.sec} peers · <span class="info" data-pop="ratg">i</span></span></div>`;
+   // WITHHELD-DATA BANNER (Jul 26). A blank ratio used to look identical to a ratio we
+   // never collected, so a deliberate withholding was indistinguishable from a gap. Both
+   // guards now say so on the row itself: the FX guard (statements filed in a non-USD
+   // currency against a USD price) and the revenue-coherence guard (the collected revenue
+   // is a fee-income or non-lease fragment, not the top line). Naming the reason is the
+   // point — an unexplained blank is the kind of noise that trains you to ignore the page.
+   if(e.rev_bad||e.fx){
+    const parts=[];
+    if(e.rev_bad)parts.push(`<b>the revenue tag is not this company's top line</b> (${e.rev_bad}) — common for REITs, banks and insurers, whose rental income and net interest income are tagged outside the concept our collector reads. Withheld: <code>${(e.dropped_rev||[]).join(', ')||'revenue-derived ratios'}</code>`);
+    if(e.fx)parts.push(`<b>statements are filed in ${e.fx}</b> while the price feed is USD, so any ratio crossing that boundary is meaningless. Withheld: <code>${(e.dropped_fx||[]).join(', ')||'price-mixing ratios'}</code>`);
+    h+=`<div style="background:var(--panel);border-left:3px solid var(--warn,#c9a227);border-radius:6px;padding:7px 11px;margin-bottom:8px;font-size:11.5px">⚠ <b>Some ratios withheld deliberately.</b> ${parts.join(' Also, ')}. Same-currency, same-period ratios below (margins, ROE, liquidity) are unaffected and remain valid.</div>`;
+   }
    d.groups.forEach(g=>{const keys=Object.keys(M).filter(k=>M[k].group===g&&e[k]!=null);
     if(!keys.length)return;
     h+=`<div style="font-size:11px;font-weight:700;color:var(--accent);margin:8px 0 2px;text-transform:uppercase;letter-spacing:.4px">${g}</div>`;
