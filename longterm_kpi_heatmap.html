@@ -371,8 +371,11 @@
     <div id="resPanel" style="margin-top:14px"></div>
     <div id="themeList" style="margin-top:12px"></div>
   </div>
-  <div class="block"><h3>My stock watchlist <span class="muted" style="font-weight:400;font-size:11px">day % and since-added % — the anchor Fidelity doesn't give you</span></h3>
+  <div class="block"><h3>My stock watchlists <span class="muted" style="font-weight:400;font-size:11px">day % and since-added % — the anchor Fidelity doesn't give you · keep as many lists as you like</span></h3>
     <div id="wlOut"></div>
+  </div>
+  <div class="block"><h3>Watch candidates<span class="info" data-pop="watchcand">i</span> <span class="muted" style="font-weight:400;font-size:11px">· names our own data flags as UNUSUAL — rule-selected, not recommendations · <span id="wcAsOf"></span></span></h3>
+    <div id="wcOut"><span class="muted" style="font-size:12px">Loading watch_candidates.json…</span></div>
   </div>
 </div>
 
@@ -2313,8 +2316,31 @@ goto(location.hash.replace('#','')||'home',false);
   return h;
  }
  const pct=v=>`<span style="font-weight:700;color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${v.toFixed(2)}%</span>`;
- const loadWL=()=>JSON.parse(localStorage.getItem('term_stockwl')||'[]');
- const saveWL=w=>localStorage.setItem('term_stockwl',JSON.stringify(w));
+ /* MULTIPLE WATCHLISTS (Jul 26). Storage moved from a single flat array under
+    term_stockwl to {active, lists:{name:[...]}} under term_stockwl_v2. The old key is
+    MIGRATED, not dropped — losing an anchored watchlist would destroy the one thing the
+    feature exists for (the price and date you added a name at, which cannot be
+    reconstructed). The old key is left in place after migrating as a belt-and-braces
+    backup. loadWL()/saveWL() keep their original signatures and operate on the ACTIVE
+    list, so every existing call site works untouched. */
+ const WLK='term_stockwl_v2';
+ function wlAll(){
+  let s=null;
+  try{ s=JSON.parse(localStorage.getItem(WLK)||'null'); }catch(e){ s=null; }
+  if(!s||!s.lists){
+   let old=[];
+   try{ old=JSON.parse(localStorage.getItem('term_stockwl')||'[]'); }catch(e){ old=[]; }
+   s={active:'My watchlist', lists:{'My watchlist':old}};
+   localStorage.setItem(WLK,JSON.stringify(s));
+  }
+  if(!s.lists[s.active]) s.active=Object.keys(s.lists)[0]||'My watchlist';
+  if(!s.lists[s.active]) s.lists[s.active]=[];
+  return s;
+ }
+ function wlPut(s){ localStorage.setItem(WLK,JSON.stringify(s)); }
+ const loadWL=()=>{const s=wlAll();return s.lists[s.active]||[];};
+ const saveWL=w=>{const s=wlAll();s.lists[s.active]=w;wlPut(s);};
+ window.wlAll=wlAll; window.wlPut=wlPut;
  function suggest(){
   if(!Q) return; const q=box.value.trim().toUpperCase();
   if(!q){res.style.display='none';return;}
@@ -3130,9 +3156,45 @@ goto(location.hash.replace('#','')||'home',false);
   if(!window.__INSJ) fetch('insiders.json?cb='+Date.now()).then(r=>r.json()).then(d=>{window.__INSJ=d;renderWL();}).catch(()=>{window.__INSJ={};});
   if(!window.__CAJ) fetch('company_attention.json?cb='+Date.now()).then(r=>r.json()).then(d=>{window.__CAJ=d;renderWL();}).catch(()=>{window.__CAJ={};});
  }
+ function wlTabs(){
+  const s=wlAll(), names=Object.keys(s.lists);
+  let h='<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:10px">';
+  names.forEach(n=>{
+   const on=n===s.active, cnt=(s.lists[n]||[]).length;
+   h+=`<button class="csvBtn" style="float:none${on?';border-color:var(--accent);color:var(--accent);font-weight:700':''}" data-wlsel="${encodeURIComponent(n)}">${n} <span class="muted" style="font-weight:400">${cnt}</span></button>`;
+  });
+  h+=`<button class="csvBtn" style="float:none" data-wlnew="1">+ New list</button>`;
+  if(names.length>1)h+=`<button class="csvBtn" style="float:none;color:var(--neg);border-color:var(--neg)" data-wldel="1">Delete “${s.active}”</button>`;
+  h+=`<button class="csvBtn" style="float:none" data-wlren="1">Rename</button>`;
+  return h+'</div>';
+ }
+ function wlBindTabs(root){
+  root.querySelectorAll('[data-wlsel]').forEach(b=>b.addEventListener('click',()=>{
+   const s=wlAll(); s.active=decodeURIComponent(b.dataset.wlsel); wlPut(s); renderWL();}));
+  const nb=root.querySelector('[data-wlnew]');
+  if(nb)nb.addEventListener('click',()=>{
+   const n=(prompt('Name for the new watchlist:')||'').trim();
+   if(!n)return; const s=wlAll();
+   if(s.lists[n]){alert('A list with that name already exists.');return;}
+   s.lists[n]=[]; s.active=n; wlPut(s); renderWL();});
+  const db=root.querySelector('[data-wldel]');
+  if(db)db.addEventListener('click',()=>{
+   const s=wlAll(); const n=s.active;
+   if(!confirm(`Delete the watchlist “${n}” and its ${(s.lists[n]||[]).length} names? This cannot be undone.`))return;
+   delete s.lists[n]; s.active=Object.keys(s.lists)[0]; wlPut(s); renderWL();});
+  const rb=root.querySelector('[data-wlren]');
+  if(rb)rb.addEventListener('click',()=>{
+   const s=wlAll(), old=s.active;
+   const n=(prompt('Rename this watchlist to:',old)||'').trim();
+   if(!n||n===old)return;
+   if(s.lists[n]){alert('A list with that name already exists.');return;}
+   s.lists[n]=s.lists[old]; delete s.lists[old]; s.active=n; wlPut(s); renderWL();});
+ }
  function renderWL(){
   const w=loadWL();
-  if(!w.length){wlOut.innerHTML='<span class="muted" style="font-size:12.5px">Empty — look a ticker up and add it. The price and date at the moment you add become your permanent anchor.</span>';return;}
+  if(!w.length){
+   wlOut.innerHTML=wlTabs()+'<span class="muted" style="font-size:12.5px">This list is empty — look a ticker up and add it, or pull one from <b>Watch candidates</b> below. The price and date at the moment you add become your permanent anchor.</span>';
+   wlBindTabs(wlOut); return;}
   wlEnsureAlertData();
   let h='<table><tr><th>Ticker</th><th>Name</th><th>Price</th><th>Day</th><th>Since added</th><th>Alerts <span class="muted" style="font-weight:400;font-size:10px">(7d)</span><span class="info" data-pop="wlalerts">i</span></th><th>Added</th><th></th></tr>';
   w.forEach((x,i)=>{
@@ -3143,14 +3205,52 @@ goto(location.hash.replace('#','')||'home',false);
     h+=`<tr><td><b>${x.s}</b></td><td class="muted" style="font-size:12px">${Q.meta[x.s][0]}</td><td>$${last.toLocaleString()}</td><td>${pct(d1)}</td><td>${pct(sa)} <span class="muted" style="font-size:11px">vs $${x.p}</span></td><td>${al||'<span class="muted" style="font-size:11px">—</span>'}</td><td class="muted" style="font-size:12px">${x.d} · ${days}d</td><td><span style="cursor:pointer" data-res="${x.s}" title="Full research">📊</span> <span style="cursor:pointer;color:var(--dim)" data-rm="${i}" title="Remove">✕</span></td></tr>`;}
    else h+=`<tr><td><b>${x.s}</b></td><td colspan="6" class="muted">quote pending</td><td><span style="cursor:pointer;color:var(--dim)" data-rm="${i}">✕</span></td></tr>`;
   });
-  wlOut.innerHTML=h+'</table>';
+  wlOut.innerHTML=wlTabs()+h+'</table>';
+  wlBindTabs(wlOut);
   wlOut.querySelectorAll('[data-rm]').forEach(el=>el.addEventListener('click',()=>{const w2=loadWL();w2.splice(+el.dataset.rm,1);saveWL(w2);renderWL();}));
   wlOut.querySelectorAll('[data-res]').forEach(el=>el.addEventListener('click',()=>{show(el.dataset.res);openResearch(el.dataset.res);}));
  }
+ /* WATCH CANDIDATES — rule-selected names, each addable to whichever list is active.
+    Rendered from watch_candidates.json so the reason travels with the name; a list of
+    tickers with no reason attached is indistinguishable from a tip. */
+ const RULECOL={conflict:'#b8860b',insider:'var(--pos)',crowded:'var(--neg)',
+                discount:'var(--accent)',young:'#b8860b',narrative:'var(--dim)'};
+ function renderWC(){
+  const el=document.getElementById('wcOut'); if(!el)return;
+  fetch('watch_candidates.json?cb='+Date.now()).then(r=>r.json()).then(d=>{
+   const a=document.getElementById('wcAsOf'); if(a)a.textContent=d.as_of;
+   const have=new Set(loadWL().map(x=>x.s));
+   const s=wlAll();
+   let h=`<div class="muted" style="font-size:11.5px;margin-bottom:8px">${d.what}</div>`;
+   h+=`<div style="font-size:11.5px;margin-bottom:8px">Adding to <b>${s.active}</b> — switch lists above to file them elsewhere.</div>`;
+   h+='<table><tr><th>Ticker</th><th>Why it is here</th><th>Score</th><th>Price</th><th></th></tr>';
+   (d.rows||[]).forEach(r=>{
+    const inList=have.has(r.t);
+    const chips=(r.rules||[]).map(k=>`<span style="font-size:10px;padding:1px 6px;border:1px solid ${RULECOL[k]||'var(--border)'};color:${RULECOL[k]||'var(--dim)'};border-radius:8px;margin-right:4px">${k}</span>`).join('');
+    h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-wcres="${r.t}">${r.t}</b><div class="muted" style="font-size:10.5px">${r.name||''}</div></td>`+
+       `<td style="font-size:11.5px">${chips}<div class="muted" style="margin-top:3px">${(r.why||[]).join(' · ')}</div></td>`+
+       `<td>${r.score==null?'<span class="muted">—</span>':`<b>${r.score}</b> <span class="muted" style="font-size:10.5px">${r.cov}/6</span>`}</td>`+
+       `<td>${r.px==null?'—':'$'+r.px.toLocaleString()}</td>`+
+       `<td>${inList?'<span class="muted" style="font-size:11px">in list</span>':`<button class="csvBtn" style="float:none;padding:2px 8px" data-wcadd="${r.t}">+ add</button>`}</td></tr>`;
+   });
+   el.innerHTML=h+'</table>';
+   el.querySelectorAll('[data-wcadd]').forEach(b=>b.addEventListener('click',()=>{
+    const t=b.dataset.wcadd, q=Q&&Q.q[t]; if(!q)return;
+    const w=loadWL();
+    if(w.some(x=>x.s===t))return;
+    // anchor at TODAY's price, same contract as a manual add — the point of the watchlist
+    w.push({s:t,d:new Date().toISOString().slice(0,10),p:q[0]});
+    saveWL(w); renderWL(); renderWC();}));
+   el.querySelectorAll('[data-wcres]').forEach(b=>b.addEventListener('click',()=>{
+    show(b.dataset.wcres); openResearch(b.dataset.wcres);}));
+  }).catch(()=>{el.innerHTML='<span class="muted" style="font-size:12px">watch_candidates.json not published yet.</span>';});
+ }
+ window.renderWC=renderWC;
  box.addEventListener('input',suggest);
  box.addEventListener('keydown',e=>{if(e.key==='Enter'&&Q){const t=box.value.trim().toUpperCase();if(Q.q[t]){show(t);box.value='';res.style.display='none';}}});
  box.addEventListener('blur',()=>setTimeout(()=>res.style.display='none',150));
  renderWL();
+ renderWC();
 })();
 
 /* COMPARE STOCKS (Jul 21): two tickers side by side from quotes+analytics */
@@ -3217,6 +3317,7 @@ const POPS={
  ratsum:`<b>"At a glance" — the auto-summary, and its limits.</b> One sentence built mechanically from this company's own ratio profile: growth character (3y revenue CAGR), margin tier (net margin), whether returns are high (ROE ≥20% on modest leverage), balance-sheet posture (debt/equity), any cash-quality flags (weak CFO conversion, high accruals), and a valuation coda (P/E cheap/fair/rich, or FCF yield). It is a DESCRIPTION of what the numbers say — never a recommendation. It's blunt by design (a goodwill write-down year reads "loss-making"; a cyclical trough reads "shrinking") — the nuance lives in the full table and the ⓘ ranges below. Read it as the 5-second orientation, then check the rows.`,
  ratg:`<b>Research-grade ratios — how to read the table.</b> Every ratio is computed from our OWN SEC-XBRL pipeline (annual/FY figures × live price), grouped the way an analyst thinks: size, growth, profitability, cash & earnings quality, valuation, solvency, efficiency. Three columns of context on each: <b>the value</b>, <b>the peer-sector median</b> (what typical looks like in this industry), and <b>the ideal range</b> (what good looks like in absolute terms). The chip is a direction-aware read vs the peer median — higher-is-better auto-inverts for debt and accruals, so a low debt/equity correctly reads BULLISH. Two honest caveats: (1) FY-trailing figures lag, so a company mid-year or a cyclical at a turn reads stale; (2) banks/insurers distort cash-flow ratios (CFO isn't meaningful for financials) — compare those within the Financials peer set only.`,
  secfil:`<b>SEC filings — live from EDGAR.</b> These links go straight to the company's official SEC EDGAR pages, filtered by type, sorted newest-first — so they <b>update automatically</b> the moment a new filing posts, with no action on our side. <b>10-K</b> = the annual report (the deepest read — business, risks, full financials). <b>10-Q</b> = quarterly update. <b>8-K</b> = material events (earnings releases, leadership changes, M&A, big contracts) filed within days of the event. "Newest 8-K in our feed" shows the most recent one our daily pipeline already captured and classified. Reading primary filings is the difference between research and headlines.`,
+ watchcand:`<b>Watch candidates — and what this list is deliberately NOT.</b><br>It is not a buy list, not a recommendation, and not anyone's opinion about what will go up. Nothing on it has passed a predictive test. The evidence score feeding several of these rules was measured against forward returns on 8,199 observations and <b>FAILED</b> (t = −1.28, published as negative #12 on the Verdict Board). A name appears here because something about it is <b>unusual in our data</b> and therefore worth a human looking — which is a completely different claim from "this will make money".<br><br><b>Why rules instead of hand-picking.</b> A hand-picked list can't be checked, can't be reproduced, and quietly turns into advice. Every name arrives through one of six explicit filters, carries its reason with it, and changes on its own as the data changes. You can disagree with a rule; you can't disagree with whether a name met it.<br><br><b>The six rules:</b> <b>conflict</b> — evidence dimensions ≥8 points apart, the top ~11% of the universe, where averages stop being useful and a human has to pick a side. <b>insider</b> — a cluster of open-market buy filings, the one part of Form 4 data that replicates (grants and option exercises are excluded; they're compensation, not decisions). <b>crowded</b> — top-5% days-to-cover, explicitly NOT a direction, since our own short-interest study failed too; it changes the SHAPE of outcomes, fattening both tails. <b>discount</b> — our own DCF sees fair value well above price. <b>young</b> — high conviction but under 8 years of filed history, so structurally invisible to the sleeve; these are names the system is blind to by construction. <b>narrative</b> — unusual news attention against the name's own baseline.<br><br><b>One thing this list already caught about itself.</b> The discount rule originally ranked on the largest upside, which surfaced the four most BROKEN valuation models rather than the four cheapest companies — PTCT at +2,758%, ERIE +1,950% — because sorting by "most extreme" on a noisy estimator is a machine for finding errors. It now excludes DCFs flagged unreliable (one-off cash-flow years, FCF margin above 100% where revenue is reported net) and requires the discount to sit in a band a real one occupies.`,
  sv2_quality:`<b>◆ Business quality — is this a good business, regardless of price?</b><br>Built from up to nine measures: gross margin, net margin, return on assets, return on equity, return on capital, operating cash-flow margin, FCF margin, cash conversion (CFO ÷ net income) and gross profitability (GP/A, the Novy-Marx measure). Each is percentile-ranked against <b>the company's own sector</b> — a 55% net margin means something different in software than in grocery retail.<br><br>Cash conversion is the one worth watching: a company can report profits it never collects, and CFO ÷ NI below 0.8 is the early warning. This dimension says nothing about whether the stock is cheap — that is deliberately Valuation's job, and keeping them apart is the whole point of the six-row layout.`,
  sv2_growth:`<b>▲ Growth — is it getting bigger, and how fast?</b><br>Revenue year-over-year plus the 3-year compound rate, percentile-ranked within sector. Two metrics only, so this row is the thinnest of the fundamental three — read it alongside the metric count on the right.<br><br>Revenue rather than earnings on purpose: earnings growth can be manufactured by buybacks, one-off gains or cost cuts that cannot repeat, whereas revenue is harder to flatter. High growth also tends to be the dimension that decays fastest, which is why a name can score 9.9 here and still be a poor holding — NVDA compounded revenue from $16.7B to $215.9B in six years and still scores 1.5 on valuation.`,
  sv2_balance:`<b>⚖ Balance sheet — can it survive a bad year?</b><br>Current ratio, quick ratio, debt-to-equity and long-term-debt-to-assets.<br><br><b>The first two are SWEET SPOTS, not ladders</b> — this is the part most screens get wrong. A current ratio of 1.5–3.0 scores a full 10; a ratio of 6 scores <i>worse</i>, because that is not strength, it is idle cash earning nothing. Our own ratio table calls anything above 3 "lazy cash". Scoring it as higher-is-better would reward companies for failing to deploy capital, so the band penalises both sides.`,
