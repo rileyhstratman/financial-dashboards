@@ -3227,8 +3227,16 @@ goto(location.hash.replace('#','')||'home',false);
    (d.rows||[]).forEach(r=>{
     const inList=have.has(r.t);
     const chips=(r.rules||[]).map(k=>`<span style="font-size:10px;padding:1px 6px;border:1px solid ${RULECOL[k]||'var(--border)'};color:${RULECOL[k]||'var(--dim)'};border-radius:8px;margin-right:4px">${k}</span>`).join('');
-    h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-wcres="${r.t}">${r.t}</b><div class="muted" style="font-size:10.5px">${r.name||''}</div></td>`+
-       `<td style="font-size:11.5px">${chips}<div class="muted" style="margin-top:3px">${(r.why||[]).join(' · ')}</div></td>`+
+    const pf=r.perf||{};
+    const pfTxt=['m1','m6','y1'].filter(k=>pf[k]!=null).map(k=>{
+      const v=pf[k],lab={m1:'1M',m6:'6M',y1:'1Y'}[k];
+      return `<span class="muted">${lab}</span> <b style="color:${v>=0?'var(--pos)':'var(--neg)'}">${v>=0?'+':''}${v}%</b>`;}).join(' · ');
+    // split "The case:" / "The catch:" onto their own lines — the two-sidedness is the
+    // point, and running them together buries the half that argues against the name
+    const br=(r.brief||'').replace(/^The case:/,'<b>The case:</b>').replace(/ The catch:/,'<br><b>The catch:</b>');
+    h+=`<tr><td><b style="cursor:pointer;color:var(--accent)" data-wcres="${r.t}">${r.t}</b><div class="muted" style="font-size:10.5px">${r.name||''}</div><div style="font-size:10.5px;margin-top:3px">${pfTxt}</div></td>`+
+       `<td style="font-size:11.5px">${chips}<div class="muted" style="margin-top:3px">${(r.why||[]).join(' · ')}</div>`+
+       `<div style="margin-top:5px;padding-left:8px;border-left:2px solid var(--border);line-height:1.5">${br}</div></td>`+
        `<td>${r.score==null?'<span class="muted">—</span>':`<b>${r.score}</b> <span class="muted" style="font-size:10.5px">${r.cov}/6</span>`}</td>`+
        `<td>${r.px==null?'—':'$'+r.px.toLocaleString()}</td>`+
        `<td>${inList?'<span class="muted" style="font-size:11px">in list</span>':`<button class="csvBtn" style="float:none;padding:2px 8px" data-wcadd="${r.t}">+ add</button>`}</td></tr>`;
