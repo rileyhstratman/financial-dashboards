@@ -770,8 +770,10 @@ const ROIC={"Energy":11.9,"Materials (ex-Precious)":15.6,"Precious Metals":25.4,
      no matter what the other sectors do).
    RELATIVE: min-max position among the 4 sectors × 10, direction-aware —
      this is the cross-sector reference.
-   Category rating = average of its KPI ratings; if KPI ratings within a category disagree by
-     >2 points, the panel flags "mixed signals" (cross-check between ratios describing the same thing).
+   Category rating = average of its KPI ratings; if the KPI ratings within a category disagree
+     by more than MIX_SPREAD points the cell carries a ⚠ (cross-check between ratios describing
+     the same thing). This comment used to say ">2 points" while the code used 3 and now uses
+     5.5 — the threshold lives in the MIX_SPREAD constant, so read it there, not here.
    Verdict bands: 0-2 Very Bearish · 2-4 Bearish · 4-6 Neutral · 6-8 Bullish · 8-10 Very Bullish. */
 const ANCH={ // [value, score] anchors. NOT all monotonic: some ratios have a SWEET SPOT —
  // too low AND too high are both bad. Direction/shape lives entirely in these anchors.
@@ -996,6 +998,11 @@ function catScore(cat,sector){
  const ss=cat.kpis.map(k=>kpiScore(k,sector)).filter(v=>v!=null);
  return ss.length? ss.reduce((a,b)=>a+b,0)/ss.length : null;
 }
+// Spread above which a category is called "mixed". Set from the measured distribution of
+// spreads across all scored cells (see the heat-map cell renderer for the numbers), not by
+// feel: it sits just above the 75th percentile so the flag marks genuinely unusual internal
+// disagreement instead of the median case.
+const MIX_SPREAD=5.5;
 function catSpread(cat,sector){ // disagreement between ratios describing the same category
  const ss=cat.kpis.map(k=>kpiScore(k,sector)).filter(v=>v!=null);
  return ss.length>1 ? Math.max(...ss)-Math.min(...ss) : 0;
@@ -1012,15 +1019,31 @@ function color(s){ // 0 red -> 10 green
 (function(){
  let h='<table><tr><th style="text-align:left">Sector</th>';
  CATS.forEach(c=>h+=`<th title="${CATDESC[c.name]}">${c.name}</th>`); // desc moved to hover tooltip, Jul 16
- h+='<th>OVERALL<br><span style="font-weight:400;font-size:10.5px">Weighted: '+CATS.map(c=>c.name.replace("Profitability","Prof").replace("Valuation","Val").replace("Efficiency","Eff").replace("Liquidity","Liq").replace("Leverage","Lev").replace("Cash Flow","CF")+" "+(CATW[c.name]*100)).join(" · ")+'%</span></th></tr>'; // dynamic from CATW (was hardcoded & went stale — fixed Jul 16)
+ // The full weighting used to be printed in the header, which made OVERALL three times the
+ // height of every other column heading for information you only need once. It moves to the
+ // column tooltip and stays dynamic from CATW (it was hardcoded and went stale — fixed Jul
+ // 16); clicking any OVERALL cell still shows the whole arithmetic term by term.
+ const wtStr=CATS.map(c=>c.name.replace("Profitability","Prof").replace("Valuation","Val").replace("Efficiency","Eff").replace("Liquidity","Liq").replace("Leverage","Lev").replace("Cash Flow","CF")+" "+(CATW[c.name]*100)).join(" · ")+'%';
+ h+='<th title="Weighted average of the seven category scores — '+wtStr+'. Click any cell for the full term-by-term arithmetic.">OVERALL<br><span style="font-weight:400;font-size:10px;opacity:.7">weighted · click a cell</span></th></tr>';
  SECTORS.forEach(s=>{
   h+=`<tr><td class="rowhead">${s}</td>`;
   CATS.forEach((c,ci)=>{
    const sc=catScore(c,s);
    if(sc==null){h+=`<td class="na" title="No reliable sector-level data for this category. Skipped in scoring, NOT counted as zero.">N/A</td>`;}
    else{
-    const mixed=catSpread(c,s)>3?`<br><span style="font-size:9px;font-weight:400">⚠ mixed signals</span>`:"";
-    h+=`<td class="cell" style="background:${color(sc)}" title="${verdict(sc)} · weight ${(CATW[c.name]*100).toFixed(0)}%" onclick="showDetail('${s}',${ci})">${sc.toFixed(1)}${mixed}</td>`;}
+    // MIXED-SIGNAL FLAG, RE-THRESHOLDED (Jul 26). It used to fire above a spread of 3 and
+    // printed the words "⚠ mixed signals" inside the cell. Measured across the 34 scored
+    // cells the spread distribution is: min 0.2 · p25 2.5 · MEDIAN 3.6 · p75 5.3 · max 8.6.
+    // A threshold of 3 therefore sat BELOW the median and lit up 21 of 34 cells — 62% — so
+    // it marked the typical cell rather than the unusual one, which is the same as marking
+    // nothing while costing two lines of text in every box. MIX_SPREAD now sits just above
+    // p75, so the flag means "top quartile of internal disagreement" and fires on roughly a
+    // quarter of cells. The wording moved to the tooltip and the click-through panel, which
+    // already spell out which ratios disagree — the cell only needs the glyph.
+    const sp=catSpread(c,s);
+    const mixed=sp>MIX_SPREAD?` <span style="font-size:10px;font-weight:400;opacity:.75">⚠</span>`:"";
+    const mixT=sp>MIX_SPREAD?` · ⚠ ratios inside this category disagree (spread ${sp.toFixed(1)}/10) — click for the breakdown`:"";
+    h+=`<td class="cell" style="background:${color(sc)}" title="${verdict(sc)} · weight ${(CATW[c.name]*100).toFixed(0)}%${mixT}" onclick="showDetail('${s}',${ci})">${sc.toFixed(1)}${mixed}</td>`;}
   });
   const comp=overall(s);
   h+=`<td class="cell" style="background:${color(comp)}" onclick="showComposite('${s}')">${comp.toFixed(1)}<br><span style="font-size:9.5px;font-weight:600">${verdict(comp)}</span></td></tr>`;
@@ -1113,7 +1136,7 @@ window.showComposite=function(sector){
  const terms=[];let num=0,den=0;
  CATS.forEach(c=>{const sc=catScore(c,sector);
   const w=CATW[c.name];
-  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td><td>${(w*100).toFixed(0)}%</td><td>${sc==null?"—":(w*sc).toFixed(2)}</td><td>${sc==null?"—":verdict(sc)+(catSpread(c,sector)>3?" ⚠ mixed":"")}</td></tr>`;
+  h+=`<tr><td>${c.name}</td><td>${sc==null?"N/A (excluded)":sc.toFixed(1)}</td><td>${(w*100).toFixed(0)}%</td><td>${sc==null?"—":(w*sc).toFixed(2)}</td><td>${sc==null?"—":verdict(sc)+(catSpread(c,sector)>MIX_SPREAD?" ⚠ mixed":"")}</td></tr>`;
   if(sc!=null){terms.push(`${(w*100).toFixed(0)}%×${sc.toFixed(1)}`);num+=w*sc;den+=w;}});
  const t=num/den;
  h+=`</table><div style="margin-top:8px">Overall = (${terms.join(" + ")}) ÷ ${(den*100).toFixed(0)}% = <b>${t.toFixed(1)} / 10 → ${verdict(t)}</b> <span class="muted">(weights renormalized if a category is N/A)</span></div>`;
@@ -3192,7 +3215,7 @@ const POPS={
  regime:`<b>What a hidden Markov model is.</b> Assume the market lives in a few hidden "regimes," each with its own behavior pattern, switching occasionally. You never see the regime — only daily returns. The HMM infers both the regimes and the switch dates from the returns alone (the founding technique of Renaissance Technologies).<br><br><b>Ours</b> watches three channels vs the S&P: defense (ITA), energy (XLE), gold miners (GDX) — chosen because the event study showed these carry the conflict signature. Three regimes, picked by information criterion, not by hand.<br><br><b>Walk-forward means no hindsight:</b> the state assigned to any day was computed using only data available that day (model refit monthly on an expanding window). A switch is only "confirmed" after the new state holds 5 straight days — so every date on this tab was knowable in real time.`,
  regwf:`<b>Reading the strip.</b> Colors are the model's <i>confirmed</i> regime each day, walk-forward. Coverage starts Nov 2023 because the model requires 500 days of history before its first call.<br><br>The Apr–May 2025 red segment is a broad drawdown the model grouped with the 2026 war regime — same statistical signature (everything down vs the market), different cause. The model names behavior, not headlines.`,
  regsig:`<b>How signatures are measured.</b> For each regime: the average daily excess return (vs SPY) of ITA / XLE / GDX across the days the model assigned to that regime, annualized (×252). Descriptive — it says how those days looked, not how future days in that regime will look. Excess-vs-market: "+42%" means beat the S&P by 42%/yr during those days, not absolute return.`,
- heat:`<b>Reading the heat map.</b> Every cell is 0–10, read like a stock call: 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.<br><br>Each rating blends <b>(1)</b> what the ratio's value means on its own, scored against published rules of thumb and the sector's own 22-year history (60%), and <b>(2)</b> how it compares with the other four sectors (40%). Ratios in the same category are cross-checked — big disagreement flags <b>"mixed signals."</b><br><br>Grey N/A = no reliable data; skipped, never counted as zero. Full methodology: How to Read tab.`,
+ heat:`<b>Reading the heat map.</b> Every cell is 0–10, read like a stock call: 0–2 Very Bearish · 2–4 Bearish · 4–6 Neutral · 6–8 Bullish · 8–10 Very Bullish.<br><br>Each rating blends <b>(1)</b> what the ratio's value means on its own, scored against published rules of thumb and the sector's own 22-year history (60%), and <b>(2)</b> how it compares with the other four sectors (40%). Ratios in the same category are cross-checked, and a <b>⚠</b> on a cell means they disagree unusually strongly — hover it for the spread, click for the breakdown. The bar for "unusual" is set from the measured distribution across all scored cells (top quartile, spread above 5.5 of 10) rather than picked by feel; the old threshold of 3 sat below the median spread of 3.6, so it fired on 62% of cells and told you nothing.<br><br>Grey N/A = no reliable data; skipped, never counted as zero. Full methodology: How to Read tab.`,
  stoch:`<b>What the simulation table means.</b> "P(up, 3y) = 82%" = in 82% of 2,000 simulated futures, the sector was worth more after 3 years. The REAL column asks the stricter question: beating 2.5%/yr inflation, not just zero. Everything depends on the assumed drift (μ) and wobble (σ) — both measured from ETF history (windows shown per row) so you can challenge them. Backward-looking: the model's one big bet is that the future rhymes with the measured past.`,
  machinery:`<b>The three engines.</b><br><b>1 · GBM Monte Carlo:</b> <span class="formula">V_T = exp[(μ−σ²/2)T + σ√T·Z]</span>, 2,000 paths per sector at 3y and 5y horizons; seeded RNG so every run is identical and auditable.<br><br><b>2 · Vasicek rates:</b> <span class="formula">drₜ = a(b−rₜ)dt + σᵣdWₜ</span> (r₀=4.0%, a=0.30, b=3.5%, σᵣ=1.0%), simulated monthly for 5y — the mean terminal rate + 4% equity premium forms the discount rate.<br><br><b>3 · Growing perpetuity:</b> <span class="formula">PV per $1 = 1/(r−g)</span> — explored fully on the Sensitivity tab.`,
  sens:`<b>How to use the grid.</b> Rows = discount rate r (the return you demand for waiting and risk). Columns = growth g (your optimism, forever). Pick a row, slide right: same cash, only optimism changes — and value doesn't rise smoothly, it ACCELERATES. At r=8%, moving g from 2%→4% adds +50% of "value" from nothing real.<br><br>⚠ cells: g ≈ r, the formula divides by ~zero — if a valuation lives there, assumptions are doing all the work.<br><br><b>Why care:</b> the DCF's terminal value uses this exact formula and is usually 60–80% of any valuation. When analysts disagree wildly on a price target, the disagreement lives in this grid.`,
