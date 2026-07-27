@@ -1,5 +1,5 @@
 {
- "as_of": "2026-07-27 05:07 UTC",
+ "as_of": "2026-07-27 05:29 UTC",
  "window": "251d daily",
  "vols": {
   "XLE": 21.0,
@@ -23,16 +23,17 @@
  "avg_corr": 0.227,
  "port_vol_pct": 10.3,
  "target_pct": 15.0,
- "within_target": false,
+ "within_target": true,
  "amendment_15": {
-  "active": true,
+  "measurement_on": true,
+  "governs": false,
   "stress_available": true,
   "stress_days": 354,
   "stress_avg_corr": 0.549,
   "calm_vol_pct": 10.3,
   "stress_vol_pct": 20.1,
-  "governing_vol_pct": 20.1,
-  "required_scale": 0.745,
-  "note": "the target is now measured under DRAWDOWN correlations; the trailing window is ~81% calm days and understated risk by ~89%"
+  "governing_vol_pct": 10.3,
+  "required_scale": 1.0,
+  "note": "REPORTED ONLY, does not govern (option A). The book runs 20.1% under drawdown correlations against 10.3 in the trailing window \u2014 known and accepted, not hidden. Sharpe across the 9y panel was 0.40 vs 0.42 scaled, so scaling down is a leverage choice rather than a risk improvement. Revisit if outside capital or leverage enters."
  }
 }
