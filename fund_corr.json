@@ -1,0 +1,38 @@
+{
+ "as_of": "2026-07-27 05:07 UTC",
+ "window": "251d daily",
+ "vols": {
+  "XLE": 21.0,
+  "XLB": 17.5,
+  "GDX": 48.8,
+  "ITA": 22.1,
+  "XLK": 24.8
+ },
+ "corr": {
+  "XLE-XLB": 0.053,
+  "XLE-GDX": -0.119,
+  "XLE-ITA": -0.18,
+  "XLE-XLK": -0.158,
+  "XLB-GDX": 0.579,
+  "XLB-ITA": 0.484,
+  "XLB-XLK": 0.337,
+  "GDX-ITA": 0.409,
+  "GDX-XLK": 0.438,
+  "ITA-XLK": 0.422
+ },
+ "avg_corr": 0.227,
+ "port_vol_pct": 10.3,
+ "target_pct": 15.0,
+ "within_target": false,
+ "amendment_15": {
+  "active": true,
+  "stress_available": true,
+  "stress_days": 354,
+  "stress_avg_corr": 0.549,
+  "calm_vol_pct": 10.3,
+  "stress_vol_pct": 20.1,
+  "governing_vol_pct": 20.1,
+  "required_scale": 0.745,
+  "note": "the target is now measured under DRAWDOWN correlations; the trailing window is ~81% calm days and understated risk by ~89%"
+ }
+}
