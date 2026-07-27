@@ -2328,8 +2328,29 @@ goto(location.hash.replace('#','')||'home',false);
   h+=rdHdr('SIZING & TIMING','constraints and dates — not a view');
   const kr=kellyRow(a);
   if(kr) h+=rdRow(rdChip('size'),'Position cap',kr.replace(/^<div[^>]*>/,'').replace(/<\/div>$/,'').replace(/^<b>Sizing math<\/b>\s*/,''));
-  if(A.er[t]) h+=rdRow(rdChip('size','DATE'),'Next report',
-    `≈ ${A.er[t]} <span class="muted">— estimated from filing cadence, not an announced date.</span>`);
+  /* NEXT REPORT (rebuilt 2026-07-27). Every value here is an ESTIMATE produced by our own
+     filing-cadence model — never a company-announced date — so the chip reads EST rather
+     than DATE. analytics.json now carries er_src alongside er precisely so this distinction
+     is data-driven: the day a CONFIRMED source exists (an announced date rather than a
+     modelled one) it arrives as a new er_src value and this branch renders it differently
+     without another guess about provenance. er_src === 'est_due' is not a date at all: the
+     company's own filing slot has come round with no filing seen, so the honest output is a
+     window. Past-dated values can no longer reach here — the builder drops them — but the
+     guard stays because a stale analytics.json is a normal thing to be serving. */
+  if(A.er[t]){
+   const src=(A.er_src||{})[t]||'est_cadence', fm=(A.er_form||{})[t];
+   const stale=A.er[t] < new Date().toISOString().slice(0,10);
+   const annual=fm&&fm!=='10-Q';
+   const body = stale
+    ? `<span class="muted">unknown — this estimate has expired; rerun stock_analytics_builder.py.</span>`
+    : (src==='est_due'
+       ? `<b>reporting window open now</b> <span class="muted">— its filing slot has come round and we have not seen the filing yet, so expect it within roughly a week either way. Our filing record can trail EDGAR by a few days, so it may already be out.</span>`
+       : `≈ <b>${A.er[t]}</b>`);
+   h+=rdRow(rdChip('size',src==='est_due'?'DUE':'EST'),'Next report',
+    body+(stale?'':` <span class="muted">— ESTIMATED from this company's own SEC filing cadence`+
+    (fm?`, expected form <b>${fm}</b>`:'')+`. Not an announced date`+
+    (annual?`, and an annual report is normally filed weeks AFTER the results call`:'')+`.</span>`));
+  }
   return h;
  }
  const pct=v=>`<span style="font-weight:700;color:${v>0?'var(--pos)':v<0?'var(--neg)':'var(--dim)'}">${v>0?'+':''}${v.toFixed(2)}%</span>`;
